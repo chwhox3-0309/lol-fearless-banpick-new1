@@ -47,6 +47,11 @@ interface ChampionData {
   [key: string]: Champion; // Object where keys are champion IDs and values are Champion objects
 }
 
+interface CompletedDraft {
+  blueTeamPicks: string[];
+  redTeamPicks: string[];
+}
+
 export default function Home() {
   const [version, setVersion] = useState<string | null>(null);
   const [champions, setChampions] = useState<ChampionData>({}); // Champions for the current locale
@@ -58,7 +63,7 @@ export default function Home() {
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState<keyof typeof LOCALES>('ko_KR');
-  const [completedDrafts, setCompletedDrafts] = useState<any[]>([]); // New state for accumulated drafts
+  const [completedDrafts, setCompletedDrafts] = useState<CompletedDraft[]>([]); // New state for accumulated drafts
   const [isSearchSticky, setIsSearchSticky] = useState(false); // New state for sticky search bar
   const searchBarRef = useRef<HTMLDivElement>(null); // Ref for the search bar
 
@@ -249,13 +254,13 @@ export default function Home() {
   // Helper to get all selected champions (current + completed)
   const getAllSelectedChampions = useMemo(() => {
     const selected = new Set<string>();
-    blueTeamPicks.forEach(id => selected.add(id));
-    redTeamPicks.forEach(id => selected.add(id));
-    blueTeamBans.forEach(id => selected.add(id));
-    redTeamBans.forEach(id => selected.add(id));
-    completedDrafts.forEach(draft => {
-      draft.blueTeamPicks.forEach(id => selected.add(id));
-      draft.redTeamPicks.forEach(id => selected.add(id));
+    blueTeamPicks.forEach((id: string) => selected.add(id));
+    redTeamPicks.forEach((id: string) => selected.add(id));
+    blueTeamBans.forEach((id: string) => selected.add(id));
+    redTeamBans.forEach((id: string) => selected.add(id));
+    completedDrafts.forEach((draft: CompletedDraft) => {
+      draft.blueTeamPicks.forEach((id: string) => selected.add(id));
+      draft.redTeamPicks.forEach((id: string) => selected.add(id));
     });
     return Array.from(selected);
   }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, completedDrafts]);
@@ -374,7 +379,7 @@ export default function Home() {
                 {version && (
                   <Image
                     src={getChampionThumbnailUrl(version, champion.id)}
-                    alt={champion.name}
+                    alt={champion.id}
                     width={64}
                     height={64}
                     className="rounded-md"
