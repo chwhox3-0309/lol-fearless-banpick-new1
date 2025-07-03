@@ -186,7 +186,7 @@ export default function Home() {
     if (!searchTerm) {
       return allChampions;
     }
-    return allChampions.filter((champion) =>
+    return allChampions.filter((champion: Champion) =>
       champion.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allChampions, searchTerm]);
@@ -292,7 +292,7 @@ export default function Home() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Picks:</h3>
           <div className="flex flex-wrap gap-2">
-            {blueTeamPicks.map((champId) => (
+            {redTeamPicks.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -360,7 +360,7 @@ export default function Home() {
 
 
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mt-4">
-            {filteredChampions.map((champion) => (
+            {filteredChampions.map((champion: Champion) => (
               <div
                 key={champion.id}
                 className={`cursor-pointer hover:scale-105 transition-transform duration-200 relative ${
