@@ -37,20 +37,30 @@ const LOCALES = {
   ja_JP: '日本語',
 };
 
+interface Champion {
+  id: string;
+  name: string;
+  // Add other properties of a champion if known, e.g., image, title
+}
+
+interface ChampionData {
+  [key: string]: Champion; // Object where keys are champion IDs and values are Champion objects
+}
+
 export default function Home() {
-  const [version, setVersion] = useState(null);
-  const [champions, setChampions] = useState({}); // Champions for the current locale
-  const [allChampionsByLocale, setAllChampionsByLocale] = useState({}); // All champions by locale
-  const [blueTeamPicks, setBlueTeamPicks] = useState([]);
-  const [redTeamPicks, setRedTeamPicks] = useState([]);
-  const [blueTeamBans, setBlueTeamBans] = useState([]);
-  const [redTeamBans, setRedTeamBans] = useState([]);
+  const [version, setVersion] = useState<string | null>(null);
+  const [champions, setChampions] = useState<ChampionData>({}); // Champions for the current locale
+  const [allChampionsByLocale, setAllChampionsByLocale] = useState<Record<string, ChampionData>>({}); // All champions by locale
+  const [blueTeamPicks, setBlueTeamPicks] = useState<string[]>([]);
+  const [redTeamPicks, setRedTeamPicks] = useState<string[]>([]);
+  const [blueTeamBans, setBlueTeamBans] = useState<string[]>([]);
+  const [redTeamBans, setRedTeamBans] = useState<string[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentLanguage, setCurrentLanguage] = useState('ko_KR');
-  const [completedDrafts, setCompletedDrafts] = useState([]); // New state for accumulated drafts
+  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof LOCALES>('ko_KR');
+  const [completedDrafts, setCompletedDrafts] = useState<any[]>([]); // New state for accumulated drafts
   const [isSearchSticky, setIsSearchSticky] = useState(false); // New state for sticky search bar
-  const searchBarRef = useRef(null); // Ref for the search bar
+  const searchBarRef = useRef<HTMLDivElement>(null); // Ref for the search bar
 
   // Fetch champion data and version on mount
   useEffect(() => {
@@ -121,7 +131,7 @@ export default function Home() {
     };
   }, []);
 
-  const handleChampionClick = (championId) => {
+  const handleChampionClick = (championId: string) => {
     if (currentTurnIndex >= BAN_PICK_SEQUENCE.length) {
       // All turns completed, do nothing
       return;
@@ -223,7 +233,7 @@ export default function Home() {
     alert('소환사명으로 불러오기 기능은 백엔드 프록시 서버가 필요합니다. 현재는 구현되지 않았습니다.');
   }, []);
 
-  const handleLanguageChange = useCallback((lang) => {
+  const handleLanguageChange = useCallback((lang: keyof typeof LOCALES) => {
     setCurrentLanguage(lang);
   }, []);
 
@@ -238,7 +248,7 @@ export default function Home() {
 
   // Helper to get all selected champions (current + completed)
   const getAllSelectedChampions = useMemo(() => {
-    const selected = new Set();
+    const selected = new Set<string>();
     blueTeamPicks.forEach(id => selected.add(id));
     redTeamPicks.forEach(id => selected.add(id));
     blueTeamBans.forEach(id => selected.add(id));
