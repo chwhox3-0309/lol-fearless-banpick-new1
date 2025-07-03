@@ -281,7 +281,7 @@ export default function Home() {
           <h2 className="text-xl font-bold mb-4 text-blue-400">Blue Team</h2>
           <h3 className="text-lg font-semibold mb-2">Bans:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {blueTeamBans.map((champId) => (
+            {blueTeamBans.map((champId: string) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -297,7 +297,7 @@ export default function Home() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Picks:</h3>
           <div className="flex flex-wrap gap-2">
-            {redTeamPicks.map((champId) => (
+            {redTeamPicks.map((champId: string) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -319,7 +319,7 @@ export default function Home() {
                   
                   <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
                   <div className="flex flex-wrap gap-1">
-                    {draft.blueTeamPicks.map(champId => (
+                    {draft.blueTeamPicks.map((champId: string) => (
                       <div key={`prev-blue-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
                         {version && (
                           <Image
@@ -396,7 +396,7 @@ export default function Home() {
           <h2 className="text-xl font-bold mb-4 text-red-400">Red Team</h2>
           <h3 className="text-lg font-semibold mb-2">Bans:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {redTeamBans.map((champId) => (
+            {redTeamBans.map((champId: string) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -412,7 +412,7 @@ export default function Home() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Picks:</h3>
           <div className="flex flex-wrap gap-2">
-            {redTeamPicks.map((champId) => (
+            {redTeamPicks.map((champId: string) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -434,7 +434,7 @@ export default function Home() {
                   
                   <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
                   <div className="flex flex-wrap gap-1">
-                    {draft.redTeamPicks.map(champId => (
+                    {draft.redTeamPicks.map((champId: string) => (
                       <div key={`prev-red-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
                         {version && (
                           <Image
