@@ -1,0 +1,444 @@
+'use client';
+
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import Image from 'next/image';
+import { getLatestVersion, getChampionData, getChampionThumbnailUrl } from '@/src/lib/riot-api';
+import NavBar from '@/components/NavBar';
+
+const BAN_PICK_SEQUENCE = [
+  { team: 'blue', type: 'ban' },
+  { team: 'red', type: 'ban' },
+  { team: 'blue', type: 'ban' },
+  { team: 'red', type: 'ban' },
+  { team: 'blue', type: 'ban' },
+  { team: 'red', type: 'ban' },
+
+  { team: 'blue', type: 'pick' },
+  { team: 'red', type: 'pick' },
+  { team: 'red', type: 'pick' },
+  { team: 'blue', type: 'pick' },
+  { team: 'blue', type: 'pick' },
+  { team: 'red', type: 'pick' },
+
+  { team: 'red', type: 'ban' },
+  { team: 'blue', type: 'ban' },
+  { team: 'red', type: 'ban' },
+  { team: 'blue', type: 'ban' },
+
+  { team: 'red', type: 'pick' },
+  { team: 'blue', type: 'pick' },
+  { team: 'blue', type: 'pick' },
+  { team: 'red', type: 'pick' },
+];
+
+const LOCALES = {
+  ko_KR: '한국어',
+  en_US: 'English',
+  ja_JP: '日本語',
+};
+
+export default function Home() {
+  const [version, setVersion] = useState(null);
+  const [champions, setChampions] = useState({}); // Champions for the current locale
+  const [allChampionsByLocale, setAllChampionsByLocale] = useState({}); // All champions by locale
+  const [blueTeamPicks, setBlueTeamPicks] = useState([]);
+  const [redTeamPicks, setRedTeamPicks] = useState([]);
+  const [blueTeamBans, setBlueTeamBans] = useState([]);
+  const [redTeamBans, setRedTeamBans] = useState([]);
+  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState('ko_KR');
+  const [completedDrafts, setCompletedDrafts] = useState([]); // New state for accumulated drafts
+  const [isSearchSticky, setIsSearchSticky] = useState(false); // New state for sticky search bar
+  const searchBarRef = useRef(null); // Ref for the search bar
+
+  // Fetch champion data and version on mount
+  useEffect(() => {
+    async function fetchData() {
+      const latestVersion = await getLatestVersion();
+      setVersion(latestVersion);
+
+      const koChampions = await getChampionData(latestVersion, 'ko_KR');
+      const enChampions = await getChampionData(latestVersion, 'en_US');
+      const jaChampions = await getChampionData(latestVersion, 'ja_JP');
+
+      setAllChampionsByLocale({
+        ko_KR: koChampions,
+        en_US: enChampions,
+        ja_JP: jaChampions,
+      });
+      setChampions(koChampions); // Default to Korean
+    }
+    fetchData();
+  }, []);
+
+  // Load completed drafts from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedDrafts = localStorage.getItem('completedDrafts');
+      if (savedDrafts) {
+        try {
+          setCompletedDrafts(JSON.parse(savedDrafts));
+        } catch (e) {
+          console.error("Failed to parse completed drafts from localStorage", e);
+          localStorage.removeItem('completedDrafts'); // Clear corrupted data
+        }
+      }
+    }
+  }, []);
+
+  // Save completed drafts to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('completedDrafts', JSON.stringify(completedDrafts));
+    }
+  }, [completedDrafts]);
+
+  useEffect(() => {
+    if (allChampionsByLocale[currentLanguage]) {
+      setChampions(allChampionsByLocale[currentLanguage]);
+    }
+  }, [currentLanguage, allChampionsByLocale]);
+
+  // Effect for sticky search bar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (searchBarRef.current) {
+        const searchBarOffset = searchBarRef.current.offsetTop;
+        // Adjust this value based on the actual height of your NavBar
+        const navBarHeight = 64; // Assuming NavBar height is around 64px (p-4 + some padding/margin)
+        if (window.scrollY > searchBarOffset - navBarHeight) {
+          setIsSearchSticky(true);
+        } else {
+          setIsSearchSticky(false);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  const handleChampionClick = (championId) => {
+    if (currentTurnIndex >= BAN_PICK_SEQUENCE.length) {
+      // All turns completed, do nothing
+      return;
+    }
+
+    const currentTurn = BAN_PICK_SEQUENCE[currentTurnIndex];
+
+    // Check if champion is already selected in current draft or completed drafts
+    const isAlreadySelectedInCurrent = 
+      blueTeamPicks.includes(championId) ||
+      redTeamPicks.includes(championId) ||
+      blueTeamBans.includes(championId) ||
+      redTeamBans.includes(championId);
+
+    const isAlreadySelectedInCompleted = completedDrafts.some(draft =>
+      draft.blueTeamPicks.includes(championId) ||
+      draft.redTeamPicks.includes(championId)
+    );
+
+    if (isAlreadySelectedInCurrent || isAlreadySelectedInCompleted) {
+      console.log(`${championId} is already selected.`);
+      return;
+    }
+
+    if (currentTurn.team === 'blue') {
+      if (currentTurn.type === 'ban') {
+        setBlueTeamBans((prev) => [...prev, championId]);
+      } else {
+        setBlueTeamPicks((prev) => [...prev, championId]);
+      }
+    } else if (currentTurn.team === 'red') {
+      if (currentTurn.type === 'ban') {
+        setRedTeamBans((prev) => [...prev, championId]);
+      } else {
+        setRedTeamPicks((prev) => [...prev, championId]);
+      }
+    }
+
+    setCurrentTurnIndex((prev) => prev + 1);
+  };
+
+  const allChampions = useMemo(() => {
+    const championsArray = Object.values(champions);
+    if (currentLanguage === 'ko_KR') {
+      return championsArray.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    } else {
+      return championsArray.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  }, [champions, currentLanguage]);
+
+  const filteredChampions = useMemo(() => {
+    if (!searchTerm) {
+      return allChampions;
+    }
+    return allChampions.filter((champion) =>
+      champion.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allChampions, searchTerm]);
+
+  const currentTurnInfo = BAN_PICK_SEQUENCE[currentTurnIndex];
+
+  const handleNextSet = useCallback(() => {
+    if (currentTurnIndex < BAN_PICK_SEQUENCE.length) {
+      alert('Bans 또는 Picks를 모두 진행해야 합니다.');
+      return;
+    }
+
+    // Accumulate current draft
+    setCompletedDrafts((prev) => [
+      ...prev,
+      {
+        blueTeamPicks,
+        redTeamPicks,
+      },
+    ]);
+    // Reset current draft state
+    setBlueTeamPicks([]);
+    setRedTeamPicks([]);
+    setBlueTeamBans([]);
+    setRedTeamBans([]);
+    setCurrentTurnIndex(0);
+  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, currentTurnIndex]);
+
+  const handleResetAll = useCallback(() => {
+    if (window.confirm('정말 초기화 하시겠습니까?')) {
+      setBlueTeamPicks([]);
+      setRedTeamPicks([]);
+      setBlueTeamBans([]);
+      setRedTeamBans([]);
+      setCurrentTurnIndex(0);
+      setCompletedDrafts([]); // Clear all accumulated drafts
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('completedDrafts'); // Clear localStorage
+      }
+    }
+  }, []);
+
+  const handleLoadSummoner = useCallback(() => {
+    alert('소환사명으로 불러오기 기능은 백엔드 프록시 서버가 필요합니다. 현재는 구현되지 않았습니다.');
+  }, []);
+
+  const handleLanguageChange = useCallback((lang) => {
+    setCurrentLanguage(lang);
+  }, []);
+
+  const getSearchPlaceholder = () => {
+    switch (currentLanguage) {
+      case 'ko_KR': return '챔피언 검색...';
+      case 'en_US': return 'Search champions...';
+      case 'ja_JP': return 'チャンピオンを検索...';
+      default: return 'Search champions...';
+    }
+  };
+
+  // Helper to get all selected champions (current + completed)
+  const getAllSelectedChampions = useMemo(() => {
+    const selected = new Set();
+    blueTeamPicks.forEach(id => selected.add(id));
+    redTeamPicks.forEach(id => selected.add(id));
+    blueTeamBans.forEach(id => selected.add(id));
+    redTeamBans.forEach(id => selected.add(id));
+    completedDrafts.forEach(draft => {
+      draft.blueTeamPicks.forEach(id => selected.add(id));
+      draft.redTeamPicks.forEach(id => selected.add(id));
+    });
+    return Array.from(selected);
+  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, completedDrafts]);
+
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <NavBar
+        onNextSet={handleNextSet}
+        onResetAll={handleResetAll}
+        onLoadSummoner={handleLoadSummoner}
+        onLanguageChange={handleLanguageChange}
+        currentLanguage={currentLanguage}
+      />
+      <div className="flex flex-1 flex-col lg:flex-row pt-16"> {/* Add padding-top to main content */}
+        {/* Blue Team Panel */}
+        <div className="w-full lg:w-1/4 bg-gray-800 p-4">
+          <h2 className="text-xl font-bold mb-4 text-blue-400">Blue Team</h2>
+          <h3 className="text-lg font-semibold mb-2">Bans:</h3>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {blueTeamBans.map((champId) => (
+              <div key={champId} className="w-16 h-16 relative">
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champId)}
+                    alt={champId}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Picks:</h3>
+          <div className="flex flex-wrap gap-2">
+            {blueTeamPicks.map((champId) => (
+              <div key={champId} className="w-16 h-16 relative">
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champId)}
+                    alt={champId}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          {completedDrafts.length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Blue):</h3>
+              {completedDrafts.map((draft, index) => (
+                <div key={index} className="mb-2">
+                  
+                  <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {draft.blueTeamPicks.map(champId => (
+                      <div key={`prev-blue-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
+                        {version && (
+                          <Image
+                            src={getChampionThumbnailUrl(version, champId)}
+                            alt={champId}
+                            layout="fill"
+                            objectFit="cover"
+                            className="rounded-md"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Champion Selection Grid */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          <h1 className="text-2xl font-bold text-center mb-4">Champion Select</h1>
+          {currentTurnIndex < BAN_PICK_SEQUENCE.length ? (
+            <p className="text-center mb-4">
+              Current Turn: <span className={currentTurnInfo.team === 'blue' ? 'text-blue-400' : 'text-red-400'}>
+                {currentTurnInfo.team.toUpperCase()} Team
+              </span> - {currentTurnInfo.type.toUpperCase()}
+            </p>
+          ) : (
+            <p className="text-center mb-4 text-green-400">Draft Complete!</p>
+          )}
+
+          <div ref={searchBarRef} className={`transition-all duration-300 ${isSearchSticky ? 'fixed top-16 left-1/4 right-1/4 z-40 bg-gray-900 p-4 rounded-b-lg shadow-lg' : ''}`}>
+            <input
+              type="text"
+              placeholder={getSearchPlaceholder()}
+              className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          {isSearchSticky && <div className="mb-4" style={{ height: searchBarRef.current ? searchBarRef.current.offsetHeight : 'auto' }}></div>} {/* Placeholder for sticky search bar */}
+
+
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mt-4">
+            {filteredChampions.map((champion) => (
+              <div
+                key={champion.id}
+                className={`cursor-pointer hover:scale-105 transition-transform duration-200 relative ${
+                  getAllSelectedChampions.includes(champion.id) ||
+                  currentTurnIndex >= BAN_PICK_SEQUENCE.length
+                    ? 'opacity-50 cursor-not-allowed grayscale'
+                    : ''
+                }`}
+                onClick={() => handleChampionClick(champion.id)}
+              >
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champion.id)}
+                    alt={champion.name}
+                    width={64}
+                    height={64}
+                    className="rounded-md"
+                  />
+                )}
+                <p className="text-xs text-center mt-1">{champion.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Red Team Panel */}
+        <div className="w-full lg:w-1/4 bg-gray-800 p-4">
+          <h2 className="text-xl font-bold mb-4 text-red-400">Red Team</h2>
+          <h3 className="text-lg font-semibold mb-2">Bans:</h3>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {redTeamBans.map((champId) => (
+              <div key={champId} className="w-16 h-16 relative">
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champId)}
+                    alt={champId}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Picks:</h3>
+          <div className="flex flex-wrap gap-2">
+            {redTeamPicks.map((champId) => (
+              <div key={champId} className="w-16 h-16 relative">
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champId)}
+                    alt={champId}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-md"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          {completedDrafts.length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Red):</h3>
+              {completedDrafts.map((draft, index) => (
+                <div key={index} className="mb-2">
+                  
+                  <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {draft.redTeamPicks.map(champId => (
+                      <div key={`prev-red-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
+                        {version && (
+                          <Image
+                            src={getChampionThumbnailUrl(version, champId)}
+                            alt={champId}
+                            layout="fill"
+                            objectFit="cover"
+                            className="rounded-md"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
