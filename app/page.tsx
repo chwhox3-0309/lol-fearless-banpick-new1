@@ -40,22 +40,23 @@ const LOCALES = {
 interface Champion {
   id: string;
   name: string;
-  // Add other properties of a champion if known, e.g., image, title
 }
 
 interface ChampionData {
-  [key: string]: Champion; // Object where keys are champion IDs and values are Champion objects
+  [key: string]: Champion;
 }
 
 interface CompletedDraft {
   blueTeamPicks: string[];
   redTeamPicks: string[];
+  blueTeamBans: string[];
+  redTeamBans: string[];
 }
 
 export default function Home() {
   const [version, setVersion] = useState<string | null>(null);
-  const [champions, setChampions] = useState<ChampionData>({}); // Champions for the current locale
-  const [allChampionsByLocale, setAllChampionsByLocale] = useState<Record<string, ChampionData>>({}); // All champions by locale
+  const [champions, setChampions] = useState<ChampionData>({});
+  const [allChampionsByLocale, setAllChampionsByLocale] = useState<Record<string, ChampionData>>({});
   const [blueTeamPicks, setBlueTeamPicks] = useState<string[]>([]);
   const [redTeamPicks, setRedTeamPicks] = useState<string[]>([]);
   const [blueTeamBans, setBlueTeamBans] = useState<string[]>([]);
@@ -63,11 +64,10 @@ export default function Home() {
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState<keyof typeof LOCALES>('ko_KR');
-  const [completedDrafts, setCompletedDrafts] = useState<CompletedDraft[]>([]); // New state for accumulated drafts
-  const [isSearchSticky, setIsSearchSticky] = useState(false); // New state for sticky search bar
-  const searchBarRef = useRef<HTMLDivElement>(null); // Ref for the search bar
+  const [completedDrafts, setCompletedDrafts] = useState<CompletedDraft[]>([]);
+  const [isSearchSticky, setIsSearchSticky] = useState(false);
+  const searchBarRef = useRef<HTMLDivElement>(null);
 
-  // Fetch champion data and version on mount
   useEffect(() => {
     async function fetchData() {
       const latestVersion = await getLatestVersion();
@@ -82,12 +82,11 @@ export default function Home() {
         en_US: enChampions,
         ja_JP: jaChampions,
       });
-      setChampions(koChampions); // Default to Korean
+      setChampions(koChampions);
     }
     fetchData();
   }, []);
 
-  // Load completed drafts from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedDrafts = localStorage.getItem('completedDrafts');
@@ -96,13 +95,12 @@ export default function Home() {
           setCompletedDrafts(JSON.parse(savedDrafts));
         } catch (e) {
           console.error("Failed to parse completed drafts from localStorage", e);
-          localStorage.removeItem('completedDrafts'); // Clear corrupted data
+          localStorage.removeItem('completedDrafts');
         }
       }
     }
   }, []);
 
-  // Save completed drafts to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('completedDrafts', JSON.stringify(completedDrafts));
@@ -115,13 +113,11 @@ export default function Home() {
     }
   }, [currentLanguage, allChampionsByLocale]);
 
-  // Effect for sticky search bar
   useEffect(() => {
     const handleScroll = () => {
       if (searchBarRef.current) {
         const searchBarOffset = searchBarRef.current.offsetTop;
-        // Adjust this value based on the actual height of your NavBar
-        const navBarHeight = 64; // Assuming NavBar height is around 64px (p-4 + some padding/margin)
+        const navBarHeight = 64;
         if (window.scrollY > searchBarOffset - navBarHeight) {
           setIsSearchSticky(true);
         } else {
@@ -136,30 +132,32 @@ export default function Home() {
     };
   }, []);
 
+  const getAllSelectedChampions = useMemo(() => {
+    const selected = new Set<string>();
+    blueTeamPicks.forEach((id) => selected.add(id));
+    redTeamPicks.forEach((id) => selected.add(id));
+    blueTeamBans.forEach((id) => selected.add(id));
+    redTeamBans.forEach((id) => selected.add(id));
+    completedDrafts.forEach((draft) => {
+      draft.blueTeamPicks.forEach((id) => selected.add(id));
+      draft.redTeamPicks.forEach((id) => selected.add(id));
+      draft.blueTeamBans.forEach((id) => selected.add(id));
+      draft.redTeamBans.forEach((id) => selected.add(id));
+    });
+    return Array.from(selected);
+  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, completedDrafts]);
+
   const handleChampionClick = (championId: string) => {
     if (currentTurnIndex >= BAN_PICK_SEQUENCE.length) {
-      // All turns completed, do nothing
+      return;
+    }
+
+    if (getAllSelectedChampions.includes(championId)) {
+      console.log(`${championId} is already selected.`);
       return;
     }
 
     const currentTurn = BAN_PICK_SEQUENCE[currentTurnIndex];
-
-    // Check if champion is already selected in current draft or completed drafts
-    const isAlreadySelectedInCurrent = 
-      blueTeamPicks.includes(championId) ||
-      redTeamPicks.includes(championId) ||
-      blueTeamBans.includes(championId) ||
-      redTeamBans.includes(championId);
-
-    const isAlreadySelectedInCompleted = completedDrafts.some(draft =>
-      draft.blueTeamPicks.includes(championId) ||
-      draft.redTeamPicks.includes(championId)
-    );
-
-    if (isAlreadySelectedInCurrent || isAlreadySelectedInCompleted) {
-      console.log(`${championId} is already selected.`);
-      return;
-    }
 
     if (currentTurn.team === 'blue') {
       if (currentTurn.type === 'ban') {
@@ -191,7 +189,7 @@ export default function Home() {
     if (!searchTerm) {
       return allChampions;
     }
-    return allChampions.filter((champion: Champion) =>
+    return allChampions.filter((champion) =>
       champion.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allChampions, searchTerm]);
@@ -204,15 +202,16 @@ export default function Home() {
       return;
     }
 
-    // Accumulate current draft
     setCompletedDrafts((prev) => [
       ...prev,
       {
         blueTeamPicks,
         redTeamPicks,
+        blueTeamBans,
+        redTeamBans,
       },
     ]);
-    // Reset current draft state
+    
     setBlueTeamPicks([]);
     setRedTeamPicks([]);
     setBlueTeamBans([]);
@@ -227,9 +226,9 @@ export default function Home() {
       setBlueTeamBans([]);
       setRedTeamBans([]);
       setCurrentTurnIndex(0);
-      setCompletedDrafts([]); // Clear all accumulated drafts
+      setCompletedDrafts([]);
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('completedDrafts'); // Clear localStorage
+        localStorage.removeItem('completedDrafts');
       }
     }
   }, []);
@@ -251,21 +250,6 @@ export default function Home() {
     }
   };
 
-  // Helper to get all selected champions (current + completed)
-  const getAllSelectedChampions = useMemo(() => {
-    const selected = new Set<string>();
-    blueTeamPicks.forEach((id: string) => selected.add(id));
-    redTeamPicks.forEach((id: string) => selected.add(id));
-    blueTeamBans.forEach((id: string) => selected.add(id));
-    redTeamBans.forEach((id: string) => selected.add(id));
-    completedDrafts.forEach((draft: CompletedDraft) => {
-      draft.blueTeamPicks.forEach((id: string) => selected.add(id));
-      draft.redTeamPicks.forEach((id: string) => selected.add(id));
-    });
-    return Array.from(selected);
-  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, completedDrafts]);
-
-
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <NavBar
@@ -275,13 +259,12 @@ export default function Home() {
         onLanguageChange={handleLanguageChange}
         currentLanguage={currentLanguage}
       />
-      <div className="flex flex-1 flex-col lg:flex-row pt-16"> {/* Add padding-top to main content */}
-        {/* Blue Team Panel */}
+      <div className="flex flex-1 flex-col lg:flex-row pt-16">
         <div className="w-full lg:w-1/4 bg-gray-800 p-4">
           <h2 className="text-xl font-bold mb-4 text-blue-400">Blue Team</h2>
           <h3 className="text-lg font-semibold mb-2">Bans:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {blueTeamBans.map((champId: string) => (
+            {blueTeamBans.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -297,7 +280,7 @@ export default function Home() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Picks:</h3>
           <div className="flex flex-wrap gap-2">
-            {redTeamPicks.map((champId: string) => (
+            {blueTeamPicks.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -316,10 +299,9 @@ export default function Home() {
               <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Blue):</h3>
               {completedDrafts.map((draft, index) => (
                 <div key={index} className="mb-2">
-                  
                   <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
                   <div className="flex flex-wrap gap-1">
-                    {draft.blueTeamPicks.map((champId: string) => (
+                    {draft.blueTeamPicks.map((champId) => (
                       <div key={`prev-blue-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
                         {version && (
                           <Image
@@ -339,7 +321,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Champion Selection Grid */}
         <div className="flex-1 p-4 overflow-y-auto">
           <h1 className="text-2xl font-bold text-center mb-4">Champion Select</h1>
           {currentTurnIndex < BAN_PICK_SEQUENCE.length ? (
@@ -361,11 +342,10 @@ export default function Home() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {isSearchSticky && <div className="mb-4" style={{ height: searchBarRef.current ? searchBarRef.current.offsetHeight : 'auto' }}></div>} {/* Placeholder for sticky search bar */}
-
+          {isSearchSticky && <div className="mb-4" style={{ height: searchBarRef.current ? searchBarRef.current.offsetHeight : 'auto' }}></div>}
 
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mt-4">
-            {filteredChampions.map((champion: Champion) => (
+            {filteredChampions.map((champion) => (
               <div
                 key={champion.id}
                 className={`cursor-pointer hover:scale-105 transition-transform duration-200 relative ${
@@ -391,12 +371,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Red Team Panel */}
         <div className="w-full lg:w-1/4 bg-gray-800 p-4">
           <h2 className="text-xl font-bold mb-4 text-red-400">Red Team</h2>
           <h3 className="text-lg font-semibold mb-2">Bans:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
-            {redTeamBans.map((champId: string) => (
+            {redTeamBans.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -412,7 +391,7 @@ export default function Home() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Picks:</h3>
           <div className="flex flex-wrap gap-2">
-            {redTeamPicks.map((champId: string) => (
+            {redTeamPicks.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
                 {version && (
                   <Image
@@ -431,10 +410,9 @@ export default function Home() {
               <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Red):</h3>
               {completedDrafts.map((draft, index) => (
                 <div key={index} className="mb-2">
-                  
                   <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
                   <div className="flex flex-wrap gap-1">
-                    {draft.redTeamPicks.map((champId: string) => (
+                    {draft.redTeamPicks.map((champId) => (
                       <div key={`prev-red-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
                         {version && (
                           <Image
