@@ -252,6 +252,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-center mb-6">
+          {currentLanguage === 'ko_KR' && '롤 피어리스 밴픽 시뮬레이터'}
+          {currentLanguage === 'en_US' && 'LoL Fearless Ban/Pick Simulator'}
+          {currentLanguage === 'ja_JP' && 'LoLフィアレスバンピックシミュレーター'}
+        </h1>
+        <p className="text-lg text-center mb-8">
+          {currentLanguage === 'ko_KR' && '리그 오브 레전드 밴픽 과정을 시뮬레이션하고 전략을 연습해보세요. 팀 구성과 밴픽 순서를 미리 계획하여 게임을 유리하게 이끌 수 있습니다.'}
+          {currentLanguage === 'en_US' && 'Simulate the League of Legends ban/pick process and practice your strategies. Plan your team composition and ban/pick order in advance to gain an advantage in your games.'}
+          {currentLanguage === 'ja_JP' && 'リーグ・オブ・レジェンドのバンピックプロセスをシミュレートし、戦略を練習しましょう。チーム構成とバンピック順序を事前に計画して、ゲームを有利に進めることができます。'}
+        </p>
+      </div>
       <NavBar
         onNextSet={handleNextSet}
         onResetAll={handleResetAll}
