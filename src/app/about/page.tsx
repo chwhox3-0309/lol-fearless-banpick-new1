@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 export default function AboutPage() {
   return (
@@ -11,7 +12,7 @@ export default function AboutPage() {
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
           <h2 className="text-2xl font-semibold mb-4">서비스 개요</h2>
           <p className="text-lg leading-relaxed">
-            LoL Fearless Banpick은 리그 오브 레전드(LoL) 플레이어들이 프로 경기와 같은 "Fearless" 밴픽 방식을 연습하고 시뮬레이션할 수 있도록 돕는 웹 애플리케이션입니다. Fearless 밴픽은 이전 세트에서 사용했던 챔피언을 다시 선택할 수 없는 규칙으로, 전략의 깊이를 더하고 다양한 챔피언 활용을 유도합니다.
+            LoL Fearless Banpick은 리그 오브 레전드(LoL) 플레이어들이 프로 경기와 같은 &quot;Fearless&quot; 밴픽 방식을 연습하고 시뮬레이션할 수 있도록 돕는 웹 애플리케이션입니다. Fearless 밴픽은 이전 세트에서 사용했던 챔피언을 다시 선택할 수 없는 규칙으로, 전략의 깊이를 더하고 다양한 챔피언 활용을 유도합니다.
           </p>
         </div>
 
@@ -31,15 +32,15 @@ export default function AboutPage() {
           <ol className="list-decimal list-inside text-lg space-y-2">
             <li><strong>밴픽 시작:</strong> 메인 페이지에서 밴픽 시뮬레이션을 시작합니다.</li>
             <li><strong>챔피언 선택:</strong> 현재 턴에 맞춰 챔피언을 선택하여 밴 또는 픽을 진행합니다.</li>
-            <li><strong>다음 세트 진행:</strong> 한 세트의 밴픽이 완료되면 "다음 세트" 버튼을 눌러 Fearless 규칙이 적용된 새로운 밴픽을 시작할 수 있습니다.</li>
-            <li><strong>초기화:</strong> "전부 초기화" 버튼을 누르면 모든 밴픽 기록이 삭제됩니다.</li>
+            <li><strong>다음 세트 진행:</strong> 한 세트의 밴픽이 완료되면 &quot;다음 세트&quot; 버튼을 눌러 Fearless 규칙이 적용된 새로운 밴픽을 시작할 수 있습니다.</li>
+            <li><strong>초기화:</strong> &quot;전부 초기화&quot; 버튼을 누르면 모든 밴픽 기록이 삭제됩니다.</li>
           </ol>
         </div>
 
         <div className="mt-12 text-center">
-          <a href="/" className="text-blue-400 hover:text-blue-300 font-bold text-xl">
+          <Link href="/" className="text-blue-400 hover:text-blue-300 font-bold text-xl">
             &larr; 밴픽 시뮬레이터로 돌아가기
-          </a>
+          </Link>
         </div>
       </div>
     </div>

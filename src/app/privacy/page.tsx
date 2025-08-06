@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -41,7 +42,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">4. 개인정보의 보유 및 이용기간</h2>
             <p className="text-lg leading-relaxed">
-              밴픽 기록은 사용자의 로컬 저장소에 저장되며, 사용자가 직접 브라우저의 데이터를 삭제하거나 "전부 초기화" 기능을 사용하기 전까지 유지됩니다. 서비스는 서버에 개인정보를 저장하지 않으므로, 별도의 파기 절차를 거치지 않습니다.
+              밴픽 기록은 사용자의 로컬 저장소에 저장되며, 사용자가 직접 브라우저의 데이터를 삭제하거나 &quot;전부 초기화&quot; 기능을 사용하기 전까지 유지됩니다. 서비스는 서버에 개인정보를 저장하지 않으므로, 별도의 파기 절차를 거치지 않습니다.
             </p>
           </section>
 
@@ -62,7 +63,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">7. 사용자의 권리</h2>
             <p className="text-lg leading-relaxed">
-              사용자는 언제든지 자신의 브라우저에 저장된 밴픽 기록을 삭제할 수 있습니다. "전부 초기화" 버튼을 통해 모든 기록을 삭제할 수 있습니다.
+              사용자는 언제든지 자신의 브라우저에 저장된 밴픽 기록을 삭제할 수 있습니다. &quot;전부 초기화&quot; 버튼을 통해 모든 기록을 삭제할 수 있습니다.
             </p>
           </section>
 
@@ -82,9 +83,9 @@ export default function PrivacyPolicyPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <a href="/" className="text-blue-400 hover:text-blue-300 font-bold text-xl">
+          <Link href="/" className="text-blue-400 hover:text-blue-300 font-bold text-xl">
             &larr; 밴픽 시뮬레이터로 돌아가기
-          </a>
+          </Link>
         </div>
       </div>
     </div>
