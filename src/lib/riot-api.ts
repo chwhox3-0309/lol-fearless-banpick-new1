@@ -7,7 +7,7 @@ export async function getLatestVersion(): Promise<string> {
 }
 
 interface ChampionData {
-  [key: string]: { id: string; name: string; }; // Simplified for now
+  [key: string]: { id: string; name: string; };
 }
 
 export async function getChampionData(version: string, locale: string = 'en_US'): Promise<ChampionData> {

@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { getLatestVersion, getChampionData, getChampionThumbnailUrl } from '@/src/lib/riot-api';
-import NavBar from '@/components/NavBar';
+import { getLatestVersion, getChampionData, getChampionThumbnailUrl } from '@/lib/riot-api';
 
 const BAN_PICK_SEQUENCE = [
   { team: 'blue', type: 'ban' },
@@ -31,12 +30,6 @@ const BAN_PICK_SEQUENCE = [
   { team: 'red', type: 'pick' },
 ];
 
-const LOCALES = {
-  ko_KR: '한국어',
-  en_US: 'English',
-  ja_JP: '日本語',
-};
-
 interface Champion {
   id: string;
   name: string;
@@ -56,14 +49,12 @@ interface CompletedDraft {
 export default function Home() {
   const [version, setVersion] = useState<string | null>(null);
   const [champions, setChampions] = useState<ChampionData>({});
-  const [allChampionsByLocale, setAllChampionsByLocale] = useState<Record<string, ChampionData>>({});
   const [blueTeamPicks, setBlueTeamPicks] = useState<string[]>([]);
   const [redTeamPicks, setRedTeamPicks] = useState<string[]>([]);
   const [blueTeamBans, setBlueTeamBans] = useState<string[]>([]);
   const [redTeamBans, setRedTeamBans] = useState<string[]>([]);
   const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentLanguage, setCurrentLanguage] = useState<keyof typeof LOCALES>('ko_KR');
   const [completedDrafts, setCompletedDrafts] = useState<CompletedDraft[]>([]);
   const [isSearchSticky, setIsSearchSticky] = useState(false);
   const searchBarRef = useRef<HTMLDivElement>(null);
@@ -72,16 +63,7 @@ export default function Home() {
     async function fetchData() {
       const latestVersion = await getLatestVersion();
       setVersion(latestVersion);
-
       const koChampions = await getChampionData(latestVersion, 'ko_KR');
-      const enChampions = await getChampionData(latestVersion, 'en_US');
-      const jaChampions = await getChampionData(latestVersion, 'ja_JP');
-
-      setAllChampionsByLocale({
-        ko_KR: koChampions,
-        en_US: enChampions,
-        ja_JP: jaChampions,
-      });
       setChampions(koChampions);
     }
     fetchData();
@@ -106,12 +88,6 @@ export default function Home() {
       localStorage.setItem('completedDrafts', JSON.stringify(completedDrafts));
     }
   }, [completedDrafts]);
-
-  useEffect(() => {
-    if (allChampionsByLocale[currentLanguage]) {
-      setChampions(allChampionsByLocale[currentLanguage]);
-    }
-  }, [currentLanguage, allChampionsByLocale]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -178,12 +154,8 @@ export default function Home() {
 
   const allChampions = useMemo(() => {
     const championsArray = Object.values(champions);
-    if (currentLanguage === 'ko_KR') {
-      return championsArray.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    } else {
-      return championsArray.sort((a, b) => a.name.localeCompare(b.name));
-    }
-  }, [champions, currentLanguage]);
+    return championsArray.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  }, [champions]);
 
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
@@ -198,7 +170,7 @@ export default function Home() {
 
   const handleNextSet = useCallback(() => {
     if (currentTurnIndex < BAN_PICK_SEQUENCE.length) {
-      alert('Bans 또는 Picks를 모두 진행해야 합니다.');
+      alert('밴 또는 픽을 모두 진행해야 합니다.');
       return;
     }
 
@@ -234,35 +206,39 @@ export default function Home() {
   }, []);
 
   const handleLoadSummoner = useCallback(() => {
-    alert('소환사명으로 불러오기 기능은 백엔드 프록시 서버가 필요합니다. 현재는 구현되지 않았습니다.');
+    alert('소환사명으로 불러오기 기능은 현재 구현되지 않았습니다.');
   }, []);
-
-  const handleLanguageChange = useCallback((lang: keyof typeof LOCALES) => {
-    setCurrentLanguage(lang);
-  }, []);
-
-  const getSearchPlaceholder = () => {
-    switch (currentLanguage) {
-      case 'ko_KR': return '챔피언 검색...';
-      case 'en_US': return 'Search champions...';
-      case 'ja_JP': return 'チャンピオンを検索...';
-      default: return 'Search champions...';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-      <NavBar
-        onNextSet={handleNextSet}
-        onResetAll={handleResetAll}
-        onLoadSummoner={handleLoadSummoner}
-        onLanguageChange={handleLanguageChange}
-        currentLanguage={currentLanguage}
-      />
-      <div className="flex flex-1 flex-col lg:flex-row pt-16">
-        <div className="w-full lg:w-1/4 bg-gray-800 p-4">
-          <h2 className="text-xl font-bold mb-4 text-blue-400">Blue Team</h2>
-          <h3 className="text-lg font-semibold mb-2">Bans:</h3>
+      <nav className="fixed top-0 left-0 right-0 bg-gray-800 p-4 shadow-md z-50 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">롤 밴픽 시뮬레이터</h1>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={handleNextSet}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+          >
+            다음 세트
+          </button>
+          <button
+            onClick={handleResetAll}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+          >
+            전부 초기화
+          </button>
+          <button
+            onClick={handleLoadSummoner}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          >
+            소환사명으로 불러오기
+          </button>
+        </div>
+      </nav>
+
+      <div className="flex flex-1 lg:grid lg:grid-cols-4 pt-16">
+        <div className="w-full lg:col-span-1 bg-gray-800 p-4 overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4 text-blue-400">블루 팀</h2>
+          <h3 className="text-lg font-semibold mb-2">밴:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
             {blueTeamBans.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
@@ -270,15 +246,14 @@ export default function Home() {
                   <Image
                     src={getChampionThumbnailUrl(version, champId)}
                     alt={champId}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-md"
+                    fill
+                    className="rounded-md object-cover"
                   />
                 )}
               </div>
             ))}
           </div>
-          <h3 className="text-lg font-semibold mb-2">Picks:</h3>
+          <h3 className="text-lg font-semibold mb-2">픽:</h3>
           <div className="flex flex-wrap gap-2">
             {blueTeamPicks.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
@@ -286,9 +261,8 @@ export default function Home() {
                   <Image
                     src={getChampionThumbnailUrl(version, champId)}
                     alt={champId}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-md"
+                    fill
+                    className="rounded-md object-cover"
                   />
                 )}
               </div>
@@ -296,10 +270,10 @@ export default function Home() {
           </div>
           {completedDrafts.length > 0 && (
             <>
-              <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Blue):</h3>
+              <h3 className="text-lg font-semibold mt-4 mb-2">이전 밴픽 (블루 팀):</h3>
               {completedDrafts.map((draft, index) => (
                 <div key={index} className="mb-2">
-                  <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
+                  <p className="text-sm font-medium mt-1">세트 {index + 1} 픽:</p>
                   <div className="flex flex-wrap gap-1">
                     {draft.blueTeamPicks.map((champId) => (
                       <div key={`prev-blue-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
@@ -307,9 +281,8 @@ export default function Home() {
                           <Image
                             src={getChampionThumbnailUrl(version, champId)}
                             alt={champId}
-                            layout="fill"
-                            objectFit="cover"
-                            className="rounded-md"
+                            fill
+                            className="rounded-md object-cover"
                           />
                         )}
                       </div>
@@ -321,22 +294,23 @@ export default function Home() {
           )}
         </div>
 
-        <div className="flex-1 p-4 overflow-y-auto">
-          <h1 className="text-2xl font-bold text-center mb-4">Champion Select</h1>
+        <div className="flex-1 p-4 overflow-y-auto lg:col-span-2">
+          <h1 className="text-2xl font-bold text-center mb-4">챔피언 선택</h1>
+          <p className="text-center text-gray-400 mb-4">LoL Fearless Banpick은 프로 경기의 Fearless 밴픽 방식을 연습하는 시뮬레이터입니다. 이전 세트에서 사용한 챔피언은 다시 선택할 수 없습니다.</p>
           {currentTurnIndex < BAN_PICK_SEQUENCE.length ? (
             <p className="text-center mb-4">
-              Current Turn: <span className={currentTurnInfo.team === 'blue' ? 'text-blue-400' : 'text-red-400'}>
-                {currentTurnInfo.team.toUpperCase()} Team
+              현재 턴: <span className={currentTurnInfo.team === 'blue' ? 'text-blue-400' : 'text-red-400'}>
+                {currentTurnInfo.team.toUpperCase()} 팀
               </span> - {currentTurnInfo.type.toUpperCase()}
             </p>
           ) : (
-            <p className="text-center mb-4 text-green-400">Draft Complete!</p>
+            <p className="text-center mb-4 text-green-400">밴픽 완료!</p>
           )}
 
           <div ref={searchBarRef} className={`transition-all duration-300 ${isSearchSticky ? 'fixed top-16 left-1/4 right-1/4 z-40 bg-gray-900 p-4 rounded-b-lg shadow-lg' : ''}`}>
             <input
               type="text"
-              placeholder={getSearchPlaceholder()}
+              placeholder="챔피언 검색..."
               className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -348,7 +322,7 @@ export default function Home() {
             {filteredChampions.map((champion) => (
               <div
                 key={champion.id}
-                className={`cursor-pointer hover:scale-105 transition-transform duration-200 relative ${
+                className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 ${
                   getAllSelectedChampions.includes(champion.id) ||
                   currentTurnIndex >= BAN_PICK_SEQUENCE.length
                     ? 'opacity-50 cursor-not-allowed grayscale'
@@ -371,9 +345,9 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/4 bg-gray-800 p-4">
-          <h2 className="text-xl font-bold mb-4 text-red-400">Red Team</h2>
-          <h3 className="text-lg font-semibold mb-2">Bans:</h3>
+        <div className="w-full lg:col-span-1 bg-gray-800 p-4 overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4 text-red-400">레드 팀</h2>
+          <h3 className="text-lg font-semibold mb-2">밴:</h3>
           <div className="flex flex-wrap gap-2 mb-4">
             {redTeamBans.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
@@ -381,15 +355,14 @@ export default function Home() {
                   <Image
                     src={getChampionThumbnailUrl(version, champId)}
                     alt={champId}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-md"
+                    fill
+                    className="rounded-md object-cover"
                   />
                 )}
               </div>
             ))}
           </div>
-          <h3 className="text-lg font-semibold mb-2">Picks:</h3>
+          <h3 className="text-lg font-semibold mb-2">픽:</h3>
           <div className="flex flex-wrap gap-2">
             {redTeamPicks.map((champId) => (
               <div key={champId} className="w-16 h-16 relative">
@@ -397,9 +370,8 @@ export default function Home() {
                   <Image
                     src={getChampionThumbnailUrl(version, champId)}
                     alt={champId}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-md"
+                    fill
+                    className="rounded-md object-cover"
                   />
                 )}
               </div>
@@ -407,10 +379,10 @@ export default function Home() {
           </div>
           {completedDrafts.length > 0 && (
             <>
-              <h3 className="text-lg font-semibold mt-4 mb-2">Previous Drafts (Red):</h3>
+              <h3 className="text-lg font-semibold mt-4 mb-2">이전 밴픽 (레드 팀):</h3>
               {completedDrafts.map((draft, index) => (
                 <div key={index} className="mb-2">
-                  <p className="text-sm font-medium mt-1">Set {index + 1} Picks:</p>
+                  <p className="text-sm font-medium mt-1">세트 {index + 1} 픽:</p>
                   <div className="flex flex-wrap gap-1">
                     {draft.redTeamPicks.map((champId) => (
                       <div key={`prev-red-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
@@ -418,9 +390,8 @@ export default function Home() {
                           <Image
                             src={getChampionThumbnailUrl(version, champId)}
                             alt={champId}
-                            layout="fill"
-                            objectFit="cover"
-                            className="rounded-md"
+                            fill
+                            className="rounded-md object-cover"
                           />
                         )}
                       </div>
