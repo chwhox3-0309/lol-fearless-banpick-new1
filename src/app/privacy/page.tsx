@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold mb-3">1. 총칙</h2>
             <p className="text-lg leading-relaxed">
-              LoL Fearless Banpick(이하 "서비스")은 사용자의 개인정보를 중요시하며, 정보통신망 이용촉진 및 정보보호 등에 관한 법률 등 관련 법규를 준수하고 있습니다. 본 개인정보처리방침은 서비스가 사용자의 어떤 정보를 수집하고, 어떻게 이용하며, 누구와 공유하고, 언제 파기하는지 등에 대해 설명합니다.
+              LoL Fearless Banpick(이하 &quot;서비스&quot;)은 사용자의 개인정보를 중요시하며, 정보통신망 이용촉진 및 정보보호 등에 관한 법률 등 관련 법규를 준수하고 있습니다. 본 개인정보처리방침은 서비스가 사용자의 어떤 정보를 수집하고, 어떻게 이용하며, 누구와 공유하고, 언제 파기하는지 등에 대해 설명합니다.
             </p>
           </section>
 
