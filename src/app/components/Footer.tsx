@@ -16,7 +16,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="mt-4 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} LoL Fearless Banpick. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} 강한 라이즈. All rights reserved.</p>
         </div>
       </div>
     </footer>
