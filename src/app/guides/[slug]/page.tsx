@@ -1,7 +1,4 @@
 import Link from 'next/link';
-import matter from 'gray-matter';
-import { remark } from 'remark';
-import html from 'remark-html';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -9,30 +6,29 @@ interface GuideContent {
   title: string;
   date: string;
   contentHtml: string;
+  slug: string;
 }
 
-export default async function GuidePage({ params }: { params: { slug: string } }) { // Made async
-  const { slug } = params;
+export default async function GuidePage({ params }: { params: { slug: string } }) {
+  const { slug } = await params;
   let guide: GuideContent | null = null;
   let error: string | null = null;
 
   try {
-    const guidesDirectory = path.join(process.cwd(), 'src', 'guides');
-    const filePath = path.join(guidesDirectory, `${slug}.md`);
-    const fileContents = await fs.readFile(filePath, 'utf8');
+    const guidesDirectory = path.join(process.cwd(), 'src', 'data'); // Read from data directory
+    const fileContents = await fs.readFile(path.join(guidesDirectory, 'guides.json'), 'utf8');
+    const allGuides = JSON.parse(fileContents);
 
-    const { data, content } = matter(fileContents);
+    // Find the guide from the parsed data
+    const foundGuide = allGuides.find((g: GuideContent) => g.slug === slug);
 
-    // Use remark to convert markdown into HTML string
-    const processedContent = await remark().use(html).process(content);
-    const contentHtml = processedContent.toString();
-
-    guide = {
-      title: data.title,
-      date: data.date,
-      contentHtml,
-    };
+    if (foundGuide) {
+      guide = foundGuide;
+    } else {
+      error = 'Guide not found';
+    }
   } catch (e: unknown) {
+    console.error("Error processing guide data:", e);
     error = e instanceof Error ? e.message : 'An unknown error occurred';
   }
 

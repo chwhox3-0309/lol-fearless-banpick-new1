@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import matter from 'gray-matter';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -9,29 +8,21 @@ interface GuideMeta {
   date: string;
 }
 
-export default async function GuidesPage() { // Made async
+export default async function GuidesPage() {
   let guides: GuideMeta[] = [];
   let error: string | null = null;
 
   try {
-    const guidesDirectory = path.join(process.cwd(), 'src', 'guides');
-    const filenames = await fs.readdir(guidesDirectory);
+    const guidesDirectory = path.join(process.cwd(), 'src', 'data'); // Read from data directory
+    const fileContents = await fs.readFile(path.join(guidesDirectory, 'guides.json'), 'utf8');
+    const allGuides = JSON.parse(fileContents);
 
-    const allGuides = await Promise.all(filenames.map(async (filename) => {
-      const filePath = path.join(guidesDirectory, filename);
-      const fileContents = await fs.readFile(filePath, 'utf8');
-      const { data } = matter(fileContents);
-      return {
-        slug: data.slug,
-        title: data.title,
-        date: data.date,
-      };
-    }));
-
-    // Sort guides by date in descending order
-    guides = allGuides.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Sort guides by date in descending order (already sorted by script, but good to re-sort for safety)
+    guides = allGuides.sort((a: GuideMeta, b: GuideMeta) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (e: unknown) {
+    console.error("Error processing guides data:", e);
     error = e instanceof Error ? e.message : 'An unknown error occurred';
+    guides = [];
   }
 
   if (error) {
