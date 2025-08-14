@@ -30,8 +30,8 @@ export default async function GuidesPage() { // Made async
 
     // Sort guides by date in descending order
     guides = allGuides.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } catch (e: any) {
-    error = e.message;
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'An unknown error occurred';
   }
 
   if (error) {

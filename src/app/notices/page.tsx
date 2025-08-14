@@ -8,6 +8,7 @@ interface Notice {
   title: string;
   content: string;
   date: string;
+  category: string;
 }
 
 export default function NoticesPage() {
@@ -33,8 +34,8 @@ export default function NoticesPage() {
           return dateComparison;
         });
         setNotices(sortedNotices);
-      } catch (e: any) {
-        setError(e.message);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'An unknown error occurred');
       } finally {
         setLoading(false);
       }
@@ -78,7 +79,7 @@ export default function NoticesPage() {
           <ul className="space-y-6">
             {filteredNotices.map((notice) => (
               <li key={notice.id} className="border-b border-gray-700 pb-6 last:border-b-0 last:pb-0">
-                <p className="text-sm text-gray-400 mb-1">{notice.date}</p>
+                <p className="text-sm text-gray-400 mb-1">[{notice.category}] {notice.date}</p>
                 <h2 className="text-2xl font-semibold text-blue-400 mb-2">{notice.title}</h2>
                 <p className="text-lg leading-relaxed text-gray-300 whitespace-pre-wrap">{notice.content}</p>
               </li>

@@ -32,8 +32,8 @@ export default async function GuidePage({ params }: { params: { slug: string } }
       date: data.date,
       contentHtml,
     };
-  } catch (e: any) {
-    error = e.message;
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'An unknown error occurred';
   }
 
   if (error) {

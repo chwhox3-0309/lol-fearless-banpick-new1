@@ -8,6 +8,7 @@ interface Notice {
   title: string;
   content: string;
   date: string;
+  category: string;
 }
 
 export default function AdminNoticesPage() {
@@ -19,6 +20,7 @@ export default function AdminNoticesPage() {
   const [message, setMessage] = useState('');
   const [notices, setNotices] = useState<Notice[]>([]);
   const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
+  const [category, setCategory] = useState('공지');
 
   useEffect(() => {
     fetchNotices();
@@ -48,13 +50,13 @@ export default function AdminNoticesPage() {
     e.preventDefault();
     setMessage('');
 
-    if (!title || !content || !date) {
+    if (!title || !content || !date || !category) {
       setMessage('모든 필드를 채워주세요.');
       return;
     }
 
     const method = editingNoticeId ? 'PUT' : 'POST';
-    const body = editingNoticeId ? JSON.stringify({ id: editingNoticeId, title, content, date }) : JSON.stringify({ title, content, date });
+    const body = editingNoticeId ? JSON.stringify({ id: editingNoticeId, title, content, date, category }) : JSON.stringify({ title, content, date, category });
 
     try {
       const res = await fetch(editingNoticeId ? `/api/notices?id=${editingNoticeId}` : '/api/notices', {
@@ -76,8 +78,8 @@ export default function AdminNoticesPage() {
         const errorData = await res.json();
         setMessage(`공지사항 ${editingNoticeId ? '수정' : '등록'} 실패: ${errorData.error || res.statusText}`);
       }
-    } catch (error: any) {
-      setMessage(`네트워크 오류: ${error.message}`);
+    } catch (error: unknown) {
+      setMessage(`네트워크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     }
   };
 
@@ -86,6 +88,7 @@ export default function AdminNoticesPage() {
     setTitle(notice.title);
     setContent(notice.content);
     setDate(notice.date);
+    setCategory(notice.category);
     setMessage('');
   };
 
@@ -115,6 +118,7 @@ export default function AdminNoticesPage() {
     setTitle('');
     setContent('');
     setDate(new Date().toISOString().split('T')[0]);
+    setCategory('공지');
     setMessage('');
   };
 
@@ -184,6 +188,21 @@ export default function AdminNoticesPage() {
               required
             />
           </div>
+          <div>
+            <label htmlFor="category" className="block text-gray-200 text-sm font-bold mb-2">카테고리:</label>
+            <select
+              id="category"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              <option value="공지">공지</option>
+              <option value="업데이트">업데이트</option>
+              <option value="이벤트">이벤트</option>
+              <option value="점검">점검</option>
+            </select>
+          </div>
           <div className="flex space-x-2">
             <button
               type="submit"
@@ -218,7 +237,7 @@ export default function AdminNoticesPage() {
             {notices.map((notice) => (
               <li key={notice.id} className="border-b border-gray-700 pb-6 last:border-b-0 last:pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div className="flex-grow mb-4 md:mb-0">
-                  <p className="text-sm text-gray-400 mb-1">{notice.date}</p>
+                  <p className="text-sm text-gray-400 mb-1">[{notice.category}] {notice.date}</p>
                   <h3 className="text-xl font-semibold text-blue-400 mb-2">{notice.title}</h3>
                   <p className="text-base leading-relaxed text-gray-300 whitespace-pre-wrap">{notice.content}</p>
                 </div>

@@ -1,5 +1,7 @@
 import NextAuth from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
+import type { Account, Profile, Session, User } from 'next-auth/core/types';
+import type { JWT } from 'next-auth/jwt';
 
 export const authOptions = {
   providers: [
@@ -9,7 +11,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }: { user: any, account: any, profile?: any }) {
+    async signIn({ user, account, profile }: { user: User, account: Account, profile?: Profile }) {
       // Only allow sign in if the user's GitHub username is 'chwhox3-0309'
       if (profile?.login === 'chwhox3-0309') {
         return true;
@@ -18,14 +20,14 @@ export const authOptions = {
         return false;
       }
     },
-    async session({ session, token, user }: { session: any, token: any, user: any }) {
+    async session({ session, token, user }: { session: Session, token: JWT, user: User }) {
       // Add GitHub username to the session object
       if (token.provider === 'github') {
-        session.user.githubUsername = token.username;
+        (session.user as any).githubUsername = token.username;
       }
       return session;
     },
-    async jwt({ token, user, account, profile }: { token: any, user: any, account?: any, profile?: any }) {
+    async jwt({ token, user, account, profile }: { token: JWT, user?: User, account?: Account, profile?: Profile }) {
       // Add GitHub username to the JWT token
       if (account?.provider === 'github') {
         token.username = profile?.login;
