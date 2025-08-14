@@ -11,7 +11,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }: { user: User, account: Account, profile?: Profile }) {
+    async signIn({ user: _user, account: _account, profile }: { user: User, account: Account, profile?: Profile }) {
       // Only allow sign in if the user's GitHub username is 'chwhox3-0309'
       if (profile?.login === 'chwhox3-0309') {
         return true;
@@ -20,14 +20,14 @@ export const authOptions = {
         return false;
       }
     },
-    async session({ session, token, user }: { session: Session, token: JWT, user: User }) {
+    async session({ session, token, user: _user }: { session: Session, token: JWT, user: User }) {
       // Add GitHub username to the session object
       if (token.provider === 'github') {
-        (session.user as any).githubUsername = token;
+                session.user.githubUsername = token.username;
       }
       return session;
     },
-    async jwt({ token, user, account, profile }: { token: JWT, user?: User, account?: Account, profile?: Profile }) {
+    async jwt({ token, user: _user, account: _account, profile }: { token: JWT, user?: User, account?: Account, profile?: Profile }) {
       // Add GitHub username to the JWT token
       if (account?.provider === 'github') {
         token.username = profile?.login;

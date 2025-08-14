@@ -22,11 +22,11 @@ export async function GET() {
     const notices = JSON.parse(fileContents);
 
     return NextResponse.json({ notices });
-  } catch (error: unknown) {
-    console.error(error);
+  } catch (e: unknown) {
+    console.error(e);
     let errorMessage = 'Failed to load notices';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    if (e instanceof Error) {
+      errorMessage = e.message;
     }
     return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,
@@ -79,11 +79,11 @@ export async function POST(request: Request) {
     await fs.writeFile(filePath, JSON.stringify(notices, null, 2), 'utf8');
 
     return NextResponse.json({ message: 'Notice added successfully', notice: newNotice });
-  } catch (error: unknown) {
-    console.error('Error adding notice:', error);
+  } catch (e: unknown) {
+    console.error('Error adding notice:', e);
     let errorMessage = 'Failed to add notice';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    if (e instanceof Error) {
+      errorMessage = e.message;
     }
     return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,
@@ -144,11 +144,11 @@ export async function PUT(request: Request) {
     await fs.writeFile(filePath, JSON.stringify(notices, null, 2), 'utf8');
 
     return NextResponse.json({ message: 'Notice updated successfully', notice: notices[noticeIndex] });
-  } catch (error: unknown) {
-    console.error('Error updating notice:', error);
+  } catch (e: unknown) {
+    console.error('Error updating notice:', e);
     let errorMessage = 'Failed to update notice';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    if (e instanceof Error) {
+      errorMessage = e.message;
     }
     return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,
@@ -209,11 +209,11 @@ export async function DELETE(request: Request) {
     await fs.writeFile(filePath, JSON.stringify(notices, null, 2), 'utf8');
 
     return NextResponse.json({ message: 'Notice deleted successfully', id });
-  } catch (error: unknown) {
-    console.error('Error deleting notice:', error);
+  } catch (e: unknown) {
+    console.error('Error deleting notice:', e);
     let errorMessage = 'Failed to delete notice';
-    if (error instanceof Error) {
-      errorMessage = error.message;
+    if (e instanceof Error) {
+      errorMessage = e.message;
     }
     return new NextResponse(JSON.stringify({ error: errorMessage }), {
       status: 500,

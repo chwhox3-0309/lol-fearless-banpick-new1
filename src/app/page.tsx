@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+
 import Link from 'next/link';
 import NoticeBanner from './components/NoticeBanner';
 import ChampionGrid from './components/ChampionGrid';
@@ -29,7 +29,6 @@ export default function Home() {
     handleResetAll,
     handleLoadSummoner,
     getAllSelectedChampions,
-    allChampions,
     filteredChampions,
     currentTurnInfo,
     BAN_PICK_SEQUENCE,

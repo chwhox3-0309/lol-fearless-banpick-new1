@@ -220,7 +220,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     setCurrentTurnIndex((prev) => prev + 1);
-  }, [currentTurnIndex, getAllSelectedChampions, BAN_PICK_SEQUENCE]);
+  }, [currentTurnIndex, getAllSelectedChampions]);
 
   const allChampions = useMemo(() => {
     const championsArray = Object.values(champions);
@@ -330,7 +330,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     allChampions,
     filteredChampions,
     currentTurnInfo,
-    BAN_PICK_SEQUENCE,
   ]);
 
   return <DraftContext.Provider value={value}>{children}</DraftContext.Provider>;
