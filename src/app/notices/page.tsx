@@ -43,6 +43,11 @@ export default function NoticesPage() {
     fetchNotices();
   }, []);
 
+  const filteredNotices = notices.filter(notice =>
+    notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    notice.content.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">공지사항을 불러오는 중...</div>;
   }
@@ -50,11 +55,6 @@ export default function NoticesPage() {
   if (error) {
     return <div className="min-h-screen bg-gray-900 text-red-500 flex items-center justify-center">공지사항을 불러오는데 실패했습니다: {error}</div>;
   }
-
-  const filteredNotices = notices.filter(notice =>
-    notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    notice.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8 pt-24">
@@ -88,3 +88,4 @@ export default function NoticesPage() {
       </div>
     </div>
   );
+}
