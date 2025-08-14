@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 };
 
 import Footer from './components/Footer';
+import AuthSessionProvider from './components/AuthSessionProvider';
+import { DraftProvider } from './context/DraftContext';
 
 export default function RootLayout({
   children,
@@ -38,8 +40,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <main className="flex-grow">{children}</main>
-        <Footer />
+        <AuthSessionProvider>
+          <DraftProvider>
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </DraftProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

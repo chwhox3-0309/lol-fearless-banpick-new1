@@ -37,6 +37,16 @@ export default function AboutPage() {
           </ol>
         </div>
 
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+          <h2 className="text-2xl font-semibold mb-4">개발자 소개</h2>
+          <p className="text-lg leading-relaxed">
+            안녕하세요! LoL Fearless Banpick 시뮬레이터를 개발한 강한 라이즈입니다.
+            저는 리그 오브 레전드를 즐겨 플레이하는 한 명의 유저로서, 프로 경기의 밴픽 전략에 깊은 흥미를 느껴 이 시뮬레이터를 개발하게 되었습니다.
+            사용자 여러분이 이 도구를 통해 밴픽 전략을 연습하고, 게임을 더 깊이 이해하며 즐거움을 얻으시길 바랍니다.
+            피드백이나 문의사항이 있으시면 언제든지 chcorps0705@gmail.com으로 연락 주세요.
+          </p>
+        </div>
+
         <div className="mt-12 text-center">
           <Link href="/" className="text-blue-400 hover:text-blue-300 font-bold text-xl">
             &larr; 밴픽 시뮬레이터로 돌아가기

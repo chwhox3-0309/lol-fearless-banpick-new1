@@ -54,6 +54,22 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
+            <h2 className="text-2xl font-semibold mb-3">5.5. Google AdSense 및 제3자 광고</h2>
+            <p className="text-lg leading-relaxed">
+              본 서비스는 Google AdSense를 통해 광고를 게재하고 있습니다. Google 및 제3자 공급업체는 사용자의 이전 웹사이트 방문 기록을 기반으로 광고를 게재하기 위해 쿠키를 사용합니다.
+            </p>
+            <p className="text-lg leading-relaxed mt-2">
+              Google의 광고 쿠키 사용은 Google 및 그 파트너가 사용자의 본 서비스 및 다른 인터넷 사이트 방문 기록에 기반하여 사용자에게 광고를 게재할 수 있도록 합니다. 사용자는 <a href="https://adssettings.google.com/authenticated" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Google 광고 설정</a>을 방문하여 개인 맞춤 광고를 선택 해제할 수 있습니다.
+            </p>
+            <p className="text-lg leading-relaxed mt-2">
+              또한, 제3자 공급업체 및 광고 네트워크는 본 서비스에 광고를 게재하기 위해 쿠키를 사용할 수 있습니다. 이러한 공급업체의 개인정보처리방침을 확인하여 데이터 수집 및 사용에 대한 자세한 정보를 얻을 수 있습니다.
+            </p>
+            <p className="text-lg leading-relaxed mt-2">
+              Google의 데이터 사용에 대한 자세한 정보는 <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Google 파트너 사이트에서 Google이 데이터를 사용하는 방법</a>을 참조하십시오.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-2xl font-semibold mb-3">6. 개인정보 처리 위탁</h2>
             <p className="text-lg leading-relaxed">
               서비스는 외부 업체에 개인정보 처리를 위탁하지 않습니다.
