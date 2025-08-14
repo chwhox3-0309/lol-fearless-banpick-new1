@@ -1,7 +1,7 @@
 ---
 title: 롤 밴픽의 기본 이해: 왜 중요한가?
 date: 2025-08-15
-slug: basic-understanding
+sug: basic-understanding
 ---
 
 ## 밴픽의 중요성

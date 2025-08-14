@@ -62,8 +62,8 @@ export async function POST(request: Request) {
     try {
       const fileContents = await fs.readFile(filePath, 'utf8');
       notices = JSON.parse(fileContents);
-    } catch (readError: any) {
-      if (readError.code === 'ENOENT') {
+    } catch (readError: unknown) {
+      if (readError instanceof Error && (readError as NodeJS.ErrnoException).code === 'ENOENT') {
         // File does not exist, start with an empty array
         notices = [];
       } else {
