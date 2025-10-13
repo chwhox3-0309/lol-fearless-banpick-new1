@@ -23,7 +23,7 @@ export const authOptions = {
     async session({ session, token, user: _user }: { session: Session, token: JWT, user: User }) {
       // Add GitHub username to the session object
       if (token.provider === 'github') {
-                session.user.githubUsername = token.username;
+        session.user.githubUsername = token.username;
       }
       return session;
     },

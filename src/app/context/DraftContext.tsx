@@ -71,6 +71,7 @@ interface DraftContextType {
   handleChampionClick: (championId: string) => void;
   handleNextSet: () => void;
   handleResetAll: () => void;
+  handleUndoLastAction: () => void;
   handleLoadSummoner: () => void;
   getAllSelectedChampions: string[];
   allChampions: Champion[];
@@ -271,9 +272,35 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCompletedDrafts([]);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('completedDrafts');
+        localStorage.removeItem('currentDraftState');
       }
     }
   }, []);
+
+  const handleUndoLastAction = useCallback(() => {
+    if (currentTurnIndex === 0) {
+      return; // 되돌릴 작업이 없습니다.
+    }
+
+    const lastTurnIndex = currentTurnIndex - 1;
+    const lastTurn = BAN_PICK_SEQUENCE[lastTurnIndex];
+
+    if (lastTurn.team === 'blue') {
+      if (lastTurn.type === 'ban') {
+        setBlueTeamBans(prev => prev.slice(0, -1));
+      } else {
+        setBlueTeamPicks(prev => prev.slice(0, -1));
+      }
+    } else { // red team
+      if (lastTurn.type === 'ban') {
+        setRedTeamBans(prev => prev.slice(0, -1));
+      } else {
+        setRedTeamPicks(prev => prev.slice(0, -1));
+      }
+    }
+
+    setCurrentTurnIndex(prev => prev - 1);
+  }, [currentTurnIndex]);
 
   const handleLoadSummoner = useCallback(() => {
     alert('소환사명으로 불러오기 기능은 현재 구현되지 않았습니다.');
@@ -299,6 +326,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     handleChampionClick,
     handleNextSet,
     handleResetAll,
+    handleUndoLastAction,
     handleLoadSummoner,
     getAllSelectedChampions,
     allChampions,
@@ -323,10 +351,10 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsAccordionOpen,
     setActiveTab,
     handleChampionClick,
-    handleNextSet,
-    handleResetAll,
-    handleLoadSummoner,
-    getAllSelectedChampions,
+            handleNextSet,
+            handleResetAll,
+            handleUndoLastAction,
+            handleLoadSummoner,    getAllSelectedChampions,
     allChampions,
     filteredChampions,
     currentTurnInfo,

@@ -14,6 +14,9 @@ export default function Footer() {
           <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-300">
             개인정보처리방침
           </Link>
+          <Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-300">
+            문의하기
+          </Link>
         </div>
         <div className="mt-4 text-center text-gray-500">
           <p>&copy; {new Date().getFullYear()} 강한 라이즈. All rights reserved.</p>

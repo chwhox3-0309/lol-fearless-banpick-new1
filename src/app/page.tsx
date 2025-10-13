@@ -27,6 +27,7 @@ export default function Home() {
     handleChampionClick,
     handleNextSet,
     handleResetAll,
+    handleUndoLastAction,
     handleLoadSummoner,
     getAllSelectedChampions,
     filteredChampions,
@@ -56,6 +57,13 @@ export default function Home() {
             className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
           >
             전부 초기화
+          </button>
+          <button
+            onClick={handleUndoLastAction}
+            disabled={currentTurnIndex === 0}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed"
+          >
+            선택 취소
           </button>
           <button
             onClick={handleLoadSummoner}
@@ -126,13 +134,33 @@ export default function Home() {
           </div>
         </div>
 
-        <section className="w-full max-w-5xl mx-auto p-8 mt-8">
+        <section className="w-full max-w-5xl mx-auto p-8 mt-8 space-y-8">
+          {/* Always visible content */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-3xl font-bold mb-4">Fearless 밴픽 시뮬레이터에 오신 것을 환영합니다!</h2>
+            <div className="space-y-4 text-lg leading-relaxed">
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Fearless 밴픽이란?</h3>
+                <p>
+                  프로 리그 오브 레전드 경기에서 사용되는 규칙으로, 이전 세트에서 사용했던 챔피언을 다음 세트에서 다시 선택할 수 없게 하여 매 경기 다른 전략과 챔피언 조합을 유도하는 방식입니다. 이 시뮬레이터는 바로 그 Fearless 룰을 적용하여, 여러분의 전략적 깊이를 한층 더 끌어올릴 수 있도록 돕습니다.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">활용법</h3>
+                <p>
+                  친구들과 함께 LCK, LPL 등 프로 리그의 밴픽을 직접 체험하고, 자신만의 전략을 만들어보세요! 이 도구를 통해 여러분은 단순한 플레이어를 넘어, 경기의 흐름을 읽는 전략가가 될 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Accordion for detailed strategies */}
           <div className="bg-gray-800 rounded-lg shadow-lg">
             <button
               onClick={() => setIsAccordionOpen(!isAccordionOpen)}
               className="w-full flex justify-between items-center p-6 text-2xl font-semibold text-left focus:outline-none"
             >
-              <span>Fearless 밴픽 완벽 가이드 (클릭)</span>
+              <span>세부 전략 가이드 (클릭)</span>
               <span className={`transform transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>
                 ▼
               </span>
@@ -142,24 +170,12 @@ export default function Home() {
             >
               <div className="p-6 border-t border-gray-700 space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Fearless 밴픽이란?</h3>
-                  <p className="text-lg leading-relaxed">
-                    프로 리그 오브 레전드 경기에서 사용되는 규칙으로, 이전 세트에서 사용했던 챔피언을 다음 세트에서 다시 선택할 수 없게 하여 매 경기 다른 전략과 챔피언 조합을 유도하는 방식입니다. 이 시뮬레이터는 바로 그 Fearless 룰을 적용하여, 여러분의 전략적 깊이를 한층 더 끌어올릴 수 있도록 돕습니다.
-                  </p>
-                </div>
-                <div>
                   <h3 className="text-xl font-semibold mb-2">기본 전략</h3>
                   <ul className="list-disc list-inside text-lg space-y-2">
                     <li><strong>O.P. 챔피언 관리:</strong> 초반 세트에 강력한 O.P. 챔피언을 먼저 밴하거나 픽해서 상대의 선택지를 줄이는 것이 중요합니다.</li>
                     <li><strong>챔피언 폭 활용:</strong> 여러 포지션을 소화할 수 있는 유틸리티 챔피언을 확보하여 후반 세트의 밴픽을 유연하게 만드세요.</li>
                     <li><strong>상대의 픽 예측:</strong> 상대의 이전 픽을 기억하고, 어떤 챔피언이 금지될지 예측하여 다음 픽을 준비하는 것이 승리의 열쇠입니다.</li>
                   </ul>
-                </div>
-                 <div>
-                  <h3 className="text-xl font-semibold mb-2">활용법</h3>
-                  <p className="text-lg leading-relaxed">
-                    친구들과 함께 LCK, LPL 등 프로 리그의 밴픽을 직접 체험하고, 자신만의 전략을 만들어보세요! 이 도구를 통해 여러분은 단순한 플레이어를 넘어, 경기의 흐름을 읽는 전략가가 될 수 있습니다.
-                  </p>
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">고급 전략</h3>
