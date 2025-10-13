@@ -1,9 +1,9 @@
 import NextAuth from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
-import type { Account, Profile, Session, User } from 'next-auth/core/types';
-import type { JWT } from 'next-auth/jwt';
+import type { Account, Profile, Session, User } from '@auth/core/types';
+import type { JWT } from '@auth/core/jwt';
 
-export const authOptions = {
+const authOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
