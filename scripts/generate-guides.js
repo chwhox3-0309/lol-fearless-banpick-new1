@@ -1,10 +1,9 @@
-const fs = require('fs').promises;
-const path = require('path');
+import { promises as fs } from 'fs';
+import path from 'path';
+import { remark } from 'remark';
+import html from 'remark-html';
 
 async function generateGuidesData() {
-  // Dynamically import ES Modules
-  const { remark } = await import('remark');
-  const { default: html } = await import('remark-html');
 
   const guidesMetadata = [
     { slug: 'basic-understanding', title: '롤 밴픽의 기본 이해: 왜 중요한가?', date: '2025-08-15' },

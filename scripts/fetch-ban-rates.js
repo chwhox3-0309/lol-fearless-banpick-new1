@@ -1,9 +1,15 @@
-const fetch = require('node-fetch');
-const fs = require('fs');
-const path = require('path');
+import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// ES Module에서는 __dirname을 직접 사용할 수 없으므로, 아래 코드로 대체합니다.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
-require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 const REGION = 'kr'; // Target region (e.g., kr, na1)
