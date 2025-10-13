@@ -53,3 +53,13 @@ export default async function GuidePage({ params }: { params: { slug: string } }
     </div>
   );
 }
+
+export async function generateStaticParams() {
+  const guidesDirectory = path.join(process.cwd(), 'src', 'data');
+  const fileContents = await fs.readFile(path.join(guidesDirectory, 'guides.json'), 'utf8');
+  const allGuides: GuideContent[] = JSON.parse(fileContents);
+
+  return allGuides.map((guide) => ({
+    slug: guide.slug,
+  }));
+}
