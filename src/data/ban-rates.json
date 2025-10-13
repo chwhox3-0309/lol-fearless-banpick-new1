@@ -1,0 +1,522 @@
+{
+  "lastUpdated": "2025-10-13T10:34:39.577Z",
+  "totalMatchesAnalyzed": 100,
+  "data": [
+    {
+      "championId": "Qiyana",
+      "championName": "키아나",
+      "banCount": 97,
+      "banRate": "97.00"
+    },
+    {
+      "championId": "Rengar",
+      "championName": "렝가",
+      "banCount": 83,
+      "banRate": "83.00"
+    },
+    {
+      "championId": "Zoe",
+      "championName": "조이",
+      "banCount": 66,
+      "banRate": "66.00"
+    },
+    {
+      "championId": "Poppy",
+      "championName": "뽀삐",
+      "banCount": 49,
+      "banRate": "49.00"
+    },
+    {
+      "championId": "Pyke",
+      "championName": "파이크",
+      "banCount": 48,
+      "banRate": "48.00"
+    },
+    {
+      "championId": "Leblanc",
+      "championName": "르블랑",
+      "banCount": 45,
+      "banRate": "45.00"
+    },
+    {
+      "championId": "Sylas",
+      "championName": "사일러스",
+      "banCount": 32,
+      "banRate": "32.00"
+    },
+    {
+      "championId": "Fiora",
+      "championName": "피오라",
+      "banCount": 28,
+      "banRate": "28.00"
+    },
+    {
+      "championId": "Karthus",
+      "championName": "카서스",
+      "banCount": 26,
+      "banRate": "26.00"
+    },
+    {
+      "championId": "LeeSin",
+      "championName": "리 신",
+      "banCount": 20,
+      "banRate": "20.00"
+    },
+    {
+      "championId": "Draven",
+      "championName": "드레이븐",
+      "banCount": 19,
+      "banRate": "19.00"
+    },
+    {
+      "championId": "Ambessa",
+      "championName": "암베사",
+      "banCount": 19,
+      "banRate": "19.00"
+    },
+    {
+      "championId": "Jayce",
+      "championName": "제이스",
+      "banCount": 16,
+      "banRate": "16.00"
+    },
+    {
+      "championId": "Zilean",
+      "championName": "질리언",
+      "banCount": 15,
+      "banRate": "15.00"
+    },
+    {
+      "championId": "JarvanIV",
+      "championName": "자르반 4세",
+      "banCount": 15,
+      "banRate": "15.00"
+    },
+    {
+      "championId": "Caitlyn",
+      "championName": "케이틀린",
+      "banCount": 14,
+      "banRate": "14.00"
+    },
+    {
+      "championId": "Hecarim",
+      "championName": "헤카림",
+      "banCount": 14,
+      "banRate": "14.00"
+    },
+    {
+      "championId": "Jax",
+      "championName": "잭스",
+      "banCount": 13,
+      "banRate": "13.00"
+    },
+    {
+      "championId": "Warwick",
+      "championName": "워윅",
+      "banCount": 12,
+      "banRate": "12.00"
+    },
+    {
+      "championId": "Kaisa",
+      "championName": "카이사",
+      "banCount": 12,
+      "banRate": "12.00"
+    },
+    {
+      "championId": "Lucian",
+      "championName": "루시안",
+      "banCount": 11,
+      "banRate": "11.00"
+    },
+    {
+      "championId": "Ashe",
+      "championName": "애쉬",
+      "banCount": 10,
+      "banRate": "10.00"
+    },
+    {
+      "championId": "Irelia",
+      "championName": "이렐리아",
+      "banCount": 10,
+      "banRate": "10.00"
+    },
+    {
+      "championId": "Orianna",
+      "championName": "오리아나",
+      "banCount": 10,
+      "banRate": "10.00"
+    },
+    {
+      "championId": "Zyra",
+      "championName": "자이라",
+      "banCount": 10,
+      "banRate": "10.00"
+    },
+    {
+      "championId": "Fiddlesticks",
+      "championName": "피들스틱",
+      "banCount": 9,
+      "banRate": "9.00"
+    },
+    {
+      "championId": "Kennen",
+      "championName": "케넨",
+      "banCount": 9,
+      "banRate": "9.00"
+    },
+    {
+      "championId": "Darius",
+      "championName": "다리우스",
+      "banCount": 9,
+      "banRate": "9.00"
+    },
+    {
+      "championId": "Alistar",
+      "championName": "알리스타",
+      "banCount": 8,
+      "banRate": "8.00"
+    },
+    {
+      "championId": "Zed",
+      "championName": "제드",
+      "banCount": 8,
+      "banRate": "8.00"
+    },
+    {
+      "championId": "Taric",
+      "championName": "타릭",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Elise",
+      "championName": "엘리스",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Nidalee",
+      "championName": "니달리",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Nautilus",
+      "championName": "노틸러스",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Rakan",
+      "championName": "라칸",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Rell",
+      "championName": "렐",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Yunara",
+      "championName": "유나라",
+      "banCount": 4,
+      "banRate": "4.00"
+    },
+    {
+      "championId": "Olaf",
+      "championName": "올라프",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Ryze",
+      "championName": "라이즈",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Anivia",
+      "championName": "애니비아",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Shaco",
+      "championName": "샤코",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Renekton",
+      "championName": "레넥톤",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Rumble",
+      "championName": "럼블",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Ezreal",
+      "championName": "이즈리얼",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Lulu",
+      "championName": "룰루",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Taliyah",
+      "championName": "탈리야",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Jinx",
+      "championName": "징크스",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Viego",
+      "championName": "비에고",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Kled",
+      "championName": "클레드",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Vi",
+      "championName": "바이",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Bard",
+      "championName": "바드",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Xayah",
+      "championName": "자야",
+      "banCount": 3,
+      "banRate": "3.00"
+    },
+    {
+      "championId": "Galio",
+      "championName": "갈리오",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Sion",
+      "championName": "사이온",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Sivir",
+      "championName": "시비르",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Katarina",
+      "championName": "카타리나",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Cassiopeia",
+      "championName": "카시오페아",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Fizz",
+      "championName": "피즈",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Varus",
+      "championName": "바루스",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Ziggs",
+      "championName": "직스",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Syndra",
+      "championName": "신드라",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Zac",
+      "championName": "자크",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Yasuo",
+      "championName": "야스오",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Braum",
+      "championName": "브라움",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Briar",
+      "championName": "브라이어",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Neeko",
+      "championName": "니코",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "Aurora",
+      "championName": "오로라",
+      "banCount": 2,
+      "banRate": "2.00"
+    },
+    {
+      "championId": "TwistedFate",
+      "championName": "트위스티드 페이트",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "XinZhao",
+      "championName": "신 짜오",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Vladimir",
+      "championName": "블라디미르",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Teemo",
+      "championName": "티모",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Tryndamere",
+      "championName": "트린다미어",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Singed",
+      "championName": "신지드",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Rammus",
+      "championName": "람머스",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Janna",
+      "championName": "잔나",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Mordekaiser",
+      "championName": "모데카이저",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Shen",
+      "championName": "쉔",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Xerath",
+      "championName": "제라스",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Khazix",
+      "championName": "카직스",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "AurelionSol",
+      "championName": "아우렐리온 솔",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Zeri",
+      "championName": "제리",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Ekko",
+      "championName": "에코",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Azir",
+      "championName": "아지르",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Yuumi",
+      "championName": "유미",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Ivern",
+      "championName": "아이번",
+      "banCount": 1,
+      "banRate": "1.00"
+    },
+    {
+      "championId": "Mel",
+      "championName": "멜",
+      "banCount": 1,
+      "banRate": "1.00"
+    }
+  ]
+}

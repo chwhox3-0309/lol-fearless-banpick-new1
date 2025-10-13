@@ -46,6 +46,9 @@ export default function Home() {
           <Link href="/guides" className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
             전략 가이드
           </Link>
+          <Link href="/statistics" className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            통계
+          </Link>
           <button
             onClick={handleNextSet}
             className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
