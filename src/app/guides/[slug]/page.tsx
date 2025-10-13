@@ -10,7 +10,7 @@ interface GuideContent {
 }
 
 export default async function GuidePage({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
+  const { slug } = params;
   let guide: GuideContent | null = null;
   let error: string | null = null;
 
