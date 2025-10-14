@@ -100,38 +100,18 @@ export default function Home() {
             <TeamDisplay
               teamName="블루 팀"
               teamColor="text-blue-400"
-              bans={blueTeamBans}
-              picks={blueTeamPicks}
-              completedDrafts={completedDrafts}
-              version={version}
               teamType="blue"
             />
           </div>
 
           <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} w-full lg:block lg:col-span-2`}>
-            <ChampionGrid
-              version={version}
-              currentTurnIndex={currentTurnIndex}
-              BAN_PICK_SEQUENCE={BAN_PICK_SEQUENCE}
-              currentTurnInfo={currentTurnInfo}
-              getAllSelectedChampions={getAllSelectedChampions}
-              handleChampionClick={handleChampionClick}
-              searchBarRef={searchBarRef}
-              isSearchSticky={isSearchSticky}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filteredChampions={filteredChampions}
-            />
+            <ChampionGrid />
           </div>
 
           <div className={`${activeTab === 'red' ? 'block' : 'hidden'} w-full lg:block lg:col-span-1`}>
             <TeamDisplay
               teamName="레드 팀"
               teamColor="text-red-400"
-              bans={redTeamBans}
-              picks={redTeamPicks}
-              completedDrafts={completedDrafts}
-              version={version}
               teamType="red"
             />
           </div>
