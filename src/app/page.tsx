@@ -137,7 +137,7 @@ export default function Home() {
         <section className="w-full max-w-5xl mx-auto p-4 sm:p-8 mt-8 space-y-8">
           {/* Always visible content */}
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
-            <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>
             <p className="text-center text-gray-300 mb-6 max-w-3xl mx-auto">
               리그 오브 레전드 프로 경기에서 사용되는 '피어리스(Fearless)' 룰을 직접 경험하고 전략을 연마하세요. 이전 세트에서 사용한 챔피언은 다음 세트에서 다시 선택할 수 없어, 매번 새로운 전략이 필요합니다.
             </p>
