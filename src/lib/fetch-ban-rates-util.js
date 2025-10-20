@@ -1,15 +1,5 @@
-import fetch from 'node-fetch';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-// ES Module에서는 __dirname을 직접 사용할 수 없으므로, 아래 코드로 대체합니다.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load environment variables
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// This file is designed to be run in a serverless environment like Vercel.
+// It fetches ban rates from the Riot Games API.
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 const REGION = 'kr'; // Target region (e.g., kr, na1)
@@ -41,7 +31,7 @@ async function fetchWithRateLimit(url, headers) {
 
 export async function getBanRates() {
   if (!RIOT_API_KEY || RIOT_API_KEY === 'YOUR_RIOT_API_KEY') {
-    throw new Error('RIOT_API_KEY is not set in .env.local file or is default. Please get your key from https://developer.riotgames.com/ and add it to .env.local');
+    throw new Error('RIOT_API_KEY is not set. Please set it in your Vercel environment variables.');
   }
 
   try {
@@ -96,7 +86,6 @@ export async function getBanRates() {
             });
         }
         analyzedCount++;
-        // process.stdout.write(`Analyzed ${analyzedCount}/${uniqueMatchIds.length} matches\r`); // Removed for API context
     }
 
     console.log('[getBanRates] Calculation complete. Formatting data...');
