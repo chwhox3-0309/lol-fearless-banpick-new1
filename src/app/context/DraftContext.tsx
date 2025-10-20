@@ -3,6 +3,36 @@
 import React, { createContext, useState, useEffect, useMemo, useCallback, useContext, useRef } from 'react';
 import { getLatestVersion, getChampionData } from '@/lib/riot-api';
 
+function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>, boolean] {
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      if (item) {
+        setStoredValue(JSON.parse(item));
+      }
+    } catch (error) {
+      console.error(`Error reading localStorage key “${key}”:`, error);
+    }
+    setHydrated(true);
+  }, [key]);
+
+  useEffect(() => {
+    if (hydrated) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(storedValue));
+      } catch (error) {
+        console.error(`Error setting localStorage key “${key}”:`, error);
+      }
+    }
+  }, [key, storedValue, hydrated]);
+
+  return [storedValue, setStoredValue, hydrated];
+}
+
+
 interface Champion {
   id: string;
   name: string;
@@ -19,12 +49,20 @@ interface CompletedDraft {
   redTeamBans: string[];
 }
 
+interface DraftState {
+  blueTeamPicks: string[];
+  redTeamPicks: string[];
+  blueTeamBans: string[];
+  redTeamBans: string[];
+  currentTurnIndex: number;
+}
+
 interface Turn {
   team: string;
   type: string;
 }
 
-const BAN_PICK_SEQUENCE = [
+const BAN_PICK_SEQUENCE: Turn[] = [
   { team: 'blue', type: 'ban' },
   { team: 'red', type: 'ban' },
   { team: 'blue', type: 'ban' },
@@ -50,6 +88,14 @@ const BAN_PICK_SEQUENCE = [
   { team: 'red', type: 'pick' },
 ];
 
+const initialDraftState: DraftState = {
+  blueTeamPicks: [],
+  redTeamPicks: [],
+  blueTeamBans: [],
+  redTeamBans: [],
+  currentTurnIndex: 0,
+};
+
 interface DraftContextType {
   version: string | null;
   champions: ChampionData;
@@ -72,7 +118,7 @@ interface DraftContextType {
   handleNextSet: () => void;
   handleResetAll: () => void;
   handleUndoLastAction: () => void;
-  handleLoadSummoner: () => void;
+  handleRegisterUsedChampions: (championNames: string) => { success: boolean, message: string };
   getAllSelectedChampions: string[];
   allChampions: Champion[];
   filteredChampions: Champion[];
@@ -85,68 +131,16 @@ const DraftContext = createContext<DraftContextType | undefined>(undefined);
 export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [version, setVersion] = useState<string | null>(null);
   const [champions, setChampions] = useState<ChampionData>({});
-  const [blueTeamPicks, setBlueTeamPicks] = useState<string[]>([]);
-  const [redTeamPicks, setRedTeamPicks] = useState<string[]>([]);
-  const [blueTeamBans, setBlueTeamBans] = useState<string[]>([]);
-  const [redTeamBans, setRedTeamBans] = useState<string[]>([]);
-  const [currentTurnIndex, setCurrentTurnIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [completedDrafts, setCompletedDrafts] = useState<CompletedDraft[]>([]);
   const [isSearchSticky, setIsSearchSticky] = useState(false);
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('champions');
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedDrafts = localStorage.getItem('completedDrafts');
-      if (savedDrafts) {
-        try {
-          setCompletedDrafts(JSON.parse(savedDrafts));
-        } catch (e) {
-          console.error("Failed to parse completed drafts from localStorage", e);
-          localStorage.removeItem('completedDrafts');
-        }
-      }
+  const [draftState, setDraftState, draftStateHydrated] = useLocalStorage<DraftState>('currentDraftState', initialDraftState);
+  const [completedDrafts, setCompletedDrafts, completedDraftsHydrated] = useLocalStorage<CompletedDraft[]>('completedDrafts', []);
 
-      const savedCurrentDraft = localStorage.getItem('currentDraftState');
-      if (savedCurrentDraft) {
-        try {
-          const parsedState = JSON.parse(savedCurrentDraft);
-          setBlueTeamPicks(parsedState.blueTeamPicks || []);
-          setRedTeamPicks(parsedState.redTeamPicks || []);
-          setBlueTeamBans(parsedState.blueTeamBans || []);
-          setRedTeamBans(parsedState.redTeamBans || []);
-          setCurrentTurnIndex(parsedState.currentTurnIndex || 0);
-        } catch (e) {
-          console.error("Failed to parse current draft state from localStorage", e);
-          localStorage.removeItem('currentDraftState');
-        }
-      }
-    }
-  }, []);
-
-  // Save completed drafts to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('completedDrafts', JSON.stringify(completedDrafts));
-    }
-  }, [completedDrafts]);
-
-  // Save current draft state to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentDraftState = {
-        blueTeamPicks,
-        redTeamPicks,
-        blueTeamBans,
-        redTeamBans,
-        currentTurnIndex,
-      };
-      localStorage.setItem('currentDraftState', JSON.stringify(currentDraftState));
-    }
-  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, currentTurnIndex]);
+  const { blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, currentTurnIndex } = draftState;
 
   // Fetch champion data
   useEffect(() => {
@@ -179,18 +173,54 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Load state from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const data = urlParams.get('data');
+
+    if (data) {
+      try {
+        const decodedJson = decodeURIComponent(atob(data));
+        const loadedState = JSON.parse(decodedJson);
+        
+        if (loadedState && loadedState.blueTeamPicks) {
+            setDraftState({
+                blueTeamPicks: loadedState.blueTeamPicks || [],
+                redTeamPicks: loadedState.redTeamPicks || [],
+                blueTeamBans: loadedState.blueTeamBans || [],
+                redTeamBans: loadedState.redTeamBans || [],
+                currentTurnIndex: loadedState.currentTurnIndex || 0,
+            });
+            setCompletedDrafts(loadedState.completedDrafts || []);
+        }
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error("Failed to load state from URL", error);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [setDraftState, setCompletedDrafts]);
+
+  const allChampions = useMemo(() => {
+    const championsArray = Object.values(champions);
+    return championsArray.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  }, [champions]);
+
   const getAllSelectedChampions = useMemo(() => {
     const selected = new Set<string>();
+    // Add picks and bans from the CURRENT draft to disable them during this draft
     blueTeamPicks.forEach((id) => selected.add(id));
     redTeamPicks.forEach((id) => selected.add(id));
     blueTeamBans.forEach((id) => selected.add(id));
     redTeamBans.forEach((id) => selected.add(id));
+    
+    // Add ONLY picks from PREVIOUS drafts (completedDrafts)
     completedDrafts.forEach((draft) => {
       draft.blueTeamPicks.forEach((id) => selected.add(id));
       draft.redTeamPicks.forEach((id) => selected.add(id));
-      draft.blueTeamBans.forEach((id) => selected.add(id));
-      draft.redTeamBans.forEach((id) => selected.add(id));
     });
+    
     return Array.from(selected);
   }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, completedDrafts]);
 
@@ -206,27 +236,69 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const currentTurn = BAN_PICK_SEQUENCE[currentTurnIndex];
 
-    if (currentTurn.team === 'blue') {
-      if (currentTurn.type === 'ban') {
-        setBlueTeamBans((prev) => [...prev, championId]);
-      } else {
-        setBlueTeamPicks((prev) => [...prev, championId]);
+    setDraftState(prev => {
+      const newState = { ...prev };
+      if (currentTurn.team === 'blue') {
+        if (currentTurn.type === 'ban') {
+          newState.blueTeamBans = [...prev.blueTeamBans, championId];
+        } else {
+          newState.blueTeamPicks = [...prev.blueTeamPicks, championId];
+        }
+      } else if (currentTurn.team === 'red') {
+        if (currentTurn.type === 'ban') {
+          newState.redTeamBans = [...prev.redTeamBans, championId];
+        } else {
+          newState.redTeamPicks = [...prev.redTeamPicks, championId];
+        }
       }
-    } else if (currentTurn.team === 'red') {
-      if (currentTurn.type === 'ban') {
-        setRedTeamBans((prev) => [...prev, championId]);
+      newState.currentTurnIndex = prev.currentTurnIndex + 1;
+      return newState;
+    });
+  }, [currentTurnIndex, getAllSelectedChampions, setDraftState]);
+
+  const handleRegisterUsedChampions = useCallback((championNames: string): { success: boolean, message: string } => {
+    const names = championNames
+      .split('\n').flatMap(line => line.split(','))
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+
+    if (names.length !== 10) {
+      return { success: false, message: `정확히 10명의 챔피언을 입력해야 합니다. (입력된 챔피언: ${names.length}명)` };
+    }
+
+    const championMap = new Map(allChampions.map(c => [c.name.toLowerCase(), c.id]));
+    const championIdsToRegister: string[] = [];
+    const invalidNames: string[] = [];
+
+    for (const name of names) {
+      const lowerCaseName = name.toLowerCase();
+      const id = championMap.get(lowerCaseName);
+      if (id && !getAllSelectedChampions.includes(id)) {
+        championIdsToRegister.push(id);
       } else {
-        setRedTeamPicks((prev) => [...prev, championId]);
+        invalidNames.push(name);
       }
     }
 
-    setCurrentTurnIndex((prev) => prev + 1);
-  }, [currentTurnIndex, getAllSelectedChampions]);
+    if (invalidNames.length > 0) {
+      return { success: false, message: `다음 챔피언 이름이 잘못되었거나 이미 사용 중입니다: ${invalidNames.join(', ')}` };
+    }
+    
+    if (championIdsToRegister.length !== 10) {
+        return { success: false, message: '챔피언 처리 중 오류가 발생했습니다. 중복된 챔피언이 있는지 확인해주세요.' };
+    }
 
-  const allChampions = useMemo(() => {
-    const championsArray = Object.values(champions);
-    return championsArray.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-  }, [champions]);
+    const newFakeDraft: CompletedDraft = {
+      blueTeamPicks: championIdsToRegister.slice(0, 5),
+      redTeamPicks: championIdsToRegister.slice(5, 10),
+      blueTeamBans: [],
+      redTeamBans: [],
+    };
+    setCompletedDrafts(prev => [...prev, newFakeDraft]);
+
+    return { success: true, message: '10명의 챔피언이 성공적으로 등록되었습니다.' };
+
+  }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
@@ -255,27 +327,15 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       },
     ]);
     
-    setBlueTeamPicks([]);
-    setRedTeamPicks([]);
-    setBlueTeamBans([]);
-    setRedTeamBans([]);
-    setCurrentTurnIndex(0);
-  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, currentTurnIndex]);
+    setDraftState(initialDraftState);
+  }, [blueTeamPicks, redTeamPicks, blueTeamBans, redTeamBans, currentTurnIndex, setCompletedDrafts, setDraftState]);
 
   const handleResetAll = useCallback(() => {
     if (window.confirm('정말 초기화 하시겠습니까?')) {
-      setBlueTeamPicks([]);
-      setRedTeamPicks([]);
-      setBlueTeamBans([]);
-      setRedTeamBans([]);
-      setCurrentTurnIndex(0);
+      setDraftState(initialDraftState);
       setCompletedDrafts([]);
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('completedDrafts');
-        localStorage.removeItem('currentDraftState');
-      }
     }
-  }, []);
+  }, [setDraftState, setCompletedDrafts]);
 
   const handleUndoLastAction = useCallback(() => {
     if (currentTurnIndex === 0) {
@@ -285,26 +345,25 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const lastTurnIndex = currentTurnIndex - 1;
     const lastTurn = BAN_PICK_SEQUENCE[lastTurnIndex];
 
-    if (lastTurn.team === 'blue') {
-      if (lastTurn.type === 'ban') {
-        setBlueTeamBans(prev => prev.slice(0, -1));
-      } else {
-        setBlueTeamPicks(prev => prev.slice(0, -1));
-      }
-    } else { // red team
-      if (lastTurn.type === 'ban') {
-        setRedTeamBans(prev => prev.slice(0, -1));
-      } else {
-        setRedTeamPicks(prev => prev.slice(0, -1));
-      }
-    }
-
-    setCurrentTurnIndex(prev => prev - 1);
-  }, [currentTurnIndex]);
-
-  const handleLoadSummoner = useCallback(() => {
-    alert('소환사명으로 불러오기 기능은 현재 구현되지 않았습니다.');
-  }, []);
+    setDraftState(prev => {
+        const newState = { ...prev };
+        if (lastTurn.team === 'blue') {
+            if (lastTurn.type === 'ban') {
+                newState.blueTeamBans = prev.blueTeamBans.slice(0, -1);
+            } else {
+                newState.blueTeamPicks = prev.blueTeamPicks.slice(0, -1);
+            }
+        } else { // red team
+            if (lastTurn.type === 'ban') {
+                newState.redTeamBans = prev.redTeamBans.slice(0, -1);
+            } else {
+                newState.redTeamPicks = prev.redTeamPicks.slice(0, -1);
+            }
+        }
+        newState.currentTurnIndex = prev.currentTurnIndex - 1;
+        return newState;
+    });
+  }, [currentTurnIndex, setDraftState]);
 
   const value = useMemo(() => ({
     version,
@@ -327,7 +386,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     handleNextSet,
     handleResetAll,
     handleUndoLastAction,
-    handleLoadSummoner,
+    handleRegisterUsedChampions,
     getAllSelectedChampions,
     allChampions,
     filteredChampions,
@@ -351,14 +410,19 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsAccordionOpen,
     setActiveTab,
     handleChampionClick,
-            handleNextSet,
-            handleResetAll,
-            handleUndoLastAction,
-            handleLoadSummoner,    getAllSelectedChampions,
+    handleNextSet,
+    handleResetAll,
+    handleUndoLastAction,
+    handleRegisterUsedChampions,
+    getAllSelectedChampions,
     allChampions,
     filteredChampions,
     currentTurnInfo,
   ]);
+
+  if (!draftStateHydrated || !completedDraftsHydrated) {
+    return null;
+  }
 
   return <DraftContext.Provider value={value}>{children}</DraftContext.Provider>;
 };

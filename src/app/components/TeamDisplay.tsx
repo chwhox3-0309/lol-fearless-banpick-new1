@@ -23,7 +23,7 @@ export default function TeamDisplay({ teamName, teamColor, teamType }: { teamNam
       <h3 className="text-lg font-semibold mb-2">밴:</h3>
       <div className="flex flex-wrap gap-2 mb-4">
         {bans.map((champId) => (
-          <div key={`${teamType}-ban-${champId}`} className="w-16 h-16 relative">
+          <div key={`${teamType}-ban-${champId}`} className="w-12 h-12 sm:w-16 sm:h-16 relative">
             {version && (
               <Image
                 src={getChampionThumbnailUrl(version, champId)}
@@ -58,7 +58,7 @@ export default function TeamDisplay({ teamName, teamColor, teamType }: { teamNam
               <p className="text-sm font-medium mt-1">세트 {index + 1} 픽:</p>
               <div className="flex flex-wrap gap-1">
                 {(teamType === 'blue' ? draft.blueTeamPicks : draft.redTeamPicks).map((champId) => (
-                  <div key={`prev-${teamType}-pick-${index}-${champId}`} className="w-10 h-10 relative opacity-70">
+                  <div key={`prev-${teamType}-pick-${index}-${champId}`} className="w-8 h-8 sm:w-10 sm:h-10 relative opacity-70">
                     {version && (
                       <Image
                         src={getChampionThumbnailUrl(version, champId)}

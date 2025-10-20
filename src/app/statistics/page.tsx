@@ -1,16 +1,109 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import banData from '@/data/ban-rates.json';
+
+interface BanRate {
+  championId: string;
+  championName: string;
+  banCount: number;
+  banRate: string;
+}
+
+interface BanData {
+  lastUpdated: string;
+  totalMatchesAnalyzed: number;
+  data: BanRate[];
+}
 
 export default function StatisticsPage() {
+  const [banData, setBanData] = useState<BanData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await fetch('/api/statistics');
+      if (!response.ok) {
+        throw new Error('데이터를 불러오는데 실패했습니다.');
+      }
+      const data: BanData = await response.json();
+      setBanData(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (isRefreshing && countdown > 0) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (countdown === 0) {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, countdown]);
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+
+    setIsRefreshing(true);
+    setCountdown(10);
+    setError(null);
+    try {
+      const response = await fetch('/api/statistics');
+      if (!response.ok) {
+        throw new Error('데이터를 새로고침하지 못했습니다.');
+      }
+      const data: BanData = await response.json();
+      setBanData(data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+    // The countdown effect will handle turning isRefreshing off
+  };
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">데이터를 불러오는 중...</div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen bg-gray-900 text-red-500 flex items-center justify-center">{error}</div>;
+  }
+
+  if (!banData) {
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">데이터가 없습니다.</div>;
+  }
+
   const { lastUpdated, totalMatchesAnalyzed, data: banRates } = banData;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center pt-16">
       <div className="w-full max-w-4xl p-8">
-        <h1 className="text-4xl font-bold mb-2 text-center">챔피언 밴 통계</h1>
-        <p className="text-center text-gray-400 mb-8">
+        <div className="flex justify-between items-center mb-2">
+            <h1 className="text-4xl font-bold">챔피언 밴 통계</h1>
+            <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="px-4 py-2 font-semibold rounded-lg shadow-md transition-colors duration-300 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed"
+            >
+                {isRefreshing ? `갱신 대기 (${countdown}s)` : '데이터 갱신'}
+            </button>
+        </div>
+        <p className="text-center text-gray-400 mb-1">
           데이터 기준: {new Date(lastUpdated).toLocaleString()} / 분석된 게임 수: {totalMatchesAnalyzed}
+        </p>
+        <p className="text-center text-xs text-gray-500 mb-8">
+          (분석된 게임 수가 적어 통계의 정확성이 낮을 수 있습니다.)
         </p>
 
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">

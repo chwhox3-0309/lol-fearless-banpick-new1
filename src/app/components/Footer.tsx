@@ -14,6 +14,9 @@ export default function Footer() {
           <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-300">
             개인정보처리방침
           </Link>
+          <Link href="/terms" className="text-gray-400 hover:text-white transition-colors duration-300">
+            이용약관
+          </Link>
           <Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-300">
             문의하기
           </Link>

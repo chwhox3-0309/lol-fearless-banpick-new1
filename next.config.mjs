@@ -11,7 +11,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: `frame-ancestors 'self' *.googlesyndication.com *.google.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google.com *.googlesyndication.com *.googleadservices.com;`,
+            value: `frame-ancestors 'self' *.googlesyndication.com *.google.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' *.google.com *.googlesyndication.com *.googleadservices.com *.adtrafficquality.google;`,
           },
         ],
       },

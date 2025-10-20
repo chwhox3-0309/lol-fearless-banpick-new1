@@ -45,7 +45,12 @@ export default function ChampionGrid() {
       {isSearchSticky && <div className="mb-4" style={{ height: searchBarRef.current ? searchBarRef.current.offsetHeight : 'auto' }}></div>}
 
       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mt-4">
-        {filteredChampions.map((champion) => (
+        {filteredChampions.length === 0 && searchTerm !== '' ? (
+          <p className="col-span-full text-center text-gray-400">"{searchTerm}"에 대한 검색 결과가 없습니다.</p>
+        ) : filteredChampions.length === 0 ? (
+          <p className="col-span-full text-center text-gray-400">챔피언 데이터를 불러오는 중입니다...</p>
+        ) : (
+          filteredChampions.map((champion) => (
           <div
             key={champion.id}
             className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 ${
@@ -56,18 +61,19 @@ export default function ChampionGrid() {
             }`}
             onClick={() => handleChampionClick(champion.id)}
           >
-            {version && (
-              <Image
-                src={getChampionThumbnailUrl(version, champion.id)}
-                alt={champion.id}
-                width={64}
-                height={64}
-                className="rounded-md"
-              />
-            )}
+            <div className="w-16 h-16 sm:w-20 sm:h-20 relative">
+              {version && (
+                <Image
+                  src={getChampionThumbnailUrl(version, champion.id)}
+                  alt={champion.id}
+                  fill
+                  className="rounded-md object-cover"
+                />
+              )}
+            </div>
             <p className="text-xs text-center mt-1">{champion.name}</p>
           </div>
-        ))}
+        )))}
       </div>
     </div>
   );

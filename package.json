@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -19,6 +19,7 @@
     "remark-html": "^16.0.1"
   },
   "devDependencies": {
+    "@csstools/postcss-oklab-function": "^4.0.12",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/ms": "^2.1.0",

@@ -1,65 +1,95 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-
 import Link from 'next/link';
+
 import NoticeBanner from './components/NoticeBanner';
-import AdsenseBanner from './components/AdsenseBanner'; // 광고 컴포넌트 import
+import AdsenseBanner from './components/AdsenseBanner';
 import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
+import ShareModal from './components/ShareModal';
+import BulkBanModal from './components/BulkBanModal';
 import { useDraft } from './context/DraftContext';
 
 export default function Home() {
   const {
-    version,
     blueTeamPicks,
     redTeamPicks,
     blueTeamBans,
     redTeamBans,
     currentTurnIndex,
-    searchTerm,
     completedDrafts,
-    isSearchSticky,
     isAccordionOpen,
-    searchBarRef,
     activeTab,
-    setSearchTerm,
     setIsAccordionOpen,
     setActiveTab,
-    handleChampionClick,
     handleNextSet,
     handleResetAll,
     handleUndoLastAction,
-    handleLoadSummoner,
-    getAllSelectedChampions,
+    handleRegisterUsedChampions,
     filteredChampions,
-    currentTurnInfo,
-    BAN_PICK_SEQUENCE,
   } = useDraft();
 
-  // AdSense 정책 위반 방지를 위한 콘텐츠 로딩 상태
   const [isContentReady, setIsContentReady] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
 
   useEffect(() => {
-    // 챔피언 데이터가 로드되면 콘텐츠가 준비된 것으로 간주
     if (filteredChampions && filteredChampions.length > 0) {
-      // 약간의 딜레이를 주어 렌더링을 확실히 보장
-      const timer = setTimeout(() => {
-        setIsContentReady(true);
-      }, 500); // 0.5초 딜레이
-      return () => clearTimeout(timer);
+      setIsContentReady(true);
     }
   }, [filteredChampions]);
 
+  const handleShareUrl = () => {
+    const stateToShare = {
+      blueTeamPicks,
+      redTeamPicks,
+      blueTeamBans,
+      redTeamBans,
+      currentTurnIndex,
+      completedDrafts,
+    };
+    const jsonState = JSON.stringify(stateToShare);
+    const base64State = btoa(encodeURIComponent(jsonState));
+    const url = `${window.location.origin}/?data=${base64State}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('공유 URL이 클립보드에 복사되었습니다!');
+      setIsShareModalOpen(false);
+    });
+  };
+
+  const handleRegisterUsedChampionsConfirm = (championNames: string) => {
+    const { message } = handleRegisterUsedChampions(championNames);
+    setIsBulkBanModalOpen(false);
+    alert(message);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+      {isShareModalOpen && (
+        <ShareModal
+          onClose={() => setIsShareModalOpen(false)}
+          onShareUrl={handleShareUrl}
+        />
+      )}
+      {isBulkBanModalOpen && (
+        <BulkBanModal
+          onClose={() => setIsBulkBanModalOpen(false)}
+          onConfirm={handleRegisterUsedChampionsConfirm}
+        />
+      )}
       <nav className="fixed top-0 left-0 right-0 bg-gray-800 p-4 shadow-md z-50 flex flex-col sm:flex-row sm:justify-between sm:items-center">
         <h1 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0 text-center sm:text-left">롤 밴픽 시뮬레이터</h1>
         <div className="flex flex-wrap justify-center sm:flex-nowrap sm:space-x-4 space-y-2 sm:space-y-0">
           <Link href="/notices" className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center">
             공지사항
           </Link>
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
+          >
+            공유하기
+          </button>
           <button
             onClick={handleNextSet}
             className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -80,17 +110,16 @@ export default function Home() {
             선택 취소
           </button>
           <button
-            onClick={handleLoadSummoner}
+            onClick={() => setIsBulkBanModalOpen(true)}
             className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           >
-            소환사명으로 불러오기
+            대량 등록
           </button>
         </div>
       </nav>
 
       <div className="pt-24 sm:pt-20">
         <NoticeBanner />
-        {/* 콘텐츠가 준비되었을 때만 광고를 표시합니다 */}
         {isContentReady && (
           <div className="w-full max-w-5xl mx-auto px-4 sm:px-0">
             <AdsenseBanner />
@@ -99,7 +128,6 @@ export default function Home() {
       </div>
 
       <main className="flex-grow flex flex-col">
-        {/* Tab navigation for mobile */}
         <div className="flex border-b border-gray-700 lg:hidden">
           <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold ${activeTab === 'blue' ? 'bg-gray-700 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
             블루 팀
@@ -135,7 +163,6 @@ export default function Home() {
         </div>
 
         <section className="w-full max-w-5xl mx-auto p-4 sm:p-8 mt-8 space-y-8">
-          {/* Always visible content */}
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>
             <p className="text-center text-gray-300 mb-6 max-w-3xl mx-auto">
@@ -157,7 +184,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Accordion for detailed strategies */}
           <div className="bg-gray-800 rounded-lg shadow-lg">
             <button
               onClick={() => setIsAccordionOpen(!isAccordionOpen)}
@@ -169,8 +195,7 @@ export default function Home() {
               </span>
             </button>
             <div
-              className={`overflow-hidden transition-all duration-500 ease-in-out ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}
-            >
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}>
               <div className="p-6 border-t border-gray-700 space-y-6">
                 <div>
                   <h3 className="text-lg sm:text-xl font-semibold mb-2">기본 전략</h3>
