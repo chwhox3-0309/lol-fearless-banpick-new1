@@ -5,6 +5,7 @@ import { getLatestVersion, getChampionData, getChampionThumbnailUrl } from '@/li
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Champion {
   id: string;
