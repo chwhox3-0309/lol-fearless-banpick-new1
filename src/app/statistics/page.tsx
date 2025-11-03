@@ -43,14 +43,15 @@ export default function StatisticsPage() {
   }, [fetchData]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isRefreshing && countdown > 0) {
-      const timer = setInterval(() => {
+      timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
       }, 1000);
-      return () => clearInterval(timer);
-    } else if (countdown === 0) {
+    } else if (countdown === 0 && isRefreshing) {
       setIsRefreshing(false);
     }
+    return () => clearInterval(timer);
   }, [isRefreshing, countdown]);
 
   const handleRefresh = async () => {

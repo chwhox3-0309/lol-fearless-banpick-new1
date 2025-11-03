@@ -269,23 +269,30 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const championMap = new Map(allChampions.map(c => [c.name.toLowerCase(), c.id]));
     const championIdsToRegister: string[] = [];
     const invalidNames: string[] = [];
+    const processedNames = new Set<string>(); // To track names already processed from current input
 
     for (const name of names) {
       const lowerCaseName = name.toLowerCase();
       const id = championMap.get(lowerCaseName);
-      if (id && !getAllSelectedChampions.includes(id)) {
-        championIdsToRegister.push(id);
-      } else {
+
+      if (!id) { // Champion name not found
         invalidNames.push(name);
+      } else if (getAllSelectedChampions.includes(id)) { // Already drafted in previous sets or current draft
+        invalidNames.push(name);
+      } else if (processedNames.has(id)) { // Duplicate in the current bulk input
+        invalidNames.push(name);
+      } else {
+        championIdsToRegister.push(id);
+        processedNames.add(id); // Add to processed set
       }
     }
 
     if (invalidNames.length > 0) {
       return { success: false, message: `다음 챔피언 이름이 잘못되었거나 이미 사용 중입니다: ${invalidNames.join(', ')}` };
     }
-    
+
     if (championIdsToRegister.length !== 10) {
-        return { success: false, message: '챔피언 처리 중 오류가 발생했습니다. 중복된 챔피언이 있는지 확인해주세요.' };
+        return { success: false, message: `정확히 10명의 고유한 챔피언을 입력해야 합니다. (현재 ${championIdsToRegister.length}명)` };
     }
 
     const newFakeDraft: CompletedDraft = {

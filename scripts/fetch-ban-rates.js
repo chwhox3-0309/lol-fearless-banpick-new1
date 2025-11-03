@@ -16,6 +16,10 @@ const REGION = 'kr'; // Target region (e.g., kr, na1)
 const API_HOST = `https://${REGION}.api.riotgames.com`;
 const ASIA_HOST = `https://asia.api.riotgames.com`;
 
+let apiHeaders = {
+  "X-Riot-Token": RIOT_API_KEY,
+};
+
 const MATCH_COUNT = 100; // Number of matches to analyze
 
 if (!RIOT_API_KEY || RIOT_API_KEY === 'YOUR_RIOT_API_KEY') {
@@ -23,10 +27,6 @@ if (!RIOT_API_KEY || RIOT_API_KEY === 'YOUR_RIOT_API_KEY') {
   console.error('Please get your key from https://developer.riotgames.com/ and add it to .env.local');
   process.exit(1);
 }
-
-const apiHeaders = {
-  "X-Riot-Token": RIOT_API_KEY,
-};
 
 // Helper to handle rate limits with delays
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -113,7 +113,7 @@ async function main() {
         };
     });
 
-    banRates.sort((a, b) => b.banCount - a.banCount);
+    banRates.sort((a, b) => b.banCount - a.banRate);
 
     const outputPath = path.resolve(process.cwd(), 'src/data/ban-rates.json');
     fs.writeFileSync(outputPath, JSON.stringify({ 

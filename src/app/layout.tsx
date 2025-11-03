@@ -32,7 +32,7 @@ export default function RootLayout({
         ></script>
       </head>
       <body
-        className={`${inter.variable} antialiased flex flex-col min-h-screen`}
+        className={`${inter.variable} antialiased flex flex-col min-h-screen bg-gray-900`}
       >
         <AuthSessionProvider>
           <DraftProvider>

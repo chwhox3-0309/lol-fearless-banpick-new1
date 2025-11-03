@@ -19,7 +19,7 @@ const AdsenseBanner = () => {
   }, []);
 
   return (
-    <div className="w-full text-center my-4" key={Math.random()}>
+    <div className="w-full text-center my-4">
       <ins className="adsbygoogle"
         style={{ display: 'block' }}
         data-ad-client="ca-pub-6831227862636699" // [중요] 본인의 애드센스 게시자 ID로 변경하세요

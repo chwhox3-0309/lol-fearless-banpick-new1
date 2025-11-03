@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 import NoticeBanner from './components/NoticeBanner';
+import LatestPostBanner from './components/LatestPostBanner';
 import AdsenseBanner from './components/AdsenseBanner';
 import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
+import DailyFortune from './components/DailyFortune';
 import { useDraft } from './context/DraftContext';
 
 export default function Home() {
@@ -119,6 +121,7 @@ export default function Home() {
       </nav>
 
       <div className="pt-24 sm:pt-20">
+        <LatestPostBanner />
         <NoticeBanner />
         {isContentReady && (
           <div className="w-full max-w-5xl mx-auto px-4 sm:px-0">
@@ -140,7 +143,7 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="flex-grow flex flex-1 lg:grid lg:grid-cols-4">
+        <div className={`flex-grow flex flex-1 lg:grid lg:grid-cols-4`}>
           <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} w-full lg:block lg:col-span-1`}>
             <TeamDisplay
               teamName="블루 팀"
@@ -163,6 +166,7 @@ export default function Home() {
         </div>
 
         <section className="w-full max-w-5xl mx-auto p-4 sm:p-8 mt-8 space-y-8">
+          <DailyFortune />
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>
             <p className="text-center text-gray-300 mb-6 max-w-3xl mx-auto">
