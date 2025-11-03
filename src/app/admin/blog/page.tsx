@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getSortedPostsData } from '@/lib/posts';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
@@ -16,9 +15,16 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState<PostData[]>([]);
 
   useEffect(() => {
-    // This function is synchronous, but we wrap it in useEffect
-    // to ensure it runs only on the client side.
-    setPosts(getSortedPostsData());
+    async function fetchPosts() {
+      const res = await fetch('/api/blog');
+      if (res.ok) {
+        const data = await res.json();
+        // Sort posts by date on the client side
+        const sortedData = data.sort((a: PostData, b: PostData) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setPosts(sortedData);
+      }
+    }
+    fetchPosts();
   }, []);
 
   const handleDelete = async (id: string) => {
