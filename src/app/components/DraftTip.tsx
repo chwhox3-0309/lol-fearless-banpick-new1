@@ -1,3 +1,6 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import recommendations from '@/data/ban-recommendations.json';
 import tierData from '@/data/tier-lists.json';
 
@@ -29,49 +32,53 @@ function getRandomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export default async function DraftTip() {
-  const tipTypes = ['recommendation', 'tier'];
-  const chosenType = getRandomElement(tipTypes);
+export default function DraftTip() {
+  const [tip, setTip] = useState<{ title: string; content: string; } | null>(null);
 
-  let tip: { title: string; content: string; } | null = null;
+  useEffect(() => {
+    try {
+      const tipTypes = ['recommendation', 'tier'];
+      const chosenType = getRandomElement(tipTypes);
 
-  try {
-    if (chosenType === 'recommendation') {
-      const allChampsWithRecs = Object.keys(recommendations);
-      if (allChampsWithRecs.length > 0) {
-        const randomChampId = getRandomElement(allChampsWithRecs);
-        const recs = (recommendations as BanRecommendationData)[randomChampId];
-        if (recs && recs.length > 0) {
-          const randomRec = getRandomElement(recs);
-          tip = {
-            title: `알고 계셨나요?`,
-            content: `${randomChampId} 상대 추천 밴: **${randomRec.championName}**. ${randomRec.reason}`
-          };
+      let generatedTip: { title: string; content: string; } | null = null;
+
+      if (chosenType === 'recommendation') {
+        const allChampsWithRecs = Object.keys(recommendations);
+        if (allChampsWithRecs.length > 0) {
+          const randomChampId = getRandomElement(allChampsWithRecs);
+          const recs = (recommendations as BanRecommendationData)[randomChampId];
+          if (recs && recs.length > 0) {
+            const randomRec = getRandomElement(recs);
+            generatedTip = {
+              title: `알고 계셨나요?`,
+              content: `${randomChampId} 상대 추천 밴: **${randomRec.championName}**. ${randomRec.reason}`
+            };
+          }
+        }
+      } else { // 'tier'
+        const allRoles = Object.keys(tierData);
+        if (allRoles.length > 0) {
+          const randomRole = getRandomElement(allRoles);
+          const tiers = (tierData as TierListData)[randomRole];
+          const sTiers = tiers['S'];
+          if (sTiers && sTiers.length > 0) {
+            const randomChamp = getRandomElement(sTiers);
+            generatedTip = {
+              title: `S-티어 ${randomRole}`,
+              content: `**${randomChamp.name}**: ${randomChamp.reason}`
+            };
+          }
         }
       }
-    } else { // 'tier'
-      const allRoles = Object.keys(tierData);
-      if (allRoles.length > 0) {
-        const randomRole = getRandomElement(allRoles);
-        const tiers = (tierData as TierListData)[randomRole];
-        const sTiers = tiers['S'];
-        if (sTiers && sTiers.length > 0) {
-          const randomChamp = getRandomElement(sTiers);
-          tip = {
-            title: `S-티어 ${randomRole}`,
-            content: `**${randomChamp.name}**: ${randomChamp.reason}`
-          };
-        }
-      }
+      setTip(generatedTip);
+    } catch (error) {
+      console.error("Error generating draft tip:", error);
+      setTip(null);
     }
-  } catch (error) {
-    // In case of data format errors, don't render the component
-    console.error("Error generating draft tip:", error);
-    return null;
-  }
+  }, []); // Empty dependency array means this runs once on mount
 
   if (!tip) {
-    return null; // Don't render if no tip could be generated
+    return null; // Don't render if no tip could be generated or still loading
   }
 
   return (
