@@ -1,0 +1,175 @@
+{
+  "Katarina": [
+    {
+      "championId": "Lulu",
+      "championName": "룰루",
+      "reason": "룰루의 변이(W)와 급성장(R)은 카타리나의 암살 시도를 무력화하기 매우 좋습니다."
+    },
+    {
+      "championId": "Vex",
+      "championName": "벡스",
+      "reason": "벡스는 돌진 스킬을 가진 카타리나에게 공포를 유발하여 진입을 방해합니다."
+    },
+    {
+      "championId": "Taliyah",
+      "championName": "탈리야",
+      "reason": "탈리야의 지각 변동(W)과 대지의 파동(E)은 카타리나의 접근을 차단하고 큰 피해를 줍니다."
+    }
+  ],
+  "Yasuo": [
+    {
+      "championId": "Renekton",
+      "championName": "레넥톤",
+      "reason": "레넥톤은 강력한 라인전과 확정 CC기로 야스오를 초반부터 압박할 수 있습니다."
+    },
+    {
+      "championId": "Annie",
+      "championName": "애니",
+      "reason": "애니의 즉발 기절(패시브)은 야스오의 바람 장막(W)으로 막을 수 없어 위협적입니다."
+    }
+  ],
+  "MasterYi": [
+    {
+      "championId": "Rammus",
+      "championName": "람머스",
+      "reason": "람머스의 도발(E)과 방어 태세(W)는 마스터 이의 기본 공격을 완벽하게 카운터칩니다."
+    },
+    {
+      "championId": "Jax",
+      "championName": "잭스",
+      "reason": "잭스의 반격(E)은 마스터 이의 주력 딜링 스킬인 알파 스트라이크(Q)와 기본 공격을 모두 회피할 수 있습니다."
+    }
+  ],
+  "Zed": [
+    {
+      "championId": "Lissandra",
+      "championName": "리산드라",
+      "reason": "확정 CC기인 W와 R 스킬은 제드의 암살 시도를 완벽하게 카운터칩니다."
+    },
+    {
+      "championId": "Malzahar",
+      "championName": "말자하",
+      "reason": "제드가 궁극기를 사용해도 말자하의 제압(R)을 피할 수 없어, 역으로 제압당하기 쉽습니다."
+    }
+  ],
+  "LeBlanc": [
+    {
+      "championId": "Lissandra",
+      "championName": "리산드라",
+      "reason": "르블랑의 왜곡(W) 진입을 리산드라의 W나 R로 쉽게 받아칠 수 있습니다."
+    },
+    {
+      "championId": "Galio",
+      "championName": "갈리오",
+      "reason": "갈리오의 광역 도발(W)과 마법 저항력은 르블랑의 폭딜을 견디고 역습하기 좋습니다."
+    }
+  ],
+  "Ahri": [
+    {
+      "championId": "Yasuo",
+      "championName": "야스오",
+      "reason": "바람 장막(W)으로 아리의 핵심 스킬인 매혹(E)과 구슬(Q)을 모두 막을 수 있습니다."
+    },
+    {
+      "championId": "Fizz",
+      "championName": "피즈",
+      "reason": "재간둥이(E) 스킬로 아리의 모든 스킬을 회피하고, 폭발적인 딜로 역습할 수 있습니다."
+    }
+  ],
+  "Darius": [
+    {
+      "championId": "Vayne",
+      "championName": "베인",
+      "reason": "베인의 구르기(Q)와 선고(E)는 다리우스의 접근을 차단하고 카이팅하기에 최적화되어 있습니다."
+    },
+    {
+      "championId": "Kayle",
+      "championName": "케일",
+      "reason": "케일은 원거리에서 다리우스를 공격할 수 있으며, 궁극기(R)로 다리우스의 처형(R)을 무력화할 수 있습니다."
+    }
+  ],
+  "Camille": [
+    {
+      "championId": "Jax",
+      "championName": "잭스",
+      "reason": "잭스의 반격(E)은 카밀의 주력 딜링인 Q 스킬 2타의 고정 피해를 막을 수 있어 매우 효과적입니다."
+    },
+    {
+      "championId": "Renekton",
+      "championName": "레넥톤",
+      "reason": "강력한 초반 라인전으로 카밀의 성장을 억제하고, 스플릿 구도에서 밀리지 않습니다."
+    }
+  ],
+  "Evelynn": [
+    {
+      "championId": "Rengar",
+      "championName": "렝가",
+      "reason": "렝가의 궁극기는 은신한 이블린을 감지하고 먼저 암살할 수 있는 능력을 제공합니다."
+    },
+    {
+      "championId": "RekSai",
+      "championName": "렉사이",
+      "reason": "렉사이의 진동 감지(W)는 이블린의 은신을 무력화하며, 초반 교전에서 더 강력합니다."
+    }
+  ],
+  "KhaZix": [
+    {
+      "championId": "Rammus",
+      "championName": "람머스",
+      "reason": "람머스의 단단한 방어력과 도발(E)은 고립 데미지를 노리는 카직스에게 매우 까다롭습니다."
+    },
+    {
+      "championId": "Warwick",
+      "championName": "워윅",
+      "reason": "워윅은 맞대결에서 매우 강력하며, 카직스가 고립시키기 전에 먼저 물고 늘어질 수 있습니다."
+    }
+  ],
+  "Caitlyn": [
+    {
+      "championId": "Yasuo",
+      "championName": "야스오",
+      "reason": "바람 장막(W)은 케이틀린의 평타와 Q, R 스킬을 모두 막아 라인전과 한타에서 큰 위협이 됩니다."
+    },
+    {
+      "championId": "Sivir",
+      "championName": "시비르",
+      "reason": "시비르의 주문 방어막(E)으로 케이틀린의 덫(W)이나 궁극기(R)를 막을 수 있고, 라인 클리어 능력이 더 뛰어납니다."
+    }
+  ],
+  "Jhin": [
+    {
+      "championId": "Lucian",
+      "championName": "루시안",
+      "reason": "루시안의 빠른 대시와 폭발적인 딜은 재장전 타이밍이 있는 진을 상대로 라인전에서 우위를 점하기 좋습니다."
+    },
+    {
+      "championId": "Tristana",
+      "championName": "트리스타나",
+      "reason": "강력한 푸시 능력과 로켓 점프(W)를 통한 생존력으로 진을 압박할 수 있습니다."
+    }
+  ],
+  "Blitzcrank": [
+    {
+      "championId": "Morgana",
+      "championName": "모르가나",
+      "reason": "칠흑의 방패(E)는 블리츠크랭크의 그랩(Q)을 완벽하게 무력화하여, 바텀 라인전의 핵심 변수를 차단합니다."
+    },
+    {
+      "championId": "Leona",
+      "championName": "레오나",
+      "reason": "레오나가 먼저 물었을 때, 블리츠크랭크보다 한타 기여도와 탱킹 능력이 더 우수합니다."
+    }
+  ],
+  "Soraka": [
+    {
+      "championId": "Blitzcrank",
+      "championName": "블리츠크랭크",
+      "reason": "소라카는 이동기가 없어 블리츠크랭크의 그랩(Q)에 매우 취약합니다."
+    },
+    {
+      "championId": "Katarina",
+      "championName": "카타리나",
+      "reason": "카타리나는 광역 힐을 하는 소라카에게 치유 감소 효과를 쉽게 적용하고, 한타에서 소라카를 먼저 암살하기 좋습니다."
+    }
+  ]
+}

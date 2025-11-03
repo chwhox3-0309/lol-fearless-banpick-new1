@@ -23,6 +23,12 @@ export default function Footer() {
           <Link href="/blog" className="text-gray-400 hover:text-white transition-colors duration-300">
             블로그
           </Link>
+          <Link href="/recommended-bans" className="text-gray-400 hover:text-white transition-colors duration-300">
+            추천 밴
+          </Link>
+          <Link href="/tier-lists" className="text-gray-400 hover:text-white transition-colors duration-300">
+            티어 리스트
+          </Link>
         </div>
         <div className="mt-4 text-center text-gray-500">
           <p>&copy; {new Date().getFullYear()} 강한 라이즈. All rights reserved.</p>

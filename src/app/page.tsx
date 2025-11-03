@@ -11,6 +11,7 @@ import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DailyFortune from './components/DailyFortune';
+import DraftTip from './components/DraftTip';
 import { useDraft } from './context/DraftContext';
 
 export default function Home() {
@@ -85,6 +86,12 @@ export default function Home() {
         <div className="flex flex-wrap justify-center sm:flex-nowrap sm:space-x-4 space-y-2 sm:space-y-0">
           <Link href="/notices" className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center">
             공지사항
+          </Link>
+          <Link href="/recommended-bans" className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-center">
+            추천 밴
+          </Link>
+          <Link href="/tier-lists" className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded text-center">
+            티어 리스트
           </Link>
           <button
             onClick={() => setIsShareModalOpen(true)}
@@ -166,6 +173,7 @@ export default function Home() {
         </div>
 
         <section className="w-full max-w-5xl mx-auto p-4 sm:p-8 mt-8 space-y-8">
+          <DraftTip />
           <DailyFortune />
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>

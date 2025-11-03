@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { useDraft } from '../context/DraftContext';
 import KakaoAdFitBanner from './KakaoAdFitBanner';
+import Link from 'next/link';
 
 export default function TeamDisplay({ teamName, teamColor, teamType }: { teamName: string; teamColor: string; teamType: 'blue' | 'red' }) {
   const {
@@ -39,15 +40,20 @@ export default function TeamDisplay({ teamName, teamColor, teamType }: { teamNam
       <h3 className="text-lg font-semibold mb-2">픽:</h3>
       <div className="flex flex-wrap gap-2">
         {picks.map((champId) => (
-          <div key={`${teamType}-pick-${champId}`} className="w-16 h-16 relative">
-            {version && (
-              <Image
-                src={getChampionThumbnailUrl(version, champId)}
-                alt={champId}
-                fill
-                className="rounded-md object-cover"
-              />
-            )}
+          <div key={`${teamType}-pick-${champId}`} className="flex flex-col items-center">
+            <div className="w-16 h-16 relative mb-1">
+              {version && (
+                <Image
+                  src={getChampionThumbnailUrl(version, champId)}
+                  alt={champId}
+                  fill
+                  className="rounded-md object-cover"
+                />
+              )}
+            </div>
+            <Link href={`/recommended-bans?champion=${champId}`} className="text-xs text-blue-400 hover:underline">
+              추천 밴 보기
+            </Link>
           </div>
         ))}
       </div>
