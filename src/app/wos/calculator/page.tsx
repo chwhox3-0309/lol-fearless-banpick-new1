@@ -80,7 +80,7 @@ const WosCalculatorPage = () => {
 
   // Generate options for Spearman based on Shield Bearer's ratio
   const maxSpearRatio = 10 - parseInt(ratioShield, 10);
-  const spearmanOptions = [...Array(maxSpearRatio + 1).keys()];
+  const spearmanOptions = Array.from(Array(maxSpearRatio + 1).keys());
 
 
   return (
