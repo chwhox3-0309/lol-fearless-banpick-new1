@@ -84,6 +84,50 @@ export default function Home() {
 
 
       <div className="">
+        <nav className="bg-gray-800 p-4 shadow-md flex flex-col sm:flex-row sm:justify-between sm:items-center">
+          <div className="flex flex-wrap justify-center sm:flex-nowrap sm:space-x-4 space-y-2 sm:space-y-0">
+            <Link href="/notices" className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center">
+              공지사항
+            </Link>
+            <Link href="/recommended-bans" className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-center">
+              추천 밴
+            </Link>
+            <Link href="/tier-lists" className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded text-center">
+              티어 리스트
+            </Link>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
+            >
+              공유하기
+            </button>
+            <button
+              onClick={handleNextSet}
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+            >
+              다음 세트
+            </button>
+            <button
+              onClick={handleResetAll}
+              className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+            >
+              전부 초기화
+            </button>
+            <button
+              onClick={handleUndoLastAction}
+              disabled={currentTurnIndex === 0}
+              className="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed"
+            >
+              선택 취소
+            </button>
+            <button
+              onClick={() => setIsBulkBanModalOpen(true)}
+              className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            >
+              대량 등록
+            </button>
+          </div>
+        </nav>
         <LatestPostBanner />
         <NoticeBanner />
         {isContentReady && (
