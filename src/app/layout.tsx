@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 import Footer from './components/Footer';
 import AuthSessionProvider from './components/AuthSessionProvider';
 import { DraftProvider } from './context/DraftContext';
+import Header from './components/Header';
 
 export default function RootLayout({
   children,
@@ -36,6 +37,7 @@ export default function RootLayout({
       >
         <AuthSessionProvider>
           <DraftProvider>
+            <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
           </DraftProvider>
