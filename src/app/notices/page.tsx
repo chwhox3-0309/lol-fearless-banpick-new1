@@ -59,9 +59,11 @@ export default function NoticesPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8 pt-24">
-      <Link href="/" className="absolute top-8 left-8 text-white text-3xl hover:text-gray-400 transition-colors">
-        &larr;
+    <div className="mb-4">
+      <Link href="/" className="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+        &larr; 뒤로가기
       </Link>
+    </div>
       <h1 className="text-4xl font-bold mb-8 text-center">공지사항</h1>
       <div className="max-w-3xl mx-auto mb-6">
         <input
