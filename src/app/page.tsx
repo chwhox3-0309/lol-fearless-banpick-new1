@@ -84,7 +84,7 @@ export default function Home() {
 
 
       <div className="">
-        <nav className="bg-gray-800 p-4 shadow-md flex flex-col sm:flex-row sm:justify-between sm:items-center">
+        <nav className="bg-gray-800 p-4 shadow-md flex flex-col sm:flex-row sm:justify-center sm:items-center">
           <div className="flex flex-wrap justify-center sm:flex-nowrap sm:space-x-4 space-y-2 sm:space-y-0">
             <Link href="/notices" className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-center">
               공지사항
