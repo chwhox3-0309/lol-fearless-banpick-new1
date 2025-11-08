@@ -1,27 +1,29 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
 
-export const metadata: Metadata = {
-  title: "LoL Fearless Banpick Simulator",
-  description: "A League of Legends fearless banpick simulator with multi-language support and AdSense integration.",
-};
-
 import Footer from './components/Footer';
 import AuthSessionProvider from './components/AuthSessionProvider';
 import { DraftProvider } from './context/DraftContext';
 import Header from './components/Header';
+import KakaoAdFitBanner from "./components/KakaoAdFitBanner";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isWosPage = pathname.startsWith('/wos');
+
   return (
     <html lang="ko">
       <head>
@@ -40,6 +42,7 @@ export default function RootLayout({
             <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
+            {!isWosPage && <KakaoAdFitBanner />}
           </DraftProvider>
         </AuthSessionProvider>
       </body>

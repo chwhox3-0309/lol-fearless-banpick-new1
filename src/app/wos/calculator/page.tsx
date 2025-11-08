@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
-import KakaoAdFitBanner from '@/app/components/KakaoAdFitBanner';
+import usePersistentState from './usePersistentState';
 
 const WosCalculatorPage = () => {
-  const [totalSoldiers, setTotalSoldiers] = useState('');
-  const [shieldBearers, setShieldBearers] = useState('');
-  const [spearmen, setSpearmen] = useState('');
-  const [archers, setArchers] = useState('');
-  const [ratioShield, setRatioShield] = useState('1');
-  const [ratioSpear, setRatioSpear] = useState('1');
+  const [totalSoldiers, setTotalSoldiers] = usePersistentState('wos_totalSoldiers', '');
+  const [shieldBearers, setShieldBearers] = usePersistentState('wos_shieldBearers', '');
+  const [spearmen, setSpearmen] = usePersistentState('wos_spearmen', '');
+  const [archers, setArchers] = usePersistentState('wos_archers', '');
+  const [ratioShield, setRatioShield] = usePersistentState('wos_ratioShield', '1');
+  const [ratioSpear, setRatioSpear] = usePersistentState('wos_ratioSpear', '1');
 
   // Archer ratio is now a derived value
   const ratioArcher = 10 - (parseInt(ratioShield, 10) + parseInt(ratioSpear, 10));
@@ -81,6 +81,15 @@ const WosCalculatorPage = () => {
   // Generate options for Spearman based on Shield Bearer's ratio
   const maxSpearRatio = 10 - parseInt(ratioShield, 10);
   const spearmanOptions = Array.from(Array(maxSpearRatio + 1).keys());
+
+  const handleReset = () => {
+    setTotalSoldiers('');
+    setShieldBearers('');
+    setSpearmen('');
+    setArchers('');
+    setRatioShield('1');
+    setRatioSpear('1');
+  };
 
 
   return (
@@ -184,6 +193,12 @@ const WosCalculatorPage = () => {
                 </div>
             </div>
           </div>
+          <button
+            onClick={handleReset}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded transition duration-300"
+          >
+            초기화
+          </button>
         </div>
 
         {/* Outputs */}
@@ -218,7 +233,6 @@ const WosCalculatorPage = () => {
 
       </div>
 
-      <KakaoAdFitBanner />
     </div>
   );
 };
