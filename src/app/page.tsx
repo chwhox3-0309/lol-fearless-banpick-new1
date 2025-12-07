@@ -175,6 +175,49 @@ export default function Home() {
         <section className="w-full max-w-5xl mx-auto p-4 sm:p-8 mt-8 space-y-8">
           <DraftTip />
           <DailyFortune />
+
+          {/* 주요 기능 소개 섹션 */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-teal-300">주요 기능</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-lg">
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold text-xl mb-2">완벽한 Fearless 룰 구현</h3>
+                <p className="text-gray-300">이전 세트에서 사용한 챔피언은 다음 세트에서 자동으로 비활성화되어, 실제 프로 경기와 동일한 조건에서 밴픽을 연습할 수 있습니다.</p>
+              </div>
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold text-xl mb-2">밴픽 결과 공유</h3>
+                <p className="text-gray-300">'공유하기' 기능을 통해 생성된 URL로 친구나 팀원과 밴픽 결과를 간편하게 공유하고 전략을 논의할 수 있습니다.</p>
+              </div>
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold text-xl mb-2">대량 챔피언 등록</h3>
+                <p className="text-gray-300">대회나 스크림에서 이미 사용된 챔피언들을 '대량 등록' 기능을 사용해 한 번에 비활성화 처리하여 시뮬레이션을 빠르게 준비할 수 있습니다.</p>
+              </div>
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold text-xl mb-2">전략적 데이터 제공</h3>
+                <p className="text-gray-300">'추천 밴' 및 '티어 리스트' 페이지와 연동하여, 데이터에 기반한 더 깊이 있는 밴픽 전략을 수립할 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 자주 묻는 질문 (FAQ) 섹션 */}
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-orange-300">자주 묻는 질문 (FAQ)</h2>
+            <div className="space-y-4 text-lg">
+              <div>
+                <h3 className="font-semibold text-xl mb-2">Q. 피어리스(Fearless) 룰이 정확히 무엇인가요?</h3>
+                <p className="text-gray-300">A. 다전제 경기(예: 3전 2선승제)에서, 이전 세트에 양 팀이 사용했던 모든 챔피언을 다음 세트에서 다시 선택할 수 없도록 금지하는 규칙입니다. 이는 더 다양한 챔피언의 등장과 전략적인 밴픽 구도를 유도합니다.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-xl mb-2">Q. '다음 세트'는 언제 사용하나요?</h3>
+                <p className="text-gray-300">A. 한 세트의 밴픽이 모두 완료된 후 '다음 세트' 버튼을 누르면, 해당 세트에서 사용된 10개의 챔피언이 자동으로 비활성화 목록에 추가됩니다. 이어서 다음 경기의 밴픽을 곧바로 시작할 수 있습니다.</p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-xl mb-2">Q. 모바일에서도 사용이 가능한가요?</h3>
+                <p className="text-gray-300">A. 네, 가능합니다. 이 시뮬레이터는 PC와 모바일 환경 모두에 최적화되어 있어 언제 어디서든 편리하게 밴픽을 연습할 수 있습니다. 화면 크기에 따라 최적의 레이아웃을 제공합니다.</p>
+              </div>
+            </div>
+          </div>
+          
           <div className="bg-gray-800 rounded-lg shadow-lg p-6 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-blue-300">프로처럼 연습하는 Fearless 밴픽 시뮬레이터</h2>
             <p className="text-center text-gray-300 mb-6 max-w-3xl mx-auto">
@@ -235,6 +278,15 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </section>
+        <section className="w-full max-w-5xl mx-auto p-4 sm:p-6 text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-blue-300">리그 오브 레전드 Fearless 밴픽 시뮬레이터</h1>
+            <p className="text-lg text-gray-300 mb-6 max-w-4xl mx-auto">
+                프로 경기의 짜릿함을 그대로! LCK, LPL 등 전 세계 리그 오브 레전드 프로 리그에서 사용되는 '피어리스(Fearless)' 룰 기반의 밴픽을 직접 시뮬레이션하고 전략을 완성하세요. 매 세트 새로운 챔피언 조합을 구상하며 당신의 전략적 한계에 도전해보세요.
+            </p>
+            <p className="text-md text-gray-400">
+                이 도구는 실제 경기처럼 블루 팀과 레드 팀으로 나뉘어 밴과 픽을 차례대로 진행합니다. '다음 세트' 버튼을 누르면 이전 세트에서 사용된 모든 챔피언이 비활성화되어, 더욱 깊이 있는 챔피언 폭과 전략적 사고를 요구합니다. 친구들과 함께 다양한 시나리오를 테스트하고 최적의 조합을 찾아보세요.
+            </p>
         </section>
       </main>
     </div>

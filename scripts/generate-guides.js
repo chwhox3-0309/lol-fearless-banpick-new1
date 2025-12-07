@@ -8,6 +8,7 @@ async function generateGuidesData() {
   const guidesMetadata = [
     { slug: 'basic-understanding', title: '롤 밴픽의 기본 이해: 왜 중요한가?', date: '2025-08-15' },
     { slug: 'advanced-strategy', title: '페어리스 밴픽 심화 전략: 챔피언 풀 관리', date: '2025-08-16' },
+    { slug: 'champion-synergy', title: '챔피언 시너지 이해하기: 팀 조합을 극대화하는 방법', date: '2025-11-20' },
   ];
 
   const guidesDirectory = path.join(process.cwd(), 'src', 'guides');

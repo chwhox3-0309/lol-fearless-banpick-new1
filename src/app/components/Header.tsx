@@ -19,6 +19,9 @@ const Header = () => {
           <Link href="/wos" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/wos') ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
             WOS
           </Link>
+          <Link href="/guides" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/guides') ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
+            전략 가이드
+          </Link>
         </nav>
       </div>
     </header>
