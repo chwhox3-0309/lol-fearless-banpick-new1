@@ -14,7 +14,7 @@ export default function WosLayout({
             공지사항
           </Link>
           <Link href="/wos/calculator" className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-center">
-            병사 비율 계산기
+            WOS 통합 계산기
           </Link>
         </div>
       </nav>
