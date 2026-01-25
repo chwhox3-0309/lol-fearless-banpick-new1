@@ -12,14 +12,13 @@ import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DailyFortune from './components/DailyFortune';
 import DraftTip from './components/DraftTip';
+import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 
 export default function Home() {
   const {
-    blueTeamPicks,
-    redTeamPicks,
-    blueTeamBans,
-    redTeamBans,
+    draft,
+    config,
     currentTurnIndex,
     completedDrafts,
     isAccordionOpen,
@@ -31,26 +30,24 @@ export default function Home() {
     handleUndoLastAction,
     handleRegisterUsedChampions,
     filteredChampions,
+    teamSideMapping,
   } = useDraft();
 
   const [isContentReady, setIsContentReady] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (filteredChampions && filteredChampions.length > 0) {
-      setIsContentReady(true);
-    }
-  }, [filteredChampions]);
+    const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
+  
+    useEffect(() => {
+      if (filteredChampions && filteredChampions.length > 0) {
+        setIsContentReady(true);
+      }
+    }, [filteredChampions]);
 
   const handleShareUrl = () => {
     const stateToShare = {
-      blueTeamPicks,
-      redTeamPicks,
-      blueTeamBans,
-      redTeamBans,
-      currentTurnIndex,
+      draft,
       completedDrafts,
+      config,
     };
     const jsonState = JSON.stringify(stateToShare);
     const base64State = btoa(encodeURIComponent(jsonState));
@@ -66,6 +63,15 @@ export default function Home() {
     setIsBulkBanModalOpen(false);
     alert(message);
   };
+
+  const blueSideTeamId = teamSideMapping.team1 === 'blue' ? 'team1' : 'team2';
+  const redSideTeamId = teamSideMapping.team1 === 'red' ? 'team1' : 'team2';
+
+  const blueSideTeamName = blueSideTeamId === 'team1' ? config.team1Name : config.team2Name;
+  const redSideTeamName = redSideTeamId === 'team1' ? config.team1Name : config.team2Name;
+
+  const blueSideData = draft[blueSideTeamId] || { picks: [], bans: [] };
+  const redSideData = draft[redSideTeamId] || { picks: [], bans: [] };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
@@ -138,24 +144,27 @@ export default function Home() {
       </div>
 
       <main className="flex-grow flex flex-col">
+        <DraftConfigurator />
         <div className="flex border-b border-gray-700 lg:hidden">
           <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold ${activeTab === 'blue' ? 'bg-gray-700 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
-            블루 팀
+            {blueSideTeamName} (블루)
           </button>
           <button onClick={() => setActiveTab('champions')} className={`flex-1 p-3 text-center font-semibold ${activeTab === 'champions' ? 'bg-gray-700 text-white' : 'bg-gray-800 text-gray-400'}`}>
             챔피언 선택
           </button>
           <button onClick={() => setActiveTab('red')} className={`flex-1 p-3 text-center font-semibold ${activeTab === 'red' ? 'bg-gray-700 text-red-400' : 'bg-gray-800 text-gray-400'}`}>
-            레드 팀
+            {redSideTeamName} (레드)
           </button>
         </div>
 
         <div className={`flex-grow flex flex-1 lg:grid lg:grid-cols-4`}>
           <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} w-full lg:block lg:col-span-1`}>
             <TeamDisplay
-              teamName="블루 팀"
+              teamName={blueSideTeamName}
               teamColor="text-blue-400"
               teamType="blue"
+              picks={blueSideData.picks}
+              bans={blueSideData.bans}
             />
           </div>
 
@@ -165,9 +174,11 @@ export default function Home() {
 
           <div className={`${activeTab === 'red' ? 'block' : 'hidden'} w-full lg:block lg:col-span-1`}>
             <TeamDisplay
-              teamName="레드 팀"
+              teamName={redSideTeamName}
               teamColor="text-red-400"
               teamType="red"
+              picks={redSideData.picks}
+              bans={redSideData.bans}
             />
           </div>
         </div>

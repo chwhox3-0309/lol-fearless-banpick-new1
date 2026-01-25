@@ -12,8 +12,6 @@ export default function ChampionGrid() {
     currentTurnInfo,
     getAllSelectedChampions,
     handleChampionClick,
-    searchBarRef,
-    isSearchSticky,
     searchTerm,
     setSearchTerm,
     filteredChampions,
@@ -33,7 +31,7 @@ export default function ChampionGrid() {
         <p className="text-center mb-4 text-green-400">밴픽 완료!</p>
       )}
 
-      <div ref={searchBarRef} className={`transition-all duration-300 ${isSearchSticky ? 'fixed top-16 left-1/4 right-1/4 z-40 bg-gray-900 p-4 rounded-b-lg shadow-lg' : ''}`}>
+      <div className="sticky top-16 z-40 bg-gray-900 py-4">
         <input
           type="text"
           placeholder="챔피언 검색..."
@@ -42,9 +40,8 @@ export default function ChampionGrid() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      {isSearchSticky && <div className="mb-4" style={{ height: searchBarRef.current ? searchBarRef.current.offsetHeight : 'auto' }}></div>}
 
-      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4 mt-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
         {filteredChampions.length === 0 && searchTerm !== '' ? (
           <p className="col-span-full text-center text-gray-400">"{searchTerm}"에 대한 검색 결과가 없습니다.</p>
         ) : filteredChampions.length === 0 ? (

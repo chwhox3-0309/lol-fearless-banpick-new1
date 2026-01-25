@@ -40,9 +40,29 @@ export default function RootLayout({
         <AuthSessionProvider>
           <DraftProvider>
             <Header />
-            <main className="flex-grow">{children}</main>
+            <div className="flex-grow container mx-auto flex">
+              {/* Left Ad Banner */}
+              {!isWosPage && (
+                <aside className="w-48 hidden lg:block flex-shrink-0 mr-4">
+                  <div className="sticky top-20">
+                    <KakaoAdFitBanner />
+                  </div>
+                </aside>
+              )}
+
+              {/* Main Content */}
+              <main className="flex-grow">{children}</main>
+
+              {/* Right Ad Banner */}
+              {!isWosPage && (
+                <aside className="w-48 hidden lg:block flex-shrink-0 ml-4">
+                  <div className="sticky top-20">
+                    <KakaoAdFitBanner />
+                  </div>
+                </aside>
+              )}
+            </div>
             <Footer />
-            {!isWosPage && <KakaoAdFitBanner />}
           </DraftProvider>
         </AuthSessionProvider>
       </body>

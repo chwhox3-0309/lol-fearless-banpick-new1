@@ -6,18 +6,11 @@ import { useDraft } from '../context/DraftContext';
 import KakaoAdFitBanner from './KakaoAdFitBanner';
 import Link from 'next/link';
 
-export default function TeamDisplay({ teamName, teamColor, teamType }: { teamName: string; teamColor: string; teamType: 'blue' | 'red' }) {
+export default function TeamDisplay({ teamName, teamColor, teamType, picks, bans }: { teamName: string; teamColor: string; teamType: 'blue' | 'red'; picks: string[]; bans: string[]; }) {
   const {
     version,
-    blueTeamPicks,
-    redTeamPicks,
-    blueTeamBans,
-    redTeamBans,
     completedDrafts,
   } = useDraft();
-
-  const bans = teamType === 'blue' ? blueTeamBans : redTeamBans;
-  const picks = teamType === 'blue' ? blueTeamPicks : redTeamPicks;
 
   return (
     <div className="w-full lg:col-span-1 bg-gray-800 p-4 overflow-y-auto">

@@ -19,6 +19,9 @@ const Header = () => {
           <Link href="/wos" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/wos') ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
             WOS
           </Link>
+          <Link href="/j-pop" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/j-pop') ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
+            J-Pop
+          </Link>
           <Link href="/guides" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/guides') ? 'bg-gray-700' : 'hover:bg-gray-700'}`}>
             전략 가이드
           </Link>
