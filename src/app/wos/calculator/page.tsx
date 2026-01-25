@@ -265,12 +265,7 @@ const WosCalculatorPage = () => {
             </div>
           )}
 
-          {activeTab === 'code' && (
-            <div>
-              <h1 className="text-4xl font-bold mb-8 text-center">코드 교환 센터</h1>
-              <CodeExchange />
-            </div>
-          )}
+
         </div>
       </div>
     </div>
