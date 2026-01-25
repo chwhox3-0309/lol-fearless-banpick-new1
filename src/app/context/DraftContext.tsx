@@ -205,13 +205,17 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return mapping;
   }, [config]);
 
-  const dynamicBanPickSequence = useMemo(() => {
+  const dynamicBanPickSequence = useMemo((): Turn[] => {
+    if (!config.pickOrderDecision || !config.pickChoice || !config.sideChoice) {
+      return BAN_PICK_SEQUENCE; // Use default if config is not complete
+    }
+
     const firstPickingTeam = config.pickChoice === 'first' 
       ? config.pickOrderDecision 
       : (config.pickOrderDecision === 'team1' ? 'team2' : 'team1');
     
-    const firstPickSide = teamSideMapping[firstPickingTeam!];
-
+    const firstPickSide = teamSideMapping[firstPickingTeam as 'team1' | 'team2']; // Assert type
+    
     if (firstPickSide === 'red') {
       // Swap blue and red in the original sequence
       return BAN_PICK_SEQUENCE.map(turn => ({
