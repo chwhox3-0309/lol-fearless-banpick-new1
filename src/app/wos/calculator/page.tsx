@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import usePersistentState from './usePersistentState';
 import TimeConverter from './TimeConverter';
-import CodeExchange from './CodeExchange';
 
 const WosCalculatorPage = () => {
   const [totalSoldiers, setTotalSoldiers] = usePersistentState('wos_totalSoldiers', '');
@@ -119,12 +118,7 @@ const WosCalculatorPage = () => {
           >
             시간 변환기
           </button>
-          <button
-            className={`px-6 py-3 font-bold text-lg focus:outline-none ${activeTab === 'code' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('code')}
-          >
-            코드 교환 센터 (개발중)
-          </button>
+
         </div>
 
         {/* Tab Content */}
