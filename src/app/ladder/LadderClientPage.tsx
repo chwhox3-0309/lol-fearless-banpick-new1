@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 const LANES = ["탑", "정글", "미드", "원딜", "서폿"];
 
 // Fisher-Yates (Knuth) shuffle algorithm
-const shuffleArray = <T>(array: T[]): T[] => {
+function shuffleArray<T>(array: T[]): T[] {
   let currentIndex = array.length,
     randomIndex;
 
