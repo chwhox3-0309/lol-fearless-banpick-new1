@@ -31,7 +31,12 @@ interface Release {
 
 type SearchResult = Artist | Release;
 
-export default function JPopPage() {
+interface JPopPageProps {
+  params?: { [key: string]: string | string[] };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function JPopPage({ params, searchParams }: JPopPageProps) {
   const [query, setQuery] = useState<string>("");
   const [searchType, setSearchType] = useState<"artist" | "release">("artist");
   const [results, setResults] = useState<SearchResult[]>([]);

@@ -30,7 +30,12 @@ interface LaneAssignment {
   lane: string;
 }
 
-export default function LadderPage() {
+interface LadderPageProps {
+  params?: { [key: string]: string | string[] };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function LadderPage({ params, searchParams }: LadderPageProps) {
   const [blueTeamPlayers, setBlueTeamPlayers] = useState<string[]>(
     Array(5).fill("")
   );
