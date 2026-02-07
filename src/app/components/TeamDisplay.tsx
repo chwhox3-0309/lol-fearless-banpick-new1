@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { useDraft } from '../context/DraftContext';
-import KakaoAdFitBanner from './KakaoAdFitBanner';
+
 import Link from 'next/link';
 
 export default function TeamDisplay({ teamName, teamColor, teamType, picks, bans }: { teamName: string; teamColor: string; teamType: 'blue' | 'red'; picks: string[]; bans: string[]; }) {
@@ -74,9 +74,7 @@ export default function TeamDisplay({ teamName, teamColor, teamType, picks, bans
           ))}
         </>
       )}
-      <div className="mt-4">
-        <KakaoAdFitBanner />
-      </div>
+
     </div>
   );
 }
