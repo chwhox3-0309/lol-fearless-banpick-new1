@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import KakaoAdFitBanner from "../components/KakaoAdFitBanner";
 
 interface Artist {
   id: string;
@@ -178,6 +179,7 @@ export default function JPopClientPage() {
           </div>
         )}
       </div>
+      <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
     </div>
   );
 }

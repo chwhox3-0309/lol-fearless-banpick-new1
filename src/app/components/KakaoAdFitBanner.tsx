@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from 'react';
 
-export default function KakaoAdFitBanner() {
+interface KakaoAdFitBannerProps {
+  adUnit: string;
+  width: string;
+  height: string;
+}
+
+export default function KakaoAdFitBanner({ adUnit, width, height }: KakaoAdFitBannerProps) {
   const adContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -10,9 +16,9 @@ export default function KakaoAdFitBanner() {
       const ins = document.createElement('ins');
       ins.className = 'kakao_ad_area';
       ins.style.display = 'none';
-      ins.setAttribute('data-ad-unit', 'DAN-BKOeD7FOllmXhljU');
-      ins.setAttribute('data-ad-width', '160');
-      ins.setAttribute('data-ad-height', '600');
+      ins.setAttribute('data-ad-unit', adUnit);
+      ins.setAttribute('data-ad-width', width);
+      ins.setAttribute('data-ad-height', height);
       adContainerRef.current.appendChild(ins);
 
       const script = document.createElement('script');
@@ -21,7 +27,7 @@ export default function KakaoAdFitBanner() {
       script.src = '//t1.daumcdn.net/kas/static/ba.min.js';
       document.head.appendChild(script);
     }
-  }, []);
+  }, [adUnit, width, height]);
 
   return <div ref={adContainerRef} />;
 }

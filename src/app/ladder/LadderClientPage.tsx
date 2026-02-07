@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import KakaoAdFitBanner from "../components/KakaoAdFitBanner";
 
 const LANES = ["탑", "정글", "미드", "원딜", "서폿"];
 
@@ -197,6 +198,7 @@ export default function LadderClientPage() {
           </div>
         </div>
       )}
+      <KakaoAdFitBanner adUnit="DAN-SQynyBb84UUnztYC" width="300" height="250" />
     </div>
   );
 }
