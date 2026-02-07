@@ -14,7 +14,7 @@ import Footer from './components/Footer';
 import AuthSessionProvider from './components/AuthSessionProvider';
 import { DraftProvider } from './context/DraftContext';
 import Header from './components/Header';
-import KakaoAdFitBanner from "./components/KakaoAdFitBanner";
+
 
 export default function RootLayout({
   children,
@@ -42,25 +42,13 @@ export default function RootLayout({
             <Header />
             <div className="flex-grow container mx-auto flex">
               {/* Left Ad Banner */}
-              {!isWosPage && (
-                <aside className="w-48 hidden lg:block flex-shrink-0 mr-4">
-                  <div className="sticky top-20">
-                    <KakaoAdFitBanner />
-                  </div>
-                </aside>
-              )}
+
 
               {/* Main Content */}
               <main className="flex-grow">{children}</main>
 
               {/* Right Ad Banner */}
-              {!isWosPage && (
-                <aside className="w-48 hidden lg:block flex-shrink-0 ml-4">
-                  <div className="sticky top-20">
-                    <KakaoAdFitBanner />
-                  </div>
-                </aside>
-              )}
+
             </div>
             <Footer />
           </DraftProvider>
