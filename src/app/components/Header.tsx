@@ -11,7 +11,7 @@ const Header = () => {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="bg-gray-800 text-white p-4">
+    <header className="fixed top-0 left-0 right-0 w-full bg-gray-800 text-white p-4 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <h1 className="text-xl font-bold">GG Tools</h1>
         <button
