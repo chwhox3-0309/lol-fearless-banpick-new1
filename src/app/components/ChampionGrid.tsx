@@ -18,7 +18,7 @@ export default function ChampionGrid() {
   } = useDraft();
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto lg:col-span-2">
+    <div className="flex-1 p-4 lg:col-span-2 h-[80vh] overflow-y-scroll">
       <h1 className="text-2xl font-bold text-center mb-4">챔피언 선택</h1>
       <p className="text-center text-gray-400 mb-4">LoL Fearless Banpick은 프로 경기의 Fearless 밴픽 방식을 연습하는 시뮬레이터입니다. 이전 세트에서 사용한 챔피언은 다시 선택할 수 없습니다.</p>
       {currentTurnIndex < BAN_PICK_SEQUENCE.length ? (
@@ -31,7 +31,7 @@ export default function ChampionGrid() {
         <p className="text-center mb-4 text-green-400">밴픽 완료!</p>
       )}
 
-      <div className="sticky top-16 z-40 bg-gray-900 py-4">
+      <div className="sticky top-0 z-40 bg-gray-900 py-4">
         <input
           type="text"
           placeholder="챔피언 검색..."
@@ -41,7 +41,7 @@ export default function ChampionGrid() {
         />
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
+      <div className="grid grid-cols-8 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 mt-4">
         {filteredChampions.length === 0 && searchTerm !== '' ? (
           <p className="col-span-full text-center text-gray-400">"{searchTerm}"에 대한 검색 결과가 없습니다.</p>
         ) : filteredChampions.length === 0 ? (
@@ -58,7 +58,7 @@ export default function ChampionGrid() {
             }`}
             onClick={() => handleChampionClick(champion.id)}
           >
-            <div className="w-16 h-16 sm:w-20 sm:h-20 relative">
+            <div className="w-10 h-10 relative">
               {version && (
                 <Image
                   src={getChampionThumbnailUrl(version, champion.id)}
