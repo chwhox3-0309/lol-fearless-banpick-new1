@@ -11,6 +11,7 @@ export default function ChampionGrid() {
     BAN_PICK_SEQUENCE,
     currentTurnInfo,
     getAllSelectedChampions,
+    permanentlyBannedChampions,
     handleChampionClick,
     searchTerm,
     setSearchTerm,
@@ -47,30 +48,41 @@ export default function ChampionGrid() {
         ) : filteredChampions.length === 0 ? (
           <p className="col-span-full text-center text-gray-400">챔피언 데이터를 불러오는 중입니다...</p>
         ) : (
-          filteredChampions.map((champion) => (
-          <div
-            key={champion.id}
-            className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 ${
-              getAllSelectedChampions.includes(champion.id) ||
-              currentTurnIndex >= BAN_PICK_SEQUENCE.length
-                ? 'opacity-50 cursor-not-allowed grayscale'
-                : ''
-            }`}
-            onClick={() => handleChampionClick(champion.id)}
-          >
-            <div className="w-10 h-10 relative">
-              {version && (
-                <Image
-                  src={getChampionThumbnailUrl(version, champion.id)}
-                  alt={champion.id}
-                  fill
-                  className="rounded-md object-cover"
-                />
-              )}
-            </div>
-            <p className="text-xs text-center mt-1">{champion.name}</p>
-          </div>
-        )))}
+          filteredChampions.map((champion) => {
+            const isPermanentlyBanned = permanentlyBannedChampions.includes(champion.id);
+            const isSelected = getAllSelectedChampions.includes(champion.id);
+            const isSelectable = !isSelected && currentTurnIndex < BAN_PICK_SEQUENCE.length;
+
+            return (
+              <div
+                key={champion.id}
+                className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-all duration-200 relative ${
+                  !isSelectable ? 'opacity-40 grayscale cursor-not-allowed' : ''
+                }`}
+                onClick={() => isSelectable && handleChampionClick(champion.id)}
+              >
+                <div className={`w-10 h-10 relative rounded-md overflow-hidden ${isPermanentlyBanned ? 'border-2 border-red-600' : ''}`}>
+                  {version && (
+                    <Image
+                      src={getChampionThumbnailUrl(version, champion.id)}
+                      alt={champion.id}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                  {isPermanentlyBanned && (
+                    <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center">
+                      <span className="text-[8px] font-bold text-white text-center leading-tight">PERMA<br/>BAN</span>
+                    </div>
+                  )}
+                </div>
+                <p className={`text-[10px] text-center mt-1 truncate w-full ${isPermanentlyBanned ? 'text-red-400 font-bold' : ''}`}>
+                  {champion.name}
+                </p>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

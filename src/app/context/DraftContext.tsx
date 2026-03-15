@@ -66,6 +66,7 @@ interface DraftConfig {
   pickOrderDecision: 'team1' | 'team2' | null;
   pickChoice: 'first' | 'second' | null;
   sideChoice: 'blue' | 'red' | null;
+  isProMode: boolean;
 }
 
 const initialTeamState: TeamState = {
@@ -122,6 +123,7 @@ interface DraftContextType {
   currentTurnIndex: number;
   searchTerm: string;
   completedDrafts: CompletedDraft[];
+  permanentlyBannedChampions: string[];
   isAccordionOpen: boolean;
   activeTab: string;
   
@@ -159,6 +161,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     pickOrderDecision: null,
     pickChoice: null,
     sideChoice: null,
+    isProMode: false,
   });
 
   const { currentTurnIndex } = draftState;
@@ -166,6 +169,20 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const team1Bans = draftState?.team1?.bans || [];
   const team2Picks = draftState?.team2?.picks || [];
   const team2Bans = draftState?.team2?.bans || [];
+
+  // Logic to calculate permanently banned champions (banned twice)
+  const permanentlyBannedChampions = useMemo(() => {
+    if (!config.isProMode) return [];
+    
+    const banCounts: { [id: string]: number } = {};
+    completedDrafts.forEach(draft => {
+      [...draft.blueTeamBans, ...draft.redTeamBans].forEach(id => {
+        banCounts[id] = (banCounts[id] || 0) + 1;
+      });
+    });
+    
+    return Object.keys(banCounts).filter(id => banCounts[id] >= 2);
+  }, [completedDrafts, config.isProMode]);
 
   // Validate state shape after hydration to prevent crashes from old data structures
   useEffect(() => {
@@ -260,6 +277,9 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getAllSelectedChampions = useMemo(() => {
     const selected = new Set<string>();
     
+    // Permanently banned champions in Pro Mode
+    permanentlyBannedChampions.forEach(id => selected.add(id));
+
     // Current draft
     team1Picks.forEach((id) => selected.add(id));
     team2Picks.forEach((id) => selected.add(id));
@@ -273,7 +293,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
     
     return Array.from(selected);
-  }, [team1Picks, team2Picks, team1Bans, team2Bans, completedDrafts]);
+  }, [team1Picks, team2Picks, team1Bans, team2Bans, completedDrafts, permanentlyBannedChampions]);
 
   const handleChampionClick = useCallback((championId: string) => {
     if (currentTurnIndex >= dynamicBanPickSequence.length) {
@@ -412,6 +432,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         pickOrderDecision: null,
         pickChoice: null,
         sideChoice: null,
+        isProMode: false,
       });
     }
   }, [setDraftState, setCompletedDrafts, setConfig]);
@@ -453,6 +474,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     currentTurnIndex,
     searchTerm,
     completedDrafts,
+    permanentlyBannedChampions,
     isAccordionOpen,
     activeTab,
     setConfig,
@@ -482,6 +504,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     currentTurnIndex,
     searchTerm,
     completedDrafts,
+    permanentlyBannedChampions,
     isAccordionOpen,
     activeTab,
     setConfig,

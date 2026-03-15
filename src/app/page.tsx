@@ -14,13 +14,18 @@ import DailyFortune from './components/DailyFortune';
 import DraftTip from './components/DraftTip';
 import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
+import Image from 'next/image';
+import { getChampionThumbnailUrl } from '@/lib/riot-api';
 
 export default function Home() {
   const {
+    version,
+    champions,
     draft,
     config,
     currentTurnIndex,
     completedDrafts,
+    permanentlyBannedChampions,
     isAccordionOpen,
     activeTab,
     setIsAccordionOpen,
@@ -145,6 +150,41 @@ export default function Home() {
 
       <main className="flex-grow flex flex-col">
         <DraftConfigurator />
+
+        {config.isProMode && permanentlyBannedChampions.length > 0 && (
+          <div className="w-full max-w-5xl mx-auto px-4 mb-6">
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+              <h3 className="text-red-400 font-bold mb-3 flex items-center">
+                <span className="mr-2">🚫</span> 영구 밴 챔피언 (2회 누적 밴)
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {permanentlyBannedChampions.map(id => {
+                  const champion = champions[id];
+                  return (
+                    <div key={id} className="flex flex-col items-center">
+                      <div className="w-12 h-12 relative rounded border border-red-600 overflow-hidden grayscale">
+                        {version && (
+                          <Image
+                            src={getChampionThumbnailUrl(version, id)}
+                            alt={id}
+                            fill
+                            className="object-cover"
+                          />
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center bg-red-900/40">
+                          <div className="w-full h-0.5 bg-red-600 rotate-45 absolute"></div>
+                          <div className="w-full h-0.5 bg-red-600 -rotate-45 absolute"></div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-red-300 mt-1">{champion?.name || id}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex border-b border-gray-700 lg:hidden">
           <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold ${activeTab === 'blue' ? 'bg-gray-700 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
             {blueSideTeamName} (블루)

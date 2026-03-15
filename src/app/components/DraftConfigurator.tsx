@@ -57,6 +57,25 @@ const DraftConfigurator: React.FC = () => {
         </div>
       </div>
 
+      <div className="flex flex-col items-center mb-6 p-3 bg-gray-900 rounded-lg max-w-md mx-auto border border-indigo-500/30">
+        <label className="flex items-center cursor-pointer">
+          <div className="mr-3 text-gray-200 font-semibold">프로씬 모드 (2회 밴 시 영구 밴)</div>
+          <div className="relative">
+            <input 
+              type="checkbox" 
+              className="sr-only" 
+              checked={config.isProMode}
+              onChange={(e) => setConfig(prev => ({ ...prev, isProMode: e.target.checked }))}
+            />
+            <div className={`block w-14 h-8 rounded-full transition-colors ${config.isProMode ? 'bg-indigo-600' : 'bg-gray-600'}`}></div>
+            <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${config.isProMode ? 'transform translate-x-6' : ''}`}></div>
+          </div>
+        </label>
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          활성화 시, 세트 간 합산 2회 이상 밴 된 챔피언은 다음 세트부터 영구적으로 선택할 수 없습니다.
+        </p>
+      </div>
+
       <div className="space-y-4 flex flex-col items-center">
         {/* Step 1: Choose who decides pick order */}
         <div>
