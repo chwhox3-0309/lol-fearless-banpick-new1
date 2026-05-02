@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/privacy',
     '/recommended-bans',
     '/statistics',
+    '/tft',
     '/terms',
     '/tier-lists',
     '/wos',

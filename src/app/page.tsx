@@ -295,7 +295,7 @@ export default function Home() {
               onClick={() => setIsAccordionOpen(!isAccordionOpen)}
               className="w-full flex justify-between items-center p-6 text-base sm:text-2xl font-semibold text-left focus:outline-none"
             >
-              <span>세부 전략 가이드 (클릭)</span>
+              <span>TFT 메타 및 덱 추천 (클릭)</span>
               <span className={`transform transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>
                 ▼
               </span>
@@ -304,27 +304,20 @@ export default function Home() {
               className={`overflow-hidden transition-all duration-500 ease-in-out ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}>
               <div className="p-6 border-t border-gray-700 space-y-6">
                 <div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-2">기본 전략</h3>
+                  <h3 className="text-base sm:text-xl font-semibold mb-2">최신 패치 핵심 메타</h3>
                   <ul className="list-disc list-inside text-sm sm:text-lg space-y-2">
-                    <li><strong>O.P. 챔피언 관리:</strong> 초반 세트에 강력한 O.P. 챔피언을 먼저 밴하거나 픽해서 상대의 선택지를 줄이는 것이 중요합니다.</li>
-                    <li><strong>챔피언 폭 활용:</strong> 여러 포지션을 소화할 수 있는 유틸리티 챔피언을 확보하여 후반 세트의 밴픽을 유연하게 만드세요.</li>
-                    <li><strong>상대의 픽 예측:</strong> 상대의 이전 픽을 기억하고, 어떤 챔피언이 금지될지 예측하여 다음 픽을 준비하는 것이 승리의 열쇠입니다.</li>
+                    <li><strong>S티어 덱 확인:</strong> 현재 패치 버전에서 승률이 가장 높은 덱을 확인하고 빌드업 방법을 익히세요.</li>
+                    <li><strong>시너지 및 아이템:</strong> 각 덱의 핵심 시너지와 챔피언별 필수 아이템을 최적화하는 것이 중요합니다.</li>
+                    <li><strong>운영 전략:</strong> 레벨업 타이밍과 리롤 전략(4레벨 리롤, 7레벨 리롤 등)을 파악하여 순위 방어를 극대화하세요.</li>
                   </ul>
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-2">고급 전략</h3>
-                  <ul className="list-disc list-inside text-sm sm:text-lg space-y-2">
-                    <li><strong>상대방 챔피언 폭 저격 밴:</strong> 상대방의 주요 챔피언을 밴하여 플레이를 제한합니다.</li>
-                    <li><strong>선픽 유도 전략:</strong> 특정 챔피언을 먼저 픽하여 상대방의 밴픽을 유도합니다.</li>
-                    <li><strong>조합 시너지 극대화:</strong> 아군 챔피언 간의 시너지를 고려하여 밴픽을 진행합니다.</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-2">챔피언별 팁 (예시)</h3>
-                  <ul className="list-disc list-inside text-sm sm:text-lg space-y-2">
-                    <li><strong>라이즈:</strong> 상대방이 라이즈를 밴하지 않았다면, 강력한 후반 캐리력을 위해 선픽을 고려할 수 있습니다.</li>
-                    <li><strong>아칼리:</strong> 상대방이 AP 챔피언을 많이 픽했다면, 아칼리를 밴하여 상대방의 조합을 약화시킬 수 있습니다.</li>
-                  </ul>
+                <div className="text-center pb-4">
+                  <Link
+                    href="/tft"
+                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                  >
+                    상세 TFT 통계 보러가기
+                  </Link>
                 </div>
               </div>
             </div>

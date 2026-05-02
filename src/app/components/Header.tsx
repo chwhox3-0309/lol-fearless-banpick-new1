@@ -54,8 +54,8 @@ const Header = () => {
             <Link href="/j-pop" className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/j-pop') ? 'bg-gray-700' : 'hover:bg-gray-700'}`} onClick={() => setIsMenuOpen(false)}>
               J-Pop
             </Link>
-            <Link href="/guides" className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/guides') ? 'bg-gray-700' : 'hover:bg-gray-700'}`} onClick={() => setIsMenuOpen(false)}>
-              전략 가이드
+            <Link href="/tft" className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/tft') ? 'bg-gray-700' : 'hover:bg-gray-700'}`} onClick={() => setIsMenuOpen(false)}>
+              TFT
             </Link>
             <Link href="/ladder" className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/ladder') ? 'bg-gray-700' : 'hover:bg-gray-700'}`} onClick={() => setIsMenuOpen(false)}>
               사다리 타기

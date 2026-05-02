@@ -1,0 +1,35 @@
+name: Update TFT Stats (Every 30m)
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # 30분마다 실행
+  workflow_dispatch: # 수동 실행 버튼 추가
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/with-node-version@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch dotenv
+
+      - name: Run TFT Fetch Script
+        env:
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: node scripts/fetch-tft-stats.js
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add src/data/tft-stats.json
+          git commit -m "chore: update tft stats [skip ci]" || echo "No changes to commit"
+          git push
