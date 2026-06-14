@@ -1,6 +1,6 @@
 {
   "patchVersion": "16.12",
-  "lastUpdated": "2026-06-14T18:06:35.215Z",
+  "lastUpdated": "2026-06-14T20:03:03.918Z",
   "decks": [
     {
       "id": "우주-그루브",
@@ -274,9 +274,9 @@
       "id": "수호자",
       "name": "수호자",
       "tier": "S",
-      "winRate": 66.7,
-      "pickRate": 13.4,
-      "avgPlacement": 2.22,
+      "winRate": 62.5,
+      "pickRate": 11.9,
+      "avgPlacement": 2.38,
       "traits": [
         "수호자"
       ],
