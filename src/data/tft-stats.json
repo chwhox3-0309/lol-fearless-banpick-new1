@@ -1,14 +1,14 @@
 {
   "patchVersion": "16.12",
-  "lastUpdated": "2026-06-14T22:58:05.786Z",
+  "lastUpdated": "2026-06-15T00:04:41.536Z",
   "decks": [
     {
       "id": "우주-그루브",
       "name": "우주 그루브",
       "tier": "S",
-      "winRate": 57.1,
-      "pickRate": 10.3,
-      "avgPlacement": 1.43,
+      "winRate": 50,
+      "pickRate": 8.8,
+      "avgPlacement": 1.5,
       "traits": [
         "우주 그루브"
       ],
@@ -136,7 +136,7 @@
       "tier": "S",
       "winRate": 55.6,
       "pickRate": 13.2,
-      "avgPlacement": 2.11,
+      "avgPlacement": 2.22,
       "traits": [
         "수호자"
       ],
