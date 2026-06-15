@@ -1,69 +1,59 @@
 {
   "patchVersion": "16.12",
-  "lastUpdated": "2026-06-15T05:33:38.671Z",
+  "lastUpdated": "2026-06-15T11:39:25.216Z",
   "decks": [
     {
-      "id": "rangedtrait-우주-그루브",
-      "name": "RangedTrait 우주 그루브",
+      "id": "우주-그루브",
+      "name": "우주 그루브",
       "tier": "S",
-      "winRate": 100,
-      "pickRate": 3,
-      "avgPlacement": 1,
+      "winRate": 62.5,
+      "pickRate": 11.8,
+      "avgPlacement": 1.38,
       "traits": [
-        "RangedTrait",
         "우주 그루브"
       ],
       "units": [
         {
-          "name": "그웬",
-          "id": "TFT17_Gwen",
-          "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
+          "name": "티모",
+          "id": "TFT17_Teemo",
+          "image": "TFT17_Teemo_splash_centered_47.TFT_Set17.png",
           "tier": 2,
           "items": []
         },
         {
-          "name": "사미라",
-          "id": "TFT17_Samira",
-          "image": "TFT17_Samira_splash_centered_10.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_InfinityEdge",
-              "name": "무한의 대검",
-              "image": "TFT_Item_InfinityEdge.png"
-            },
-            {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
-            },
-            {
-              "id": "TFT_Item_PowerGauntlet",
-              "name": "타격대의 철퇴",
-              "image": "TFT_Item_PowerGauntlet.png"
-            }
-          ]
+          "name": "판테온",
+          "id": "TFT17_Pantheon",
+          "image": "TFT17_Pantheon_splash_centered_16.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "일라오이",
+          "id": "TFT17_Illaoi",
+          "image": "TFT17_Illaoi_splash_centered_27.TFT_Set17.png",
+          "tier": 2,
+          "items": []
         },
         {
           "name": "오른",
           "id": "TFT17_Ornn",
           "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
-          "tier": 3,
+          "tier": 2,
           "items": [
             {
-              "id": "TFT17_EkkoOffering_AnomalyItem",
-              "name": "이상 현상",
-              "image": "TFT17_EkkoOffering_AnomalyItem.png"
+              "id": "TFT_Item_IonicSpark",
+              "name": "이온 충격기",
+              "image": "TFT_Item_IonicSpark.png"
             },
             {
-              "id": "TFT_Item_BrambleVest",
-              "name": "덤불 조끼",
-              "image": "TFT_Item_BrambleVest.png"
+              "id": "TFT17_Item_PsyOpsEmblemItem",
+              "name": "초능력 상징",
+              "image": "TFT17_Item_PsyOpsEmblemItem.png"
             },
             {
-              "id": "TFT_Item_GargoyleStoneplate",
-              "name": "가고일 돌갑옷",
-              "image": "TFT_Item_GargoyleStoneplate.png"
+              "id": "TFT17_Item_PsyOps_GrenadeMod",
+              "name": "유기물 보존기",
+              "image": "TFT17_Item_PsyOps_GrenadeMod.png"
             }
           ]
         },
@@ -75,9 +65,32 @@
           "items": []
         },
         {
-          "name": "누누와 윌럼프",
-          "id": "TFT17_Nunu",
-          "image": "TFT17_Nunu_splash_centered_35.TFT_Set17.png",
+          "name": "나미",
+          "id": "TFT17_Nami",
+          "image": "TFT17_Nami_splash_centered_41.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
+            },
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_Leviathan",
+              "name": "내셔의 이빨",
+              "image": "TFT_Item_Leviathan.png"
+            }
+          ]
+        },
+        {
+          "name": "탐 켄치",
+          "id": "TFT17_TahmKench",
+          "image": "TFT17_TahmKench_splash_centered_11.TFT_Set17.png",
           "tier": 2,
           "items": [
             {
@@ -86,62 +99,153 @@
               "image": "TFT_Item_FrozenHeart.png"
             },
             {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
-            },
-            {
-              "id": "TFT_Item_Redemption",
-              "name": "정령의 형상",
-              "image": "TFT_Item_Redemption.png"
+              "id": "TFT17_Item_SpaceGrooveEmblemItem",
+              "name": "우주 그루브 상징",
+              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
             }
           ]
         },
         {
-          "name": "자야",
-          "id": "TFT17_Xayah",
-          "image": "TFT17_Xayah_splash_centered_1.TFT_Set17.png",
+          "name": "모르가나",
+          "id": "TFT17_Morgana",
+          "image": "TFT17_Morgana_splash_centered_50.TFT_Set17.png",
           "tier": 2,
           "items": [
+            {
+              "id": "TFT_Item_Crownguard",
+              "name": "크라운가드",
+              "image": "TFT_Item_Crownguard.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "astrait-태고",
+      "name": "ASTrait 태고",
+      "tier": "S",
+      "winRate": 50,
+      "pickRate": 2.9,
+      "avgPlacement": 1.5,
+      "traits": [
+        "ASTrait",
+        "태고"
+      ],
+      "units": [
+        {
+          "name": "브라이어",
+          "id": "TFT17_Briar",
+          "image": "TFT17_Briar_splash_centered_10.TFT_Set17.png",
+          "tier": 3,
+          "items": []
+        },
+        {
+          "name": "렉사이",
+          "id": "TFT17_RekSai",
+          "image": "TFT17_RekSai_splash_centered_26.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "TFT_Item_GargoyleStoneplate.png"
+            },
+            {
+              "id": "TFT_Item_Crownguard",
+              "name": "크라운가드",
+              "image": "TFT_Item_Crownguard.png"
+            },
+            {
+              "id": "TFT17_EkkoOffering_AnomalyItem",
+              "name": "이상 현상",
+              "image": "TFT17_EkkoOffering_AnomalyItem.png"
+            }
+          ]
+        },
+        {
+          "name": "벨베스",
+          "id": "TFT17_Belveth",
+          "image": "TFT17_Belveth_splash_centered_19.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_MadredsBloodrazor",
+              "name": "거인 학살자",
+              "image": "TFT_Item_MadredsBloodrazor.png"
+            },
+            {
+              "id": "TFT4_Item_OrnnInfinityForce",
+              "name": "무한한 삼위일체",
+              "image": "TFT4_Item_OrnnInfinityForce.png"
+            },
             {
               "id": "TFT_Item_Deathblade",
               "name": "죽음의 검",
               "image": "TFT_Item_Deathblade.png"
-            },
+            }
+          ]
+        },
+        {
+          "name": "징크스",
+          "id": "TFT17_Jinx",
+          "image": "TFT17_Jinx_splash_centered_38.TFT_Set17.png",
+          "tier": 3,
+          "items": [
             {
-              "id": "TFT17_Item_SpaceGrooveEmblemItem",
-              "name": "우주 그루브 상징",
-              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
+              "id": "TFT_Item_Artifact_CappaJuice",
+              "name": "카파 주스",
+              "image": "TFT_Item_Artifact_CappaJuice.png"
             },
             {
               "id": "TFT_Item_LastWhisper",
               "name": "최후의 속삭임",
               "image": "TFT_Item_LastWhisper.png"
+            },
+            {
+              "id": "TFT_Item_InfinityEdge",
+              "name": "무한의 대검",
+              "image": "TFT_Item_InfinityEdge.png"
             }
           ]
         },
         {
-          "name": "진",
-          "id": "TFT17_Jhin",
-          "image": "TFT17_Jhin_splash_centered_37.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "블리츠크랭크",
-          "id": "TFT17_Blitzcrank",
-          "image": "TFT17_Blitzcrank_splash_uncentered_65.TFT_Set17.png",
-          "tier": 1,
+          "name": "아칼리",
+          "id": "TFT17_Akali",
+          "image": "TFT17_Akali_splash_centered_68.TFT_Set17.png",
+          "tier": 3,
           "items": [
             {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
+              "id": "TFT_Item_TitansResolve",
+              "name": "거인의 결의",
+              "image": "TFT_Item_TitansResolve.png"
             },
             {
-              "id": "TFT17_Item_StargazerEmblemItem",
-              "name": "별돌보미 상징",
-              "image": "TFT17_Item_StargazerEmblemItem.png"
+              "id": "TFT_Item_SteraksGage",
+              "name": "스테락의 도전",
+              "image": "TFT_Item_SteraksGage.png"
+            },
+            {
+              "id": "TFT4_Item_OrnnDeathsDefiance",
+              "name": "죽음의 저항",
+              "image": "TFT4_Item_OrnnDeathsDefiance.png"
+            }
+          ]
+        },
+        {
+          "name": "그웬",
+          "id": "TFT17_Gwen",
+          "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_MadredsBloodrazor",
+              "name": "거인 학살자",
+              "image": "TFT_Item_MadredsBloodrazor.png"
+            },
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
             },
             {
               "id": "TFT_Item_Morellonomicon",
@@ -149,133 +253,30 @@
               "image": "TFT_Item_Morellonomicon.png"
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "우주-그루브",
-      "name": "우주 그루브",
-      "tier": "S",
-      "winRate": 50,
-      "pickRate": 9.1,
-      "avgPlacement": 1.5,
-      "traits": [
-        "우주 그루브"
-      ],
-      "units": [
-        {
-          "name": "그웬",
-          "id": "TFT17_Gwen",
-          "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
-            },
-            {
-              "id": "TFT_Item_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "TFT_Item_HextechGunblade.png"
-            }
-          ]
         },
         {
-          "name": "그웬",
-          "id": "TFT17_Gwen",
-          "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
+          "name": "마오카이",
+          "id": "TFT17_Maokai",
+          "image": "TFT17_Maokai_splash_centered_33.TFT_Set17.png",
           "tier": 2,
-          "items": []
-        },
-        {
-          "name": "사미라",
-          "id": "TFT17_Samira",
-          "image": "TFT17_Samira_splash_centered_10.TFT_Set17.png",
-          "tier": 3,
           "items": [
             {
-              "id": "TFT_Item_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "TFT_Item_LastWhisper.png"
-            },
-            {
-              "id": "TFT_Item_Deathblade",
-              "name": "죽음의 검",
-              "image": "TFT_Item_Deathblade.png"
-            },
-            {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
-            }
-          ]
-        },
-        {
-          "name": "사미라",
-          "id": "TFT17_Samira",
-          "image": "TFT17_Samira_splash_centered_10.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "오른",
-          "id": "TFT17_Ornn",
-          "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_NightHarvester",
-              "name": "굳건한 심장",
-              "image": "TFT_Item_NightHarvester.png"
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
             },
             {
               "id": "TFT_Item_BrambleVest",
               "name": "덤불 조끼",
               "image": "TFT_Item_BrambleVest.png"
-            },
-            {
-              "id": "TFT_Item_WarmogsArmor",
-              "name": "워모그의 갑옷",
-              "image": "TFT_Item_WarmogsArmor.png"
             }
           ]
         },
         {
-          "name": "오른",
-          "id": "TFT17_Ornn",
-          "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
+          "name": "라아스트",
+          "id": "TFT17_Rhaast",
+          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
           "tier": 2,
-          "items": []
-        },
-        {
-          "name": "나미",
-          "id": "TFT17_Nami",
-          "image": "TFT17_Nami_splash_centered_41.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_JeweledGauntlet",
-              "name": "보석 건틀릿",
-              "image": "TFT_Item_JeweledGauntlet.png"
-            },
-            {
-              "id": "TFT_Item_Quicksilver",
-              "name": "수은",
-              "image": "TFT_Item_Quicksilver.png"
-            },
-            {
-              "id": "TFT_Item_MadredsBloodrazor",
-              "name": "거인 학살자",
-              "image": "TFT_Item_MadredsBloodrazor.png"
-            }
-          ]
-        },
-        {
-          "name": "블리츠크랭크",
-          "id": "TFT17_Blitzcrank",
-          "image": "TFT17_Blitzcrank_splash_uncentered_65.TFT_Set17.png",
-          "tier": 1,
           "items": []
         }
       ]
@@ -284,9 +285,9 @@
       "id": "수호자",
       "name": "수호자",
       "tier": "S",
-      "winRate": 50,
-      "pickRate": 12.1,
-      "avgPlacement": 2.38,
+      "winRate": 60,
+      "pickRate": 7.4,
+      "avgPlacement": 2.2,
       "traits": [
         "수호자"
       ],
@@ -392,7 +393,7 @@
       "name": "근접 난동꾼",
       "tier": "S",
       "winRate": 50,
-      "pickRate": 6.1,
+      "pickRate": 5.9,
       "avgPlacement": 2.5,
       "traits": [
         "근접",
@@ -531,9 +532,9 @@
       "id": "admin",
       "name": "ADMIN",
       "tier": "S",
-      "winRate": 50,
-      "pickRate": 3,
-      "avgPlacement": 2.5,
+      "winRate": 33.3,
+      "pickRate": 4.4,
+      "avgPlacement": 2.67,
       "traits": [
         "ADMIN"
       ],
@@ -542,17 +543,60 @@
           "name": "레오나",
           "id": "TFT17_Leona",
           "image": "TFT17_Leona_splash_centered_64.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "징크스",
+          "id": "TFT17_Jinx",
+          "image": "TFT17_Jinx_splash_centered_38.TFT_Set17.png",
           "tier": 3,
           "items": [
             {
-              "id": "TFT_Item_Crownguard",
-              "name": "크라운가드",
-              "image": "TFT_Item_Crownguard.png"
+              "id": "TFT_Item_LastWhisper",
+              "name": "최후의 속삭임",
+              "image": "TFT_Item_LastWhisper.png"
             },
             {
-              "id": "TFT_Item_IonicSpark",
-              "name": "이온 충격기",
-              "image": "TFT_Item_IonicSpark.png"
+              "id": "TFT17_AnimaSquadItem_Tier1_SavageSlicer",
+              "name": "포악한 절단검",
+              "image": "TFT17_AnimaSquadItem_Tier1_SavageSlicer.png"
+            },
+            {
+              "id": "TFT_Item_RapidFireCannon",
+              "name": "붉은 덩굴정령",
+              "image": "TFT_Item_RapidFireCannon.png"
+            }
+          ]
+        },
+        {
+          "name": "꼬마 정령",
+          "id": "TFT17_IvernMinion",
+          "image": "TFT17_IvernMinion_splash_centered_27.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_GiantsBelt",
+              "name": "거인의 허리띠",
+              "image": "TFT_Item_GiantsBelt.png"
+            }
+          ]
+        },
+        {
+          "name": "일라오이",
+          "id": "TFT17_Illaoi",
+          "image": "TFT17_Illaoi_splash_centered_27.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "TFT_Item_GargoyleStoneplate.png"
+            },
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
             },
             {
               "id": "TFT_Item_WarmogsArmor",
@@ -562,20 +606,116 @@
           ]
         },
         {
-          "name": "징크스",
-          "id": "TFT17_Jinx",
-          "image": "TFT17_Jinx_splash_centered_38.TFT_Set17.png",
+          "name": "오로라",
+          "id": "TFT17_Aurora",
+          "image": "TFT17_Aurora_splash_centered_1.TFT_Set17.png",
           "tier": 3,
           "items": [
             {
-              "id": "TFT17_AnimaSquadItem_Tier0_SparkingPrototype",
-              "name": "불꽃 튀는 시제품",
-              "image": "TFT17_AnimaSquadItem_Tier0_SparkingPrototype.png"
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
             },
             {
-              "id": "TFT_Item_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "TFT_Item_LastWhisper.png"
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
+            }
+          ]
+        },
+        {
+          "name": "다이애나",
+          "id": "TFT17_Diana",
+          "image": "TFT17_DianaSplash_PC.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_GuinsoosRageblade",
+              "name": "구인수의 격노검",
+              "image": "TFT_Item_GuinsoosRageblade.png"
+            },
+            {
+              "id": "TFT_Item_Bloodthirster",
+              "name": "피바라기",
+              "image": "TFT_Item_Bloodthirster.png"
+            },
+            {
+              "id": "TFT_Item_TitansResolve",
+              "name": "거인의 결의",
+              "image": "TFT_Item_TitansResolve.png"
+            }
+          ]
+        },
+        {
+          "name": "르블랑",
+          "id": "TFT17_Leblanc",
+          "image": "TFT17_Leblanc_splash_centered_29.TFT_Set17.png",
+          "tier": 1,
+          "items": []
+        },
+        {
+          "name": "Summon",
+          "id": "TFT17_Summon",
+          "image": null,
+          "tier": 1,
+          "items": []
+        }
+      ]
+    },
+    {
+      "id": "암흑의-별",
+      "name": "암흑의 별",
+      "tier": "A",
+      "winRate": 33.3,
+      "pickRate": 8.8,
+      "avgPlacement": 3.5,
+      "traits": [
+        "암흑의 별"
+      ],
+      "units": [
+        {
+          "name": "초가스",
+          "id": "TFT17_Chogath",
+          "image": "TFT17_Chogath_splash_centered_7.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT_Item_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "TFT_Item_AdaptiveHelm.png"
+            },
+            {
+              "id": "TFT_Item_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "TFT_Item_WarmogsArmor.png"
+            }
+          ]
+        },
+        {
+          "name": "리산드라",
+          "id": "TFT17_Lissandra",
+          "image": "TFT17_Lissandra_splash_centered_12.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_PowerGauntlet",
+              "name": "타격대의 철퇴",
+              "image": "TFT_Item_PowerGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_BlueBuff",
+              "name": "푸른 파수꾼",
+              "image": "TFT_Item_BlueBuff.png"
             }
           ]
         },
@@ -587,81 +727,75 @@
           "items": []
         },
         {
+          "name": "모데카이저",
+          "id": "TFT17_Mordekaiser",
+          "image": "TFT17_Mordekaiser_splash_centered_6.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_ThiefsGloves",
+              "name": "도적의 장갑",
+              "image": "TFT_Item_ThiefsGloves.png"
+            },
+            {
+              "id": "TFT_Item_NightHarvester",
+              "name": "굳건한 심장",
+              "image": "TFT_Item_NightHarvester.png"
+            },
+            {
+              "id": "TFT_Item_BrambleVest",
+              "name": "덤불 조끼",
+              "image": "TFT_Item_BrambleVest.png"
+            }
+          ]
+        },
+        {
+          "name": "판테온",
+          "id": "TFT17_Pantheon",
+          "image": "TFT17_Pantheon_splash_centered_16.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
           "name": "일라오이",
           "id": "TFT17_Illaoi",
           "image": "TFT17_Illaoi_splash_centered_27.TFT_Set17.png",
           "tier": 2,
           "items": [
             {
-              "id": "TFT17_AnimaSquadItem_Tier0_ClunkyPrototype",
-              "name": "망가진 시제품",
-              "image": "TFT17_AnimaSquadItem_Tier0_ClunkyPrototype.png"
+              "id": "TFT_Item_SpectralGauntlet",
+              "name": "저녁갑주",
+              "image": "TFT_Item_SpectralGauntlet.png"
             }
           ]
         },
         {
-          "name": "오로라",
-          "id": "TFT17_Aurora",
-          "image": "TFT17_Aurora_splash_centered_1.TFT_Set17.png",
-          "tier": 3,
+          "name": "카이사",
+          "id": "TFT17_Kaisa",
+          "image": "TFT17_Kaisa_splash_centered_69.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "카르마",
+          "id": "TFT17_Karma",
+          "image": "TFT17_Karma_splash_centered_8.TFT_Set17.png",
+          "tier": 2,
           "items": [
             {
-              "id": "TFT17_AnimaSquadItem_Tier0_LeakyPrototype",
-              "name": "엉성한 시제품",
-              "image": "TFT17_AnimaSquadItem_Tier0_LeakyPrototype.png"
+              "id": "TFT_Item_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "TFT_Item_AdaptiveHelm.png"
+            },
+            {
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
             },
             {
               "id": "TFT_Item_JeweledGauntlet",
               "name": "보석 건틀릿",
               "image": "TFT_Item_JeweledGauntlet.png"
-            },
-            {
-              "id": "TFT_Item_RapidFireCannon",
-              "name": "붉은 덩굴정령",
-              "image": "TFT_Item_RapidFireCannon.png"
-            }
-          ]
-        },
-        {
-          "name": "다이애나",
-          "id": "TFT17_Diana",
-          "image": "TFT17_DianaSplash_PC.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_Bloodthirster",
-              "name": "피바라기",
-              "image": "TFT_Item_Bloodthirster.png"
-            },
-            {
-              "id": "TFT_Item_TitansResolve",
-              "name": "거인의 결의",
-              "image": "TFT_Item_TitansResolve.png"
-            },
-            {
-              "id": "TFT_Item_Artifact_SeekersArmguard",
-              "name": "추적자의 팔목 보호대",
-              "image": "TFT_Item_Artifact_SeekersArmguard.png"
-            }
-          ]
-        },
-        {
-          "name": "라아스트",
-          "id": "TFT17_Rhaast",
-          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "르블랑",
-          "id": "TFT17_Leblanc",
-          "image": "TFT17_Leblanc_splash_centered_29.TFT_Set17.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "TFT_Item_RabadonsDeathcap",
-              "name": "라바돈의 죽음모자",
-              "image": "TFT_Item_RabadonsDeathcap.png"
             }
           ]
         }
@@ -672,7 +806,7 @@
       "name": "Stargazer_Mountain",
       "tier": "A",
       "winRate": 33.3,
-      "pickRate": 4.5,
+      "pickRate": 4.4,
       "avgPlacement": 3.67,
       "traits": [
         "Stargazer_Mountain"
@@ -813,43 +947,27 @@
       ]
     },
     {
-      "id": "암흑의-별",
-      "name": "암흑의 별",
+      "id": "우주-비행사",
+      "name": "우주 비행사",
       "tier": "A",
-      "winRate": 20,
-      "pickRate": 7.6,
-      "avgPlacement": 4,
+      "winRate": 22.2,
+      "pickRate": 13.2,
+      "avgPlacement": 4.33,
       "traits": [
-        "암흑의 별"
+        "우주 비행사"
       ],
       "units": [
         {
-          "name": "초가스",
-          "id": "TFT17_Chogath",
-          "image": "TFT17_Chogath_splash_centered_7.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_FrozenHeart",
-              "name": "수호자의 맹세",
-              "image": "TFT_Item_FrozenHeart.png"
-            },
-            {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
-            },
-            {
-              "id": "TFT_Item_WarmogsArmor",
-              "name": "워모그의 갑옷",
-              "image": "TFT_Item_WarmogsArmor.png"
-            }
-          ]
+          "name": "뽀삐",
+          "id": "TFT17_Poppy",
+          "image": "TFT17_Poppy_splash_centered_16.TFT_Set17.png",
+          "tier": 2,
+          "items": []
         },
         {
-          "name": "리산드라",
-          "id": "TFT17_Lissandra",
-          "image": "TFT17_Lissandra_splash_centered_12.TFT_Set17.png",
+          "name": "베이가",
+          "id": "TFT17_Veigar",
+          "image": "TFT17_Veigar_splash_centered_32.TFT_Set17.png",
           "tier": 3,
           "items": [
             {
@@ -863,68 +981,66 @@
               "image": "TFT_Item_PowerGauntlet.png"
             },
             {
-              "id": "TFT_Item_BlueBuff",
-              "name": "푸른 파수꾼",
-              "image": "TFT_Item_BlueBuff.png"
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
             }
           ]
+        },
+        {
+          "name": "리산드라",
+          "id": "TFT17_Lissandra",
+          "image": "TFT17_Lissandra_splash_centered_12.TFT_Set17.png",
+          "tier": 1,
+          "items": []
         },
         {
           "name": "꼬마 정령",
           "id": "TFT17_IvernMinion",
           "image": "TFT17_IvernMinion_splash_centered_27.TFT_Set17.png",
           "tier": 2,
-          "items": []
-        },
-        {
-          "name": "모데카이저",
-          "id": "TFT17_Mordekaiser",
-          "image": "TFT17_Mordekaiser_splash_centered_6.TFT_Set17.png",
-          "tier": 2,
           "items": [
-            {
-              "id": "TFT_Item_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "TFT_Item_ThiefsGloves.png"
-            },
             {
               "id": "TFT_Item_NightHarvester",
               "name": "굳건한 심장",
               "image": "TFT_Item_NightHarvester.png"
             },
             {
-              "id": "TFT_Item_BrambleVest",
-              "name": "덤불 조끼",
-              "image": "TFT_Item_BrambleVest.png"
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
             }
           ]
         },
         {
-          "name": "판테온",
-          "id": "TFT17_Pantheon",
-          "image": "TFT17_Pantheon_splash_centered_16.TFT_Set17.png",
+          "name": "라아스트",
+          "id": "TFT17_Rhaast",
+          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
           "tier": 2,
           "items": []
         },
         {
-          "name": "일라오이",
-          "id": "TFT17_Illaoi",
-          "image": "TFT17_Illaoi_splash_centered_27.TFT_Set17.png",
+          "name": "람머스",
+          "id": "TFT17_Rammus",
+          "image": "TFT17_Rammus_splash_centered_17.TFT_Set17.png",
           "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_SpectralGauntlet",
-              "name": "저녁갑주",
-              "image": "TFT_Item_SpectralGauntlet.png"
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT17_Item_Artifact_SorakaArtifact",
+              "name": "소라카의 기적",
+              "image": "TFT17_Item_Artifact_SorakaArtifact.png"
             }
           ]
-        },
-        {
-          "name": "카이사",
-          "id": "TFT17_Kaisa",
-          "image": "TFT17_Kaisa_splash_centered_69.TFT_Set17.png",
-          "tier": 2,
-          "items": []
         },
         {
           "name": "카르마",
@@ -933,19 +1049,32 @@
           "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
+              "id": "TFT_Item_Morellonomicon",
+              "name": "모렐로노미콘",
+              "image": "TFT_Item_Morellonomicon.png"
+            }
+          ]
+        },
+        {
+          "name": "바드",
+          "id": "TFT17_Bard",
+          "image": "TFT17_Bard_splash_centered_8.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_RabadonsDeathcap",
+              "name": "라바돈의 죽음모자",
+              "image": "TFT_Item_RabadonsDeathcap.png"
+            },
+            {
+              "id": "TFT_Item_MadredsBloodrazor",
+              "name": "거인 학살자",
+              "image": "TFT_Item_MadredsBloodrazor.png"
             },
             {
               "id": "TFT_Item_StatikkShiv",
               "name": "공허의 지팡이",
               "image": "TFT_Item_StatikkShiv.png"
-            },
-            {
-              "id": "TFT_Item_JeweledGauntlet",
-              "name": "보석 건틀릿",
-              "image": "TFT_Item_JeweledGauntlet.png"
             }
           ]
         }
@@ -955,9 +1084,9 @@
       "id": "메카",
       "name": "메카",
       "tier": "A",
-      "winRate": 50,
-      "pickRate": 3,
-      "avgPlacement": 4.5,
+      "winRate": 33.3,
+      "pickRate": 4.4,
+      "avgPlacement": 4.33,
       "traits": [
         "메카"
       ],
@@ -976,19 +1105,42 @@
           "tier": 2,
           "items": [
             {
-              "id": "TFT17_Item_RangedTraitEmblemItem",
-              "name": "저격수 상징",
-              "image": "TFT17_Item_RangedTraitEmblemItem.png"
+              "id": "TFT5_Item_ThiefsGlovesRadiant",
+              "name": "찬란한 도적의 장갑",
+              "image": "TFT5_Item_ThiefsGlovesRadiant.png"
             },
             {
-              "id": "TFT17_Item_ASTraitEmblemItem",
-              "name": "도전자 상징",
-              "image": "TFT17_Item_ASTraitEmblemItem.png"
+              "id": "TFT5_Item_IonicSparkRadiant",
+              "name": "찬란한 이온 충격기",
+              "image": "TFT5_Item_IonicSparkRadiant.png"
             },
             {
-              "id": "TFT_Item_JeweledGauntlet",
-              "name": "보석 건틀릿",
-              "image": "TFT_Item_JeweledGauntlet.png"
+              "id": "TFT5_Item_QuicksilverRadiant",
+              "name": "찬란한 수은",
+              "image": "TFT5_Item_QuicksilverRadiant.png"
+            }
+          ]
+        },
+        {
+          "name": "카르마",
+          "id": "TFT17_Karma",
+          "image": "TFT17_Karma_splash_centered_8.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_RapidFireCannon",
+              "name": "붉은 덩굴정령",
+              "image": "TFT_Item_RapidFireCannon.png"
+            },
+            {
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
+            },
+            {
+              "id": "TFT_Item_LastWhisper",
+              "name": "최후의 속삭임",
+              "image": "TFT_Item_LastWhisper.png"
             }
           ]
         },
@@ -999,19 +1151,19 @@
           "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_MadredsBloodrazor",
-              "name": "거인 학살자",
-              "image": "TFT_Item_MadredsBloodrazor.png"
+              "id": "TFT_Item_PowerGauntlet",
+              "name": "타격대의 철퇴",
+              "image": "TFT_Item_PowerGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_RabadonsDeathcap",
+              "name": "라바돈의 죽음모자",
+              "image": "TFT_Item_RabadonsDeathcap.png"
             },
             {
               "id": "TFT_Item_JeweledGauntlet",
               "name": "보석 건틀릿",
               "image": "TFT_Item_JeweledGauntlet.png"
-            },
-            {
-              "id": "TFT17_Item_FlexTraitEmblemItem",
-              "name": "여행자 상징",
-              "image": "TFT17_Item_FlexTraitEmblemItem.png"
             }
           ]
         },
@@ -1022,19 +1174,19 @@
           "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_WarmogsArmor",
-              "name": "워모그의 갑옷",
-              "image": "TFT_Item_WarmogsArmor.png"
-            },
-            {
               "id": "TFT_Item_GargoyleStoneplate",
               "name": "가고일 돌갑옷",
               "image": "TFT_Item_GargoyleStoneplate.png"
             },
             {
-              "id": "TFT_Item_SteraksGage",
-              "name": "스테락의 도전",
-              "image": "TFT_Item_SteraksGage.png"
+              "id": "TFT_Item_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "TFT_Item_WarmogsArmor.png"
+            },
+            {
+              "id": "TFT_Item_Artifact_TheIndomitable",
+              "name": "불굴",
+              "image": "TFT_Item_Artifact_TheIndomitable.png"
             }
           ]
         },
@@ -1043,66 +1195,30 @@
           "id": "TFT17_TahmKench",
           "image": "TFT17_TahmKench_splash_centered_11.TFT_Set17.png",
           "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_RedBuff",
-              "name": "태양불꽃 망토",
-              "image": "TFT_Item_RedBuff.png"
-            }
-          ]
+          "items": []
         },
         {
-          "name": "피오라",
-          "id": "TFT17_Fiora",
-          "image": "TFT17_Fiora_splash_centered_51.TFT_Set17.png",
+          "name": "그레이브즈",
+          "id": "TFT17_Graves",
+          "image": "TFT17_Graves_splash_centered_18.TFT_Set17.png",
           "tier": 2,
           "items": [
-            {
-              "id": "TFT17_AnimaSquadItem_Tier1_SavageSlicer",
-              "name": "포악한 절단검",
-              "image": "TFT17_AnimaSquadItem_Tier1_SavageSlicer.png"
-            },
             {
               "id": "TFT_Item_UnstableConcoction",
               "name": "정의의 손길",
               "image": "TFT_Item_UnstableConcoction.png"
             },
             {
-              "id": "TFT_Item_GuardianAngel",
-              "name": "밤의 끝자락",
-              "image": "TFT_Item_GuardianAngel.png"
-            }
-          ]
-        },
-        {
-          "name": "진",
-          "id": "TFT17_Jhin",
-          "image": "TFT17_Jhin_splash_centered_37.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "TFT_Item_LastWhisper.png"
+              "id": "TFT_Item_SteraksGage",
+              "name": "스테락의 도전",
+              "image": "TFT_Item_SteraksGage.png"
             },
             {
-              "id": "TFT17_Item_Artifact_YasuoArtifact",
-              "name": "야스오의 검술",
-              "image": "TFT17_Item_Artifact_YasuoArtifact.png"
-            },
-            {
-              "id": "TFT17_AnimaSquadItem_Tier2_BattleBunnyCrossbow",
-              "name": "전투 토끼 석궁",
-              "image": "TFT17_AnimaSquadItem_Tier2_BattleBunnyCrossbow.png"
+              "id": "TFT17_AnimaSquadItem_Tier1_SavageSlicer",
+              "name": "포악한 절단검",
+              "image": "TFT17_AnimaSquadItem_Tier1_SavageSlicer.png"
             }
           ]
-        },
-        {
-          "name": "블리츠크랭크",
-          "id": "TFT17_Blitzcrank",
-          "image": "TFT17_Blitzcrank_splash_uncentered_65.TFT_Set17.png",
-          "tier": 1,
-          "items": []
         }
       ]
     },
@@ -1111,7 +1227,7 @@
       "name": "기동타격대 난동꾼",
       "tier": "A",
       "winRate": 0,
-      "pickRate": 3,
+      "pickRate": 2.9,
       "avgPlacement": 5,
       "traits": [
         "기동타격대",
@@ -1222,75 +1338,320 @@
           ]
         }
       ]
-    },
+    }
+  ],
+  "recentWinners": [
     {
-      "id": "우주-비행사",
-      "name": "우주 비행사",
-      "tier": "A",
-      "winRate": 0,
-      "pickRate": 10.6,
-      "avgPlacement": 5.29,
+      "matchId": "KR_8260046195",
+      "units": [
+        {
+          "name": "뽀삐",
+          "id": "TFT17_Poppy",
+          "image": "TFT17_Poppy_splash_centered_16.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "베이가",
+          "id": "TFT17_Veigar",
+          "image": "TFT17_Veigar_splash_centered_32.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_PowerGauntlet",
+              "name": "타격대의 철퇴",
+              "image": "TFT_Item_PowerGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
+            }
+          ]
+        },
+        {
+          "name": "리산드라",
+          "id": "TFT17_Lissandra",
+          "image": "TFT17_Lissandra_splash_centered_12.TFT_Set17.png",
+          "tier": 1,
+          "items": []
+        },
+        {
+          "name": "꼬마 정령",
+          "id": "TFT17_IvernMinion",
+          "image": "TFT17_IvernMinion_splash_centered_27.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_NightHarvester",
+              "name": "굳건한 심장",
+              "image": "TFT_Item_NightHarvester.png"
+            },
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            }
+          ]
+        },
+        {
+          "name": "라아스트",
+          "id": "TFT17_Rhaast",
+          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "람머스",
+          "id": "TFT17_Rammus",
+          "image": "TFT17_Rammus_splash_centered_17.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT17_Item_Artifact_SorakaArtifact",
+              "name": "소라카의 기적",
+              "image": "TFT17_Item_Artifact_SorakaArtifact.png"
+            }
+          ]
+        },
+        {
+          "name": "카르마",
+          "id": "TFT17_Karma",
+          "image": "TFT17_Karma_splash_centered_8.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_Morellonomicon",
+              "name": "모렐로노미콘",
+              "image": "TFT_Item_Morellonomicon.png"
+            }
+          ]
+        },
+        {
+          "name": "바드",
+          "id": "TFT17_Bard",
+          "image": "TFT17_Bard_splash_centered_8.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_RabadonsDeathcap",
+              "name": "라바돈의 죽음모자",
+              "image": "TFT_Item_RabadonsDeathcap.png"
+            },
+            {
+              "id": "TFT_Item_MadredsBloodrazor",
+              "name": "거인 학살자",
+              "image": "TFT_Item_MadredsBloodrazor.png"
+            },
+            {
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
+            }
+          ]
+        }
+      ],
       "traits": [
         "우주 비행사"
       ],
+      "time": "2026. 6. 15. AM 8:20:59"
+    },
+    {
+      "matchId": "KR_8260001738",
+      "units": [
+        {
+          "name": "티모",
+          "id": "TFT17_Teemo",
+          "image": "TFT17_Teemo_splash_centered_47.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "판테온",
+          "id": "TFT17_Pantheon",
+          "image": "TFT17_Pantheon_splash_centered_16.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "일라오이",
+          "id": "TFT17_Illaoi",
+          "image": "TFT17_Illaoi_splash_centered_27.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "오른",
+          "id": "TFT17_Ornn",
+          "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_IonicSpark",
+              "name": "이온 충격기",
+              "image": "TFT_Item_IonicSpark.png"
+            },
+            {
+              "id": "TFT17_Item_PsyOpsEmblemItem",
+              "name": "초능력 상징",
+              "image": "TFT17_Item_PsyOpsEmblemItem.png"
+            },
+            {
+              "id": "TFT17_Item_PsyOps_GrenadeMod",
+              "name": "유기물 보존기",
+              "image": "TFT17_Item_PsyOps_GrenadeMod.png"
+            }
+          ]
+        },
+        {
+          "name": "라아스트",
+          "id": "TFT17_Rhaast",
+          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "나미",
+          "id": "TFT17_Nami",
+          "image": "TFT17_Nami_splash_centered_41.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
+            },
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_Leviathan",
+              "name": "내셔의 이빨",
+              "image": "TFT_Item_Leviathan.png"
+            }
+          ]
+        },
+        {
+          "name": "탐 켄치",
+          "id": "TFT17_TahmKench",
+          "image": "TFT17_TahmKench_splash_centered_11.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
+            },
+            {
+              "id": "TFT17_Item_SpaceGrooveEmblemItem",
+              "name": "우주 그루브 상징",
+              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
+            }
+          ]
+        },
+        {
+          "name": "모르가나",
+          "id": "TFT17_Morgana",
+          "image": "TFT17_Morgana_splash_centered_50.TFT_Set17.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "TFT_Item_Crownguard",
+              "name": "크라운가드",
+              "image": "TFT_Item_Crownguard.png"
+            }
+          ]
+        }
+      ],
+      "traits": [
+        "우주 그루브"
+      ],
+      "time": "2026. 6. 15. AM 7:43:21"
+    },
+    {
+      "matchId": "KR_8259967829",
       "units": [
         {
           "name": "뽀삐",
           "id": "TFT17_Poppy",
           "image": "TFT17_Poppy_splash_centered_16.TFT_Set17.png",
           "tier": 3,
-          "items": []
-        },
-        {
-          "name": "나르",
-          "id": "TFT17_Gnar",
-          "image": "TFT17_Gnar_splash_centered_15.TFT_Set17.png",
-          "tier": 3,
           "items": [
             {
-              "id": "TFT_Item_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "TFT_Item_GuinsoosRageblade.png"
-            },
-            {
-              "id": "TFT_Item_Deathblade",
-              "name": "죽음의 검",
-              "image": "TFT_Item_Deathblade.png"
-            },
-            {
-              "id": "TFT_Item_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "TFT_Item_HextechGunblade.png"
-            }
-          ]
-        },
-        {
-          "name": "꼬마 정령",
-          "id": "TFT17_IvernMinion",
-          "image": "TFT17_IvernMinion_splash_centered_27.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_Redemption",
-              "name": "정령의 형상",
-              "image": "TFT_Item_Redemption.png"
-            },
-            {
-              "id": "TFT_Item_Redemption",
-              "name": "정령의 형상",
-              "image": "TFT_Item_Redemption.png"
+              "id": "TFT17_Item_PsyOps_GrenadeMod",
+              "name": "유기물 보존기",
+              "image": "TFT17_Item_PsyOps_GrenadeMod.png"
             },
             {
               "id": "TFT_Item_BrambleVest",
               "name": "덤불 조끼",
               "image": "TFT_Item_BrambleVest.png"
+            },
+            {
+              "id": "TFT_Item_SteraksGage",
+              "name": "스테락의 도전",
+              "image": "TFT_Item_SteraksGage.png"
             }
           ]
         },
         {
-          "name": "피즈",
-          "id": "TFT17_Fizz",
-          "image": "TFT17_Fizz_splash_centered_26.TFT_Set17.png",
+          "name": "베이가",
+          "id": "TFT17_Veigar",
+          "image": "TFT17_Veigar_splash_centered_32.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "TFT_Item_JeweledGauntlet.png"
+            },
+            {
+              "id": "TFT_Item_Leviathan",
+              "name": "내셔의 이빨",
+              "image": "TFT_Item_Leviathan.png"
+            },
+            {
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
+            }
+          ]
+        },
+        {
+          "name": "리산드라",
+          "id": "TFT17_Lissandra",
+          "image": "TFT17_Lissandra_splash_centered_12.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "꼬마 정령",
+          "id": "TFT17_IvernMinion",
+          "image": "TFT17_IvernMinion_splash_centered_27.TFT_Set17.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "빅토르",
+          "id": "TFT17_Viktor",
+          "image": "TFT17_Viktor_splash_centered_5.TFT_Set17.png",
           "tier": 2,
           "items": []
         },
@@ -1304,15 +1665,18 @@
               "id": "TFT_Item_GargoyleStoneplate",
               "name": "가고일 돌갑옷",
               "image": "TFT_Item_GargoyleStoneplate.png"
+            },
+            {
+              "id": "TFT_Item_Crownguard",
+              "name": "크라운가드",
+              "image": "TFT_Item_Crownguard.png"
+            },
+            {
+              "id": "TFT_Item_Crownguard",
+              "name": "크라운가드",
+              "image": "TFT_Item_Crownguard.png"
             }
           ]
-        },
-        {
-          "name": "코르키",
-          "id": "TFT17_Corki",
-          "image": "TFT17_Corki_splash_centered_26.TFT_Set17.png",
-          "tier": 2,
-          "items": []
         },
         {
           "name": "카르마",
@@ -1326,277 +1690,29 @@
           "id": "TFT17_Bard",
           "image": "TFT17_Bard_splash_centered_8.TFT_Set17.png",
           "tier": 2,
-          "items": []
-        }
-      ]
-    }
-  ],
-  "recentWinners": [
-    {
-      "matchId": "KR_8259892680",
-      "units": [
-        {
-          "name": "아트록스",
-          "id": "TFT17_Aatrox",
-          "image": "TFT17_Aatrox_splash_centered_30.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "아칼리",
-          "id": "TFT17_Akali",
-          "image": "TFT17_Akali_splash_centered_68.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "마오카이",
-          "id": "TFT17_Maokai",
-          "image": "TFT17_Maokai_splash_centered_33.TFT_Set17.png",
-          "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_Redemption",
-              "name": "정령의 형상",
-              "image": "TFT_Item_Redemption.png"
+              "id": "TFT_Item_RapidFireCannon",
+              "name": "붉은 덩굴정령",
+              "image": "TFT_Item_RapidFireCannon.png"
             },
             {
-              "id": "TFT_Item_RedBuff",
-              "name": "태양불꽃 망토",
-              "image": "TFT_Item_RedBuff.png"
-            }
-          ]
-        },
-        {
-          "name": "우르곳",
-          "id": "TFT17_Urgot",
-          "image": "TFT17_Urgot_splash_centered_32.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "라아스트",
-          "id": "TFT17_Rhaast",
-          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
-          "tier": 1,
-          "items": []
-        },
-        {
-          "name": "킨드레드",
-          "id": "TFT17_Kindred",
-          "image": "TFT17_Kindred_splash_centered_23.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_RunaansHurricane",
-              "name": "크라켄의 분노",
-              "image": "TFT_Item_RunaansHurricane.png"
+              "id": "TFT_Item_BlueBuff",
+              "name": "푸른 파수꾼",
+              "image": "TFT_Item_BlueBuff.png"
             },
             {
-              "id": "TFT_Item_RunaansHurricane",
-              "name": "크라켄의 분노",
-              "image": "TFT_Item_RunaansHurricane.png"
-            },
-            {
-              "id": "TFT_Item_InfinityEdge",
-              "name": "무한의 대검",
-              "image": "TFT_Item_InfinityEdge.png"
-            }
-          ]
-        },
-        {
-          "name": "마스터 이",
-          "id": "TFT17_MasterYi",
-          "image": "TFT17_MasterYi_splash_centered_33.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT17_Item_ASTraitEmblemItem",
-              "name": "도전자 상징",
-              "image": "TFT17_Item_ASTraitEmblemItem.png"
-            },
-            {
-              "id": "TFT17_Item_DRXEmblemItem",
-              "name": "N.O.V.A. 상징",
-              "image": "TFT17_Item_DRXEmblemItem.png"
-            }
-          ]
-        },
-        {
-          "name": "피오라",
-          "id": "TFT17_Fiora",
-          "image": "TFT17_Fiora_splash_centered_51.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_GuardianAngel",
-              "name": "밤의 끝자락",
-              "image": "TFT_Item_GuardianAngel.png"
-            },
-            {
-              "id": "TFT_Item_MadredsBloodrazor",
-              "name": "거인 학살자",
-              "image": "TFT_Item_MadredsBloodrazor.png"
-            },
-            {
-              "id": "TFT_Item_TitansResolve",
-              "name": "거인의 결의",
-              "image": "TFT_Item_TitansResolve.png"
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
             }
           ]
         }
       ],
       "traits": [
-        "DRX",
-        "근접"
+        "우주 비행사"
       ],
-      "time": "2026. 6. 15. AM 5:16:52"
-    },
-    {
-      "matchId": "KR_8259838274",
-      "units": [
-        {
-          "name": "그웬",
-          "id": "TFT17_Gwen",
-          "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "사미라",
-          "id": "TFT17_Samira",
-          "image": "TFT17_Samira_splash_centered_10.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT_Item_InfinityEdge",
-              "name": "무한의 대검",
-              "image": "TFT_Item_InfinityEdge.png"
-            },
-            {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
-            },
-            {
-              "id": "TFT_Item_PowerGauntlet",
-              "name": "타격대의 철퇴",
-              "image": "TFT_Item_PowerGauntlet.png"
-            }
-          ]
-        },
-        {
-          "name": "오른",
-          "id": "TFT17_Ornn",
-          "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "TFT17_EkkoOffering_AnomalyItem",
-              "name": "이상 현상",
-              "image": "TFT17_EkkoOffering_AnomalyItem.png"
-            },
-            {
-              "id": "TFT_Item_BrambleVest",
-              "name": "덤불 조끼",
-              "image": "TFT_Item_BrambleVest.png"
-            },
-            {
-              "id": "TFT_Item_GargoyleStoneplate",
-              "name": "가고일 돌갑옷",
-              "image": "TFT_Item_GargoyleStoneplate.png"
-            }
-          ]
-        },
-        {
-          "name": "라아스트",
-          "id": "TFT17_Rhaast",
-          "image": "TFT17_KaynSplash_Uncentered.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "누누와 윌럼프",
-          "id": "TFT17_Nunu",
-          "image": "TFT17_Nunu_splash_centered_35.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_FrozenHeart",
-              "name": "수호자의 맹세",
-              "image": "TFT_Item_FrozenHeart.png"
-            },
-            {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
-            },
-            {
-              "id": "TFT_Item_Redemption",
-              "name": "정령의 형상",
-              "image": "TFT_Item_Redemption.png"
-            }
-          ]
-        },
-        {
-          "name": "자야",
-          "id": "TFT17_Xayah",
-          "image": "TFT17_Xayah_splash_centered_1.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_Deathblade",
-              "name": "죽음의 검",
-              "image": "TFT_Item_Deathblade.png"
-            },
-            {
-              "id": "TFT17_Item_SpaceGrooveEmblemItem",
-              "name": "우주 그루브 상징",
-              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
-            },
-            {
-              "id": "TFT_Item_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "TFT_Item_LastWhisper.png"
-            }
-          ]
-        },
-        {
-          "name": "진",
-          "id": "TFT17_Jhin",
-          "image": "TFT17_Jhin_splash_centered_37.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "블리츠크랭크",
-          "id": "TFT17_Blitzcrank",
-          "image": "TFT17_Blitzcrank_splash_uncentered_65.TFT_Set17.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
-            },
-            {
-              "id": "TFT17_Item_StargazerEmblemItem",
-              "name": "별돌보미 상징",
-              "image": "TFT17_Item_StargazerEmblemItem.png"
-            },
-            {
-              "id": "TFT_Item_Morellonomicon",
-              "name": "모렐로노미콘",
-              "image": "TFT_Item_Morellonomicon.png"
-            }
-          ]
-        }
-      ],
-      "traits": [
-        "RangedTrait",
-        "우주 그루브"
-      ],
-      "time": "2026. 6. 15. AM 3:32:51"
+      "time": "2026. 6. 15. AM 7:03:34"
     },
     {
       "matchId": "KR_8246653736",
@@ -2403,144 +2519,15 @@
       "time": "2026. 6. 6. AM 9:08:02"
     },
     {
-      "matchId": "KR_8256469356",
+      "matchId": "KR_8259934861",
       "units": [
         {
-          "name": "아칼리",
-          "id": "TFT17_Akali",
-          "image": "TFT17_Akali_splash_centered_68.TFT_Set17.png",
+          "name": "티모",
+          "id": "TFT17_Teemo",
+          "image": "TFT17_Teemo_splash_centered_47.TFT_Set17.png",
           "tier": 2,
           "items": []
         },
-        {
-          "name": "그라가스",
-          "id": "TFT17_Gragas",
-          "image": "TFT17_Gragas_splash_centered_10.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT17_Item_DRXEmblemItem",
-              "name": "N.O.V.A. 상징",
-              "image": "TFT17_Item_DRXEmblemItem.png"
-            }
-          ]
-        },
-        {
-          "name": "마오카이",
-          "id": "TFT17_Maokai",
-          "image": "TFT17_Maokai_splash_centered_33.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "우르곳",
-          "id": "TFT17_Urgot",
-          "image": "TFT17_Urgot_splash_centered_32.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "TFT_Item_ThiefsGloves.png"
-            },
-            {
-              "id": "TFT_Item_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "TFT_Item_LastWhisper.png"
-            },
-            {
-              "id": "TFT_Item_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "TFT_Item_HextechGunblade.png"
-            }
-          ]
-        },
-        {
-          "name": "마스터 이",
-          "id": "TFT17_MasterYi",
-          "image": "TFT17_MasterYi_splash_centered_33.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT17_Item_PsyOps_ChemicalCapacitorMod",
-              "name": "악성코드 매트릭스",
-              "image": "TFT17_Item_PsyOps_ChemicalCapacitorMod.png"
-            },
-            {
-              "id": "TFT_Item_GuardianAngel",
-              "name": "밤의 끝자락",
-              "image": "TFT_Item_GuardianAngel.png"
-            },
-            {
-              "id": "TFT_Item_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "TFT_Item_HextechGunblade.png"
-            }
-          ]
-        },
-        {
-          "name": "탐 켄치",
-          "id": "TFT17_TahmKench",
-          "image": "TFT17_TahmKench_splash_centered_11.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "TFT_Item_AdaptiveHelm.png"
-            },
-            {
-              "id": "TFT_Item_Artifact_VoidGauntlet",
-              "name": "공허 건틀릿",
-              "image": "TFT_Item_Artifact_VoidGauntlet.png"
-            },
-            {
-              "id": "TFT_Item_Crownguard",
-              "name": "크라운가드",
-              "image": "TFT_Item_Crownguard.png"
-            }
-          ]
-        },
-        {
-          "name": "모르가나",
-          "id": "TFT17_Morgana",
-          "image": "TFT17_Morgana_splash_centered_50.TFT_Set17.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "피오라",
-          "id": "TFT17_Fiora",
-          "image": "TFT17_Fiora_splash_centered_51.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_GuardianAngel",
-              "name": "밤의 끝자락",
-              "image": "TFT_Item_GuardianAngel.png"
-            },
-            {
-              "id": "TFT_Item_Bloodthirster",
-              "name": "피바라기",
-              "image": "TFT_Item_Bloodthirster.png"
-            },
-            {
-              "id": "TFT17_EkkoOffering_AnomalyItem",
-              "name": "이상 현상",
-              "image": "TFT17_EkkoOffering_AnomalyItem.png"
-            }
-          ]
-        }
-      ],
-      "traits": [
-        "근접",
-        "난동꾼"
-      ],
-      "time": "2026. 6. 12. PM 6:42:27"
-    },
-    {
-      "matchId": "KR_8256427473",
-      "units": [
         {
           "name": "나서스",
           "id": "TFT17_Nasus",
@@ -2553,24 +2540,28 @@
           "id": "TFT17_Gwen",
           "image": "TFT17_Gwen_splash_centered_1.TFT_Set17.png",
           "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_RabadonsDeathcap",
-              "name": "라바돈의 죽음모자",
-              "image": "TFT_Item_RabadonsDeathcap.png"
-            }
-          ]
+          "items": []
         },
         {
-          "name": "판테온",
-          "id": "TFT17_Pantheon",
-          "image": "TFT17_Pantheon_splash_centered_16.TFT_Set17.png",
+          "name": "사미라",
+          "id": "TFT17_Samira",
+          "image": "TFT17_Samira_splash_centered_10.TFT_Set17.png",
           "tier": 2,
           "items": [
             {
-              "id": "TFT17_AnimaSquadItem_Tier0_ClunkyPrototype",
-              "name": "망가진 시제품",
-              "image": "TFT17_AnimaSquadItem_Tier0_ClunkyPrototype.png"
+              "id": "TFT_Item_Deathblade",
+              "name": "죽음의 검",
+              "image": "TFT_Item_Deathblade.png"
+            },
+            {
+              "id": "TFT_Item_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "TFT_Item_SpearOfShojin.png"
+            },
+            {
+              "id": "TFT_Item_InfinityEdge",
+              "name": "무한의 대검",
+              "image": "TFT_Item_InfinityEdge.png"
             }
           ]
         },
@@ -2581,19 +2572,32 @@
           "tier": 2,
           "items": [
             {
-              "id": "TFT_Item_MadredsBloodrazor",
-              "name": "거인 학살자",
-              "image": "TFT_Item_MadredsBloodrazor.png"
-            },
-            {
-              "id": "TFT_Item_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "TFT_Item_SpearOfShojin.png"
-            },
-            {
               "id": "TFT_Item_LastWhisper",
               "name": "최후의 속삭임",
               "image": "TFT_Item_LastWhisper.png"
+            }
+          ]
+        },
+        {
+          "name": "오른",
+          "id": "TFT17_Ornn",
+          "image": "TFT17_Ornn_splash_centered_11.TFT_Set17.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "TFT_Item_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "TFT_Item_WarmogsArmor.png"
+            },
+            {
+              "id": "TFT_Item_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "TFT_Item_GargoyleStoneplate.png"
+            },
+            {
+              "id": "TFT_Item_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "TFT_Item_WarmogsArmor.png"
             }
           ]
         },
@@ -2609,37 +2613,9 @@
               "image": "TFT_Item_RedBuff.png"
             },
             {
-              "id": "TFT_Item_NightHarvester",
-              "name": "굳건한 심장",
-              "image": "TFT_Item_NightHarvester.png"
-            },
-            {
-              "id": "TFT_Item_DragonsClaw",
-              "name": "용의 발톱",
-              "image": "TFT_Item_DragonsClaw.png"
-            }
-          ]
-        },
-        {
-          "name": "람머스",
-          "id": "TFT17_Rammus",
-          "image": "TFT17_Rammus_splash_centered_17.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT_Item_IonicSpark",
-              "name": "이온 충격기",
-              "image": "TFT_Item_IonicSpark.png"
-            },
-            {
-              "id": "TFT_Item_NightHarvester",
-              "name": "굳건한 심장",
-              "image": "TFT_Item_NightHarvester.png"
-            },
-            {
-              "id": "TFT17_Item_SpaceGrooveEmblemItem",
-              "name": "우주 그루브 상징",
-              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
+              "id": "TFT_Item_FrozenHeart",
+              "name": "수호자의 맹세",
+              "image": "TFT_Item_FrozenHeart.png"
             }
           ]
         },
@@ -2655,37 +2631,14 @@
               "image": "TFT_Item_JeweledGauntlet.png"
             },
             {
-              "id": "TFT17_Item_RangedTraitEmblemItem",
-              "name": "저격수 상징",
-              "image": "TFT17_Item_RangedTraitEmblemItem.png"
-            },
-            {
               "id": "TFT_Item_Leviathan",
               "name": "내셔의 이빨",
               "image": "TFT_Item_Leviathan.png"
-            }
-          ]
-        },
-        {
-          "name": "리븐",
-          "id": "TFT17_Riven",
-          "image": "TFT17_Riven_splash_centered_18.TFT_Set17.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "TFT17_Item_SpaceGrooveEmblemItem",
-              "name": "우주 그루브 상징",
-              "image": "TFT17_Item_SpaceGrooveEmblemItem.png"
             },
             {
-              "id": "TFT_Item_Artifact_SeekersArmguard",
-              "name": "추적자의 팔목 보호대",
-              "image": "TFT_Item_Artifact_SeekersArmguard.png"
-            },
-            {
-              "id": "TFT_Item_MadredsBloodrazor",
-              "name": "거인 학살자",
-              "image": "TFT_Item_MadredsBloodrazor.png"
+              "id": "TFT_Item_StatikkShiv",
+              "name": "공허의 지팡이",
+              "image": "TFT_Item_StatikkShiv.png"
             }
           ]
         }
@@ -2693,7 +2646,7 @@
       "traits": [
         "우주 그루브"
       ],
-      "time": "2026. 6. 12. PM 6:01:09"
+      "time": "2026. 6. 15. AM 6:24:54"
     }
   ]
 }
