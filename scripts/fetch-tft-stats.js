@@ -95,6 +95,17 @@ async function main() {
       itemImages[item.id] = item.image.full;
     });
 
+    // 증강(Augment) 이름 및 이미지 매핑 가져오기
+    console.log('0.1. 증강 정보 가져오는 중...');
+    const augmentDataRes = await fetch(`https://ddragon.leagueoflegends.com/cdn/${fullVersion}/data/ko_KR/tft-augments.json`);
+    const augmentDataJson = await augmentDataRes.json();
+    const augmentNames = {};
+    const augmentImages = {};
+    Object.values(augmentDataJson.data).forEach(augment => {
+      augmentNames[augment.id] = augment.name;
+      augmentImages[augment.id] = augment.image.full;
+    });
+
     console.log(`1. ${latestVersion} 패치 챌린저 리그 정보 가져오는 중...`);
     const leagueData = await fetchWithRateLimit(`${API_HOST}/tft/league/v1/challenger?queue=RANKED_TFT`);
     console.log('샘플 데이터:', leagueData.entries[0]);
@@ -145,8 +156,13 @@ async function main() {
               tier: u.tier, // 성급 (1, 2, 3성)
               items: items
             };
-          })
-          .slice(0, 8); // 상위 8개 기물만 표시
+          });
+
+          const augments = (participant.augments || []).map(augId => ({
+          id: augId,
+          name: augmentNames[augId] || augId.replace(/TFT[0-9]+_Augment_/, ''),
+          image: augmentImages[augId] || null
+        }));
 
         // 1등 덱 기록
         if (participant.placement === 1 && recentWinners.length < 10) {
@@ -154,6 +170,7 @@ async function main() {
             matchId,
             units,
             traits: activeTraits,
+            augments,
             time: new Date(match.info.game_datetime).toLocaleString('ko-KR')
           });
         }
@@ -170,6 +187,9 @@ async function main() {
             traits: activeTraits,
             units: units 
           };
+        } else if (units.length > deckStats[deckKey].units.length) {
+          // 더 많은 기물이 포함된 스쿼드로 대표 유닛 구성 업데이트 (9, 10레벨 및 왕관 효과 반영)
+          deckStats[deckKey].units = units;
         }
 
         deckStats[deckKey].totalCount++;

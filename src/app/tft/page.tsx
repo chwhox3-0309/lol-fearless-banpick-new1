@@ -10,6 +10,12 @@ interface TftItem {
   image: string | null;
 }
 
+interface TftAugment {
+  id: string;
+  name: string;
+  image: string | null;
+}
+
 interface TftUnit {
   id: string;
   name: string;
@@ -33,6 +39,7 @@ interface RecentWinner {
   matchId: string;
   units: (string | TftUnit)[];
   traits: string[];
+  augments?: TftAugment[];
   time: string;
 }
 
@@ -61,7 +68,7 @@ const TftPage = () => {
   }, []);
 
   // 유닛 렌더링 도우미
-  const renderUnit = (unit: string | TftUnit, showItems: boolean = false) => {
+  const renderUnit = (unit: string | TftUnit, showItems: boolean = false, index: number = 0) => {
     const isObject = typeof unit !== 'string';
     const name = isObject ? (unit as TftUnit).name : (unit as string);
     const imageFilename = isObject ? (unit as TftUnit).image : null;
@@ -125,7 +132,7 @@ const TftPage = () => {
     };
 
     return (
-      <div key={name} className="flex flex-col items-center group relative py-1">
+      <div key={`${name}-${index}`} className="flex flex-col items-center group relative py-1">
         <div className={`w-10 h-10 bg-gray-900 border ${
           tier === 3 ? 'border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' : 
           tier === 2 ? 'border-gray-400' : 'border-blue-900/50'
@@ -158,6 +165,36 @@ const TftPage = () => {
         <div className="absolute bottom-full mb-2 hidden group-hover:block z-50">
           <div className="bg-gray-950 text-white text-[10px] px-2 py-1 rounded border border-gray-700 whitespace-nowrap shadow-2xl">
             {name} ({tier}성)
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 증강 렌더링 도우미
+  const renderAugment = (augment: TftAugment) => {
+    const fullVersion = tftData.patchVersion + '.1';
+    const imageUrl = augment.image 
+      ? `https://ddragon.leagueoflegends.com/cdn/${fullVersion}/img/tft-augment/${augment.image}`
+      : null;
+
+    return (
+      <div key={augment.id} className="group relative">
+        <div className="w-8 h-8 bg-gray-950 border border-gray-600 rounded-lg overflow-hidden shadow-lg group-hover:border-yellow-500 transition-colors p-1">
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={augment.name} 
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[8px] text-gray-600 font-bold">AUG</div>
+          )}
+        </div>
+        {/* 증강 툴팁 */}
+        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-50">
+          <div className="bg-gray-950 text-white text-[10px] px-2 py-1 rounded border border-gray-700 whitespace-nowrap shadow-2xl font-bold">
+            {augment.name}
           </div>
         </div>
       </div>
@@ -312,7 +349,7 @@ const TftPage = () => {
                         <td className="p-4">
                           <div className="flex flex-col gap-3 items-center">
                             <div className="flex flex-wrap gap-3 justify-center">
-                              {deck.units?.map(unit => renderUnit(unit))}
+                              {deck.units?.map((unit, idx) => renderUnit(unit, false, idx))}
                             </div>
                             <div className="flex flex-wrap gap-1.5 justify-center">
                               {deck.traits.map(trait => (
@@ -348,9 +385,23 @@ const TftPage = () => {
                     </div>
                     
                     <div className="flex flex-col gap-3">
-                      <div className="flex flex-wrap gap-4">
-                        {winner.units.map(unit => renderUnit(unit, true))}
+                      <div className="flex flex-wrap items-center gap-6">
+                        {/* 기물 목록 */}
+                        <div className="flex flex-wrap gap-4">
+                          {winner.units.map((unit, idx) => renderUnit(unit, true, idx))}
+                        </div>
+                        
+                        {/* 증강 목록 (우측 또는 아래 구분) */}
+                        {winner.augments && winner.augments.length > 0 && (
+                          <div className="flex items-center gap-2 bg-gray-900/50 p-2 rounded-lg border border-gray-700/50">
+                            <span className="text-[10px] text-gray-500 font-bold uppercase vertical-text hidden sm:block">Augments</span>
+                            <div className="flex gap-2">
+                              {winner.augments.map(aug => renderAugment(aug))}
+                            </div>
+                          </div>
+                        )}
                       </div>
+                      
                       <div className="flex flex-wrap gap-1.5">
                         {winner.traits.map(trait => (
                           <span key={trait} className="px-2 py-0.5 bg-gray-900 border border-gray-600 rounded text-[10px] text-gray-400 uppercase">
