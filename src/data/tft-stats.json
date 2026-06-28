@@ -1,6 +1,6 @@
 {
   "patchVersion": "16.13",
-  "lastUpdated": "2026-06-28T14:30:41.169Z",
+  "lastUpdated": "2026-06-28T15:50:22.111Z",
   "decks": [
     {
       "id": "rangedtrait",
@@ -332,9 +332,9 @@
       "id": "summontrait-수호자",
       "name": "SummonTrait 수호자",
       "tier": "S",
-      "winRate": 33.3,
-      "pickRate": 4.7,
-      "avgPlacement": 2.33,
+      "winRate": 50,
+      "pickRate": 6.3,
+      "avgPlacement": 2,
       "traits": [
         "SummonTrait",
         "수호자"
@@ -493,9 +493,9 @@
       "id": "우주-그루브",
       "name": "우주 그루브",
       "tier": "S",
-      "winRate": 28.6,
-      "pickRate": 10.9,
-      "avgPlacement": 2.43,
+      "winRate": 16.7,
+      "pickRate": 9.4,
+      "avgPlacement": 2.67,
       "traits": [
         "우주 그루브"
       ],
@@ -985,10 +985,10 @@
     {
       "id": "우주-비행사",
       "name": "우주 비행사",
-      "tier": "S",
-      "winRate": 25,
-      "pickRate": 12.5,
-      "avgPlacement": 3.13,
+      "tier": "A",
+      "winRate": 22.2,
+      "pickRate": 14.1,
+      "avgPlacement": 3.22,
       "traits": [
         "우주 비행사"
       ],
@@ -1327,9 +1327,9 @@
       "id": "수호자",
       "name": "수호자",
       "tier": "A",
-      "winRate": 14.3,
-      "pickRate": 10.9,
-      "avgPlacement": 3.86,
+      "winRate": 16.7,
+      "pickRate": 9.4,
+      "avgPlacement": 4,
       "traits": [
         "수호자"
       ],
