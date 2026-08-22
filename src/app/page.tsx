@@ -31,7 +31,7 @@ interface Notice {
   date?: string;
 }
 
-interface FreePost {
+interface BoardPost {
   id: string | number;
   title: string;
   author?: string;
@@ -71,8 +71,8 @@ export default function Home() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
 
-  // 자유게시판 목록 상태
-  const [freePosts, setFreePosts] = useState<FreePost[]>([]);
+  // 자유게시판(board) 목록 상태 (임의 글 제거 및 실제 데이터 연동)
+  const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -98,35 +98,27 @@ export default function Home() {
             setLatestNotice(parsed[0]);
           }
         }
-      } else {
-        const defaultNotices = [
-          { id: 1, title: '피어리스 밴픽 시뮬레이터 v1.0 오픈 안내', date: '2026-03-01' }
-        ];
-        setNotices(defaultNotices);
-        setLatestNotice(defaultNotices[0]);
       }
     } catch (e) {
       console.error('Failed to load notices:', e);
     }
   }, []);
 
-  // 자유게시판 데이터 로드
+  // 자유게시판(board) 데이터 로드 (실제 작성일 기준)
   useEffect(() => {
     try {
-      const savedPosts = localStorage.getItem('free_posts');
+      const savedPosts = localStorage.getItem('board_posts');
       if (savedPosts) {
         const parsed = JSON.parse(savedPosts);
         if (Array.isArray(parsed)) {
-          setFreePosts(parsed);
+          setBoardPosts(parsed);
         }
       } else {
-        const defaultPosts = [
-          { id: 1, title: '자유게시판이 오픈되었습니다! 많이 이용해주세요.', author: '관리자', date: '2026-03-01' }
-        ];
-        setFreePosts(defaultPosts);
+        // 임의의 글을 넣지 않고 빈 배열로 초기화
+        setBoardPosts([]);
       }
     } catch (e) {
-      console.error('Failed to load free posts:', e);
+      console.error('Failed to load board posts:', e);
     }
   }, []);
 
@@ -364,7 +356,8 @@ export default function Home() {
             <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               공지사항
             </Link>
-            <Link href="/free-board" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
+            {/* board 경로로 수정 */}
+            <Link href="/board" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               자유게시판
             </Link>
             <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
@@ -624,7 +617,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 2. 자유게시판 */}
+            {/* 2. 자유게시판 (/board 경로 및 실제 데이터 기준) */}
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -632,20 +625,20 @@ export default function Home() {
                     <span>💬</span> 자유게시판
                   </h2>
                   <div className="flex items-center gap-3">
-                    <Link href="/free-board/write" className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-2.5 py-1 rounded transition-all font-semibold">
+                    <Link href="/board/write" className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-2.5 py-1 rounded transition-all font-semibold">
                       글쓰기
                     </Link>
-                    <Link href="/free-board" className="text-xs text-teal-400 hover:underline">
+                    <Link href="/board" className="text-xs text-teal-400 hover:underline">
                       전체보기 ➔
                     </Link>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {freePosts.length > 0 ? (
-                    freePosts.slice(0, 4).map((post) => (
+                  {boardPosts.length > 0 ? (
+                    boardPosts.slice(0, 4).map((post) => (
                       <Link 
                         key={post.id} 
-                        href={`/free-board`}
+                        href={`/board`}
                         className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
                       >
                         <span className="text-gray-200 truncate">{post.title}</span>
@@ -656,7 +649,7 @@ export default function Home() {
                       </Link>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 text-center py-4">작성된 자유게시글이 없습니다.</p>
+                    <p className="text-xs text-gray-400 text-center py-4">작성된 게시글이 없습니다.</p>
                   )}
                 </div>
               </div>
