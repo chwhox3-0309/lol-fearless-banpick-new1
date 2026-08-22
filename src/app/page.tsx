@@ -347,9 +347,39 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner">
-        <LatestPostBanner />
-      </div>
+      {/* 1. 최신 공지사항 데이터를 불러오는 로직 (예시: localStorage나 상태 활용) */}
+{(() => {
+  // 예시: localStorage에 저장된 공지 목록을 불러오는 경우 (DB나 다른 방식이면 그에 맞춰 변경)
+  // 만약 notices가 배열 상태로 관리되고 있다면 해당 배열을 사용하세요.
+  const [latestNotice, setLatestNotice] = useState<{ id: string | number; title: string } | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedNotices = localStorage.getItem('notices');
+      if (savedNotices) {
+        const parsed = JSON.parse(savedNotices);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // 가장 최근에 등록된 글 (보통 배열의 첫 번째 혹은 마지막 인덱스)
+          setLatestNotice(parsed[0]); 
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  // 등록된 공지가 없을 경우 숨기거나 기본 문구 표시
+  if (!latestNotice) return null;
+
+  return (
+    <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
+      <Link href={`/notices/${latestNotice.id}`} className="flex items-center justify-center gap-2 w-full h-full">
+        <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
+        <span className="hover:underline truncate">{latestNotice.title}</span>
+      </Link>
+    </div>
+  );
+})()}>
 
       <NoticeBanner />
 
