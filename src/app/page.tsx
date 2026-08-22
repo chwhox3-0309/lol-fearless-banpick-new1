@@ -28,6 +28,7 @@ const AP_CHAMPIONS = new Set([
 interface Notice {
   id: string | number;
   title: string;
+  date?: string;
 }
 
 export default function Home() {
@@ -58,6 +59,9 @@ export default function Home() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // 공지사항 목록 상태
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
 
   const [timeLeft, setTimeLeft] = useState(30);
@@ -72,15 +76,25 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 최신 공지사항 로드
+  // 공지사항 데이터 로드
   useEffect(() => {
     try {
       const savedNotices = localStorage.getItem('notices');
       if (savedNotices) {
         const parsed = JSON.parse(savedNotices);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLatestNotice(parsed[0]);
+        if (Array.isArray(parsed)) {
+          setNotices(parsed);
+          if (parsed.length > 0) {
+            setLatestNotice(parsed[0]);
+          }
         }
+      } else {
+        // 기본 샘플 공지가 없을 경우의 기본값 예시 (필요시 제거 가능)
+        const defaultNotices = [
+          { id: 1, title: '피어리스 밴픽 시뮬레이터 v1.0 오픈 안내', date: '2026-03-01' }
+        ];
+        setNotices(defaultNotices);
+        setLatestNotice(defaultNotices[0]);
       }
     } catch (e) {
       console.error('Failed to load notices:', e);
@@ -358,7 +372,7 @@ export default function Home() {
       {/* 최신 공지사항 배너 */}
       {latestNotice && (
         <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
-          <Link href={`/notices/${latestNotice.id}`} className="flex items-center justify-center gap-2 w-full h-full">
+          <Link href={`/notices`} className="flex items-center justify-center gap-2 w-full h-full">
             <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
             <span className="hover:underline truncate">{latestNotice.title}</span>
           </Link>
@@ -542,8 +556,37 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 하단 부가 섹션 */}
+        {/* 하단 부가 섹션 (공지사항 목록 포함) */}
         <section className="space-y-6 text-gray-300 mt-8">
+          
+          {/* 공지사항 바로가기 및 리스트 섹션 */}
+          <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2">
+                <span>📢</span> 공지사항
+              </h2>
+              <Link href="/notices" className="text-xs text-purple-400 hover:underline">
+                전체보기 ➔
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {notices.length > 0 ? (
+                notices.slice(0, 3).map((notice) => (
+                  <Link 
+                    key={notice.id} 
+                    href={`/notices`}
+                    className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
+                  >
+                    <span className="text-gray-200 truncate">{notice.title}</span>
+                    {notice.date && <span className="text-xs text-gray-500 shrink-0 ml-2">{notice.date}</span>}
+                  </Link>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400 text-center py-2">등록된 공지사항이 없습니다.</p>
+              )}
+            </div>
+          </div>
+
           <DraftTip />
           <DailyFortune />
 
