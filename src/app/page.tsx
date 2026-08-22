@@ -14,6 +14,7 @@ import DraftTip from './components/DraftTip';
 import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
+import { supabase } from '@/lib/supabase'; // Supabase 클라이언트 임포트 추가
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
@@ -29,7 +30,7 @@ interface Notice {
   id: string | number;
   title: string;
   date?: string;
-  createdAt?: string;
+  created_at?: string;
 }
 
 interface BoardPost {
@@ -37,6 +38,7 @@ interface BoardPost {
   title: string;
   author?: string;
   date?: string;
+  created_at?: string;
 }
 
 export default function Home() {
@@ -68,11 +70,9 @@ export default function Home() {
   const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
-  // 공지사항 목록 상태
+  // 공지사항 및 게시판 목록 상태
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
-
-  // 자유게시판(board) 목록 상태
   const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
@@ -87,45 +87,58 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 공지사항 데이터 로드 (작성된 최신 순으로 정렬)
+  // Supabase를 통한 공지사항 및 자유게시판 데이터 로드
   useEffect(() => {
-    try {
-      const savedNotices = localStorage.getItem('notices');
-      if (savedNotices) {
-        const parsed = JSON.parse(savedNotices);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // 최신 작성 순 정렬 (id가 숫자이거나 타임스탬프/날짜인 경우 대응)
-          const sortedNotices = [...parsed].sort((a, b) => {
-            return Number(b.id) - Number(a.id);
-          });
-          setNotices(sortedNotices);
-          setLatestNotice(sortedNotices[0]); // 가장 최신 글을 상단 배너에 노출
-          return;
-        }
-      }
-      setNotices([]);
-      setLatestNotice(null);
-    } catch (e) {
-      console.error('Failed to load notices:', e);
-    }
-  }, []);
+    async function fetchMainData() {
+      try {
+        // 1. 공지사항 불러오기 (Supabase)
+        const { data: noticesData, error: noticesError } = await supabase
+          .from('notices')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-  // 자유게시판(board) 데이터 로드
-  useEffect(() => {
-    try {
-      const savedPosts = localStorage.getItem('board_posts');
-      if (savedPosts) {
-        const parsed = JSON.parse(savedPosts);
-        if (Array.isArray(parsed)) {
-          const sortedPosts = [...parsed].sort((a, b) => Number(b.id) - Number(a.id));
-          setBoardPosts(sortedPosts);
+        if (!noticesError && noticesData) {
+          setNotices(noticesData);
+          if (noticesData.length > 0) {
+            setLatestNotice(noticesData[0]);
+          }
+        } else {
+          // Supabase 실패 시 로컬 스토리지 폴백 대응
+          const savedNotices = localStorage.getItem('notices');
+          if (savedNotices) {
+            const parsed = JSON.parse(savedNotices);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const sortedNotices = [...parsed].sort((a, b) => Number(b.id) - Number(a.id));
+              setNotices(sortedNotices);
+              setLatestNotice(sortedNotices[0]);
+            }
+          }
         }
-      } else {
-        setBoardPosts([]);
+
+        // 2. 자유게시판 불러오기 (Supabase)
+        const { data: boardData, error: boardError } = await supabase
+          .from('board_posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!boardError && boardData) {
+          setBoardPosts(boardData);
+        } else {
+          // 로컬 스토리지 폴백 대응
+          const savedPosts = localStorage.getItem('board_posts');
+          if (savedPosts) {
+            const parsed = JSON.parse(savedPosts);
+            if (Array.isArray(parsed)) {
+              setBoardPosts(parsed);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load main data from Supabase:', e);
       }
-    } catch (e) {
-      console.error('Failed to load board posts:', e);
     }
+
+    fetchMainData();
   }, []);
 
   useEffect(() => {
