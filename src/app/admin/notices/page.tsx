@@ -1,264 +1,181 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { supabase } from '@/lib/supabase';
 
 interface Notice {
-  id: number;
+  id: string;
   title: string;
   content: string;
-  date: string;
   category: string;
+  created_at: string;
 }
 
-export default function AdminNoticesPage() {
-  const { data: session, status } = useSession();
-
+export default function NoticeAdminPage() {
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [message, setMessage] = useState('');
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
-  const [category, setCategory] = useState('공지');
+  const [category, setCategory] = useState('UPDATE');
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // 1. 공지사항 목록 불러오기 (Read)
+  const fetchNotices = async () => {
+    const { data, error } = await supabase
+      .from('notices')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) console.error('Error fetching notices:', error);
+    else setNotices(data || []);
+  };
 
   useEffect(() => {
     fetchNotices();
   }, []);
 
-  const fetchNotices = async () => {
-    try {
-      const res = await fetch('/api/notices');
-      if (res.ok) {
-        const data = await res.json();
-        setNotices(data.notices.sort((a: Notice, b: Notice) => {
-          const dateComparison = new Date(b.date).getTime() - new Date(a.date).getTime();
-          if (dateComparison === 0) {
-            return b.id - a.id;
-          }
-          return dateComparison;
-        }));
-      } else {
-        setMessage('공지사항 목록을 불러오는데 실패했습니다.');
-      }
-    } catch (error) {
-      setMessage('네트워크 오류: 공지사항 목록을 불러올 수 없습니다.');
-    }
-  };
-
+  // 2. 공지사항 등록 및 수정 (Create / Update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage('');
+    if (!title || !content) return alert('제목과 내용을 입력해주세요.');
 
-    if (!title || !content || !date || !category) {
-      setMessage('모든 필드를 채워주세요.');
-      return;
-    }
+    if (editingId) {
+      // 수정 (Update)
+      const { error } = await supabase
+        .from('notices')
+        .update({ title, content, category })
+        .eq('id', editingId);
 
-    const method = editingNoticeId ? 'PUT' : 'POST';
-    const body = editingNoticeId ? JSON.stringify({ id: editingNoticeId, title, content, date, category }) : JSON.stringify({ title, content, date, category });
-
-    try {
-      const res = await fetch(editingNoticeId ? `/api/notices?id=${editingNoticeId}` : '/api/notices', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body,
-      });
-
-      if (res.ok) {
-        setMessage(`공지사항이 성공적으로 ${editingNoticeId ? '수정' : '등록'}되었습니다!`);
-        setTitle('');
-        setContent('');
-        setDate(new Date().toISOString().split('T')[0]);
-        setEditingNoticeId(null);
-        fetchNotices();
-      } else {
-        const errorData = await res.json();
-        setMessage(`공지사항 ${editingNoticeId ? '수정' : '등록'} 실패: ${errorData.error || res.statusText}`);
+      if (error) alert('수정 실패: ' + error.message);
+      else {
+        alert('공지사항이 수정되었습니다.');
+        setEditingId(null);
       }
-    } catch (error: unknown) {
-      setMessage(`네트워크 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } else {
+      // 등록 (Create)
+      const { error } = await supabase
+        .from('notices')
+        .insert([{ title, content, category }]);
+
+      if (error) alert('등록 실패: ' + error.message);
+      else alert('새 공지사항이 등록되었습니다.');
     }
-  };
 
-  const handleEdit = (notice: Notice) => {
-    setEditingNoticeId(notice.id);
-    setTitle(notice.title);
-    setContent(notice.content);
-    setDate(notice.date);
-    setCategory(notice.category);
-    setMessage('');
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('정말 이 공지사항을 삭제하시겠습니까?')) {
-      return;
-    }
-    try {
-      const res = await fetch(`/api/notices?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      if (res.ok) {
-        setMessage('공지사항이 성공적으로 삭제되었습니다!');
-        fetchNotices();
-      } else {
-        const errorData = await res.json();
-        setMessage(`공지사항 삭제 실패: ${errorData.error || res.statusText}`);
-      }
-    } catch (error) {
-      setMessage('네트워크 오류: 공지사항을 삭제할 수 없습니다.');
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingNoticeId(null);
     setTitle('');
     setContent('');
-    setDate(new Date().toISOString().split('T')[0]);
-    setCategory('공지');
-    setMessage('');
+    fetchNotices();
   };
 
-  if (status === 'loading') {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">로딩 중...</div>;
-  }
+  // 3. 수정 모드 진입
+  const handleEdit = (notice: Notice) => {
+    setEditingId(notice.id);
+    setTitle(notice.title);
+    setContent(notice.content);
+    setCategory(notice.category);
+  };
 
-  if (!session || session.user?.githubUsername !== 'chwhox3-0309') {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-8">
-        <h1 className="text-4xl font-bold mb-8 text-center">접근 권한 없음</h1>
-        <p className="text-lg text-gray-300 mb-4">이 페이지는 관리자만 접근할 수 있습니다.</p>
-        {!session ? (
-          <button
-            onClick={() => signIn('github')}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            GitHub으로 로그인
-          </button>
-        ) : (
-          <button
-            onClick={() => signOut()}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            로그아웃
-          </button>
-        )}
-      </div>
-    );
-  }
+  // 4. 삭제 (Delete)
+  const handleDelete = async (id: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    const { error } = await supabase.from('notices').delete().eq('id', id);
+
+    if (error) alert('삭제 실패: ' + error.message);
+    else {
+      alert('삭제되었습니다.');
+      fetchNotices();
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 pt-24">
-      <h1 className="text-4xl font-bold mb-8 text-center">관리자: 공지사항 {editingNoticeId ? '수정' : '등록'}</h1>
-      <div className="max-w-xl mx-auto bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-gray-200 text-sm font-bold mb-2">제목:</label>
-            <input
-              type="text"
-              id="title"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="content" className="block text-gray-200 text-sm font-bold mb-2">내용:</label>
-            <textarea
-              id="content"
-              rows={5}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-            ></textarea>
-          </div>
-          <div>
-            <label htmlFor="date" className="block text-gray-200 text-sm font-bold mb-2">날짜:</label>
-            <input
-              type="date"
-              id="date"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="category" className="block text-gray-200 text-sm font-bold mb-2">카테고리:</label>
-            <select
-              id="category"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-            >
-              <option value="공지">공지</option>
-              <option value="업데이트">업데이트</option>
-              <option value="이벤트">이벤트</option>
-              <option value="점검">점검</option>
-            </select>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex-grow"
-            >
-              공지사항 {editingNoticeId ? '수정' : '등록'}
-            </button>
-            {editingNoticeId && (
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              >
-                취소
-              </button>
-            )}
-          </div>
-        </form>
-        {message && (
-          <p className="mt-4 text-center font-bold" style={{ color: message.includes('성공') ? '#48BB78' : '#F56565' }}>
-            {message}
-          </p>
-        )}
-      </div>
+    <div className="max-w-4xl mx-auto p-6 text-white">
+      <h1 className="text-2xl font-bold mb-6">📢 공지사항 및 업데이트 관리</h1>
 
-      <h2 className="text-3xl font-bold mb-6 text-center">등록된 공지사항</h2>
-      <div className="max-w-3xl mx-auto bg-gray-800 rounded-lg shadow-lg p-6">
-        {notices.length === 0 ? (
-          <p className="text-center text-gray-400">등록된 공지사항이 없습니다.</p>
-        ) : (
-          <ul className="space-y-6">
-            {notices.map((notice) => (
-              <li key={notice.id} className="border-b border-gray-700 pb-6 last:border-b-0 last:pb-0 flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div className="flex-grow mb-4 md:mb-0">
-                  <p className="text-sm text-gray-400 mb-1">[{notice.category}] {notice.date}</p>
-                  <h3 className="text-xl font-semibold text-blue-400 mb-2">{notice.title}</h3>
-                  <p className="text-base leading-relaxed text-gray-300 whitespace-pre-wrap">{notice.content}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEdit(notice)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded text-sm"
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDelete(notice.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm"
-                  >
-                    삭제
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* 작성/수정 폼 */}
+      <form onSubmit={handleSubmit} className="bg-gray-900 p-4 rounded-xl border border-gray-800 space-y-4 mb-8">
+        <div className="flex gap-4">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="UPDATE">업데이트</option>
+            <option value="NOTICE">공지사항</option>
+            <option value="EVENT">이벤트</option>
+          </select>
+          <input
+            type="text"
+            placeholder="제목을 입력하세요"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+
+        <textarea
+          placeholder="업데이트 상세 내용을 입력하세요"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500"
+        />
+
+        <div className="flex justify-end gap-2">
+          {editingId && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingId(null);
+                setTitle('');
+                setContent('');
+              }}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs"
+            >
+              취소
+            </button>
+          )}
+          <button
+            type="submit"
+            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-xs"
+          >
+            {editingId ? '수정 완료' : '공지 등록'}
+          </button>
+        </div>
+      </form>
+
+      {/* 목록 출력 */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold mb-3">등록된 공지 목록</h2>
+        {notices.map((notice) => (
+          <div key={notice.id} className="bg-gray-900/80 border border-gray-800 p-4 rounded-xl flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] bg-indigo-900/80 text-indigo-300 border border-indigo-700 px-2 py-0.5 rounded">
+                  {notice.category}
+                </span>
+                <h3 className="font-bold text-base">{notice.title}</h3>
+                <span className="text-xs text-gray-500">
+                  {new Date(notice.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-sm text-gray-400 whitespace-pre-wrap mt-2">{notice.content}</p>
+            </div>
+
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => handleEdit(notice)}
+                className="px-3 py-1 bg-amber-600/80 hover:bg-amber-600 text-xs rounded"
+              >
+                수정
+              </button>
+              <button
+                onClick={() => handleDelete(notice.id)}
+                className="px-3 py-1 bg-red-600/80 hover:bg-red-600 text-xs rounded"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
