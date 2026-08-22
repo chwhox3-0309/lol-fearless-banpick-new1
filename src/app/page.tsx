@@ -347,7 +347,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner">
+      {/* <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner"> */}
         <LatestPostBanner />
       </div>
 
