@@ -83,7 +83,7 @@ export async function GET(request: Request) {
       redPicks,
     });
 
-  } qcatch (error) {
-    return ({ error: 'API 연동 중 오류가 발생했습니다.' }, { status: 500 });
+   } catch (error) {
+      return NextResponse.json({ error: 'API 연동 중 오류가 발생했습니다.' }, { status: 500 }); // 혹은 기존 리턴 형식 유지
   }
 }
