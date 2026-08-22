@@ -64,7 +64,7 @@ export default function NoticesPage() {
             FEARLESS BAN-PICK
           </Link>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800 text-indigo-300">
-            PRO
+            BETA
           </span>
         </div>
         <nav className="flex items-center gap-6 text-sm font-semibold text-gray-400">
