@@ -1,88 +1,97 @@
 'use client';
 
+import React, { useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
-import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { useDraft } from '../context/DraftContext';
+import { getChampionThumbnailUrl } from '@/lib/riot-api';
 
 export default function ChampionGrid() {
   const {
     version,
-    currentTurnIndex,
-    BAN_PICK_SEQUENCE,
-    currentTurnInfo,
-    getAllSelectedChampions,
-    permanentlyBannedChampions,
-    handleChampionClick,
     searchTerm,
     setSearchTerm,
     filteredChampions,
+    getAllSelectedChampions,
+    handleChampionClick,
   } = useDraft();
 
-  return (
-    <div className="flex-1 p-4 lg:col-span-2 h-[80vh] overflow-y-scroll">
-      <h1 className="text-2xl font-bold text-center mb-4">챔피언 선택</h1>
-      <p className="text-center text-gray-400 mb-4">LoL Fearless Banpick은 프로 경기의 Fearless 밴픽 방식을 연습하는 시뮬레이터입니다. 이전 세트에서 사용한 챔피언은 다시 선택할 수 없습니다.</p>
-      {currentTurnIndex < BAN_PICK_SEQUENCE.length ? (
-        <p className="text-center mb-4">
-          현재 턴: <span className={currentTurnInfo.team === 'blue' ? 'text-blue-400' : 'text-red-400'}>
-            {currentTurnInfo.team.toUpperCase()} 팀
-          </span> - {currentTurnInfo.type.toUpperCase()}
-        </p>
-      ) : (
-        <p className="text-center mb-4 text-green-400">밴픽 완료!</p>
-      )}
+  // 스크롤 위치를 기억하기 위한 ref
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
-      <div className="sticky top-0 z-40 bg-gray-900 py-4">
-        <input
-          type="text"
-          placeholder="챔피언 검색..."
-          className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+  // 리렌더링 되기 직전/직후에 스크롤 위치 복원
+  useLayoutEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollPositionRef.current;
+    }
+  });
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+    }
+  };
+
+  const handleClick = (championId: string) => {
+    // 클릭 직전 현재 스크롤 위치 저장
+    if (scrollContainerRef.current) {
+      scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+    }
+    handleChampionClick(championId);
+  };
+
+  return (
+    <div className="bg-gray-900/90 rounded-xl border border-gray-800 p-3.5 flex flex-col h-full space-y-3">
+      {/* 검색창 */}
+      <div className="flex justify-end items-center">
+        <div className="relative w-full sm:w-64">
+          <input
+            type="text"
+            placeholder="챔피언 검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-8 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 mt-4">
-        {filteredChampions.length === 0 && searchTerm !== '' ? (
-          <p className="col-span-full text-center text-gray-400">"{searchTerm}"에 대한 검색 결과가 없습니다.</p>
-        ) : filteredChampions.length === 0 ? (
-          <p className="col-span-full text-center text-gray-400">챔피언 데이터를 불러오는 중입니다...</p>
-        ) : (
-          filteredChampions.map((champion) => {
-            const isPermanentlyBanned = permanentlyBannedChampions.includes(champion.id);
-            const isSelected = getAllSelectedChampions.includes(champion.id);
-            const isSelectable = !isSelected && currentTurnIndex < BAN_PICK_SEQUENCE.length;
+      {/* 챔피언 그리드 (스크롤 이벤트 및 ref 연결) */}
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-2 overflow-y-auto max-h-[480px] p-1 custom-scrollbar"
+      >
+        {filteredChampions.map((champion) => {
+          const isSelected = getAllSelectedChampions.includes(champion.id);
 
-            return (
-              <div
-                key={champion.id}
-                className={`flex flex-col items-center cursor-pointer hover:scale-105 transition-all duration-200 relative ${
-                  !isSelectable ? 'opacity-40 grayscale cursor-not-allowed' : ''
-                }`}
-                onClick={() => isSelectable && handleChampionClick(champion.id)}
-              >
-                <div className={`w-10 h-10 relative rounded-md overflow-hidden ${isPermanentlyBanned ? 'border-2 border-red-600' : ''}`}>
-                  {version && (
-                    <Image
-                      src={getChampionThumbnailUrl(version, champion.id)}
-                      alt={champion.id}
-                      fill
-                      className="object-cover"
-                    />
-                  )}
-                  {isPermanentlyBanned && (
-                    <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center">
-                      <span className="text-[8px] font-bold text-white text-center leading-tight">PERMA<br/>BAN</span>
-                    </div>
-                  )}
-                </div>
-                <p className={`text-[10px] text-center mt-1 truncate w-full ${isPermanentlyBanned ? 'text-red-400 font-bold' : ''}`}>
-                  {champion.name}
-                </p>
+          return (
+            <button
+              key={champion.id}
+              onClick={() => handleClick(champion.id)}
+              disabled={isSelected}
+              className={`group relative flex flex-col items-center rounded-lg p-1.5 transition-all ${
+                isSelected
+                  ? 'opacity-30 grayscale cursor-not-allowed'
+                  : 'hover:bg-gray-800 hover:scale-105 active:scale-95'
+              }`}
+            >
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-700/60 group-hover:border-blue-400 transition-colors">
+                {version && (
+                  <Image
+                    src={getChampionThumbnailUrl(version, champion.id)}
+                    alt={champion.name}
+                    fill
+                    sizes="48px"
+                    className="object-cover"
+                  />
+                )}
               </div>
-            );
-          })
-        )}
+              <span className="text-[11px] font-medium text-gray-300 mt-1 truncate w-full text-center group-hover:text-white">
+                {champion.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

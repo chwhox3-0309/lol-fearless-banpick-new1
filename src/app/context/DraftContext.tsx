@@ -32,7 +32,6 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<Re
   return [storedValue, setStoredValue, hydrated];
 }
 
-
 interface Champion {
   id: string;
   name: string;
@@ -60,6 +59,9 @@ interface DraftState {
   currentTurnIndex: number;
 }
 
+// -------------------------------------------------------------
+// [수정위치 1] maxSets 및 totalSets 속성 추가
+// -------------------------------------------------------------
 interface DraftConfig {
   team1Name: string;
   team2Name: string;
@@ -67,6 +69,8 @@ interface DraftConfig {
   pickChoice: 'first' | 'second' | null;
   sideChoice: 'blue' | 'red' | null;
   isProMode: boolean;
+  maxSets?: number;   // 👈 추가
+  totalSets?: number; // 👈 추가
 }
 
 const initialTeamState: TeamState = {
@@ -155,6 +159,10 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [draftState, setDraftState, draftStateHydrated] = useLocalStorage<DraftState>('currentDraftState', initialDraftState);
   const [completedDrafts, setCompletedDrafts, completedDraftsHydrated] = useLocalStorage<CompletedDraft[]>('completedDrafts', []);
+  
+  // -------------------------------------------------------------
+  // [수정위치 2] config 초기 상태 값에 maxSets / totalSets 지정
+  // -------------------------------------------------------------
   const [config, setConfig, configHydrated] = useLocalStorage<DraftConfig>('draftConfig', {
     team1Name: 'Team 1',
     team2Name: 'Team 2',
@@ -162,6 +170,8 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     pickChoice: null,
     sideChoice: null,
     isProMode: false,
+    maxSets: 3,   // 👈 기본값 3 추가
+    totalSets: 3, // 👈 기본값 3 추가
   });
 
   const { currentTurnIndex } = draftState;
@@ -170,7 +180,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const team2Picks = draftState?.team2?.picks || [];
   const team2Bans = draftState?.team2?.bans || [];
 
-  // Logic to calculate permanently banned champions (banned twice)
   const permanentlyBannedChampions = useMemo(() => {
     if (!config.isProMode) return [];
     
@@ -184,7 +193,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return Object.keys(banCounts).filter(id => banCounts[id] >= 2);
   }, [completedDrafts, config.isProMode]);
 
-  // Validate state shape after hydration to prevent crashes from old data structures
   useEffect(() => {
     if (draftStateHydrated) {
       if (!draftState || !draftState.team1 || !draftState.team2) {
@@ -193,7 +201,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [draftStateHydrated, draftState, setDraftState]);
 
-  // Fetch champion data
   useEffect(() => {
     async function fetchData() {
       const latestVersion = await getLatestVersion();
@@ -207,7 +214,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const teamSideMapping = useMemo(() => {
     const mapping: { team1: 'blue' | 'red' | null, team2: 'blue' | 'red' | null } = { team1: null, team2: null };
     if (!config.pickOrderDecision || !config.pickChoice || !config.sideChoice) {
-      // Default to Team 1 Blue, Team 2 Red if not configured
       mapping.team1 = 'blue';
       mapping.team2 = 'red';
       return mapping;
@@ -224,17 +230,16 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const dynamicBanPickSequence = useMemo((): Turn[] => {
     if (!config.pickOrderDecision || !config.pickChoice || !config.sideChoice) {
-      return BAN_PICK_SEQUENCE; // Use default if config is not complete
+      return BAN_PICK_SEQUENCE;
     }
 
     const firstPickingTeam = config.pickChoice === 'first' 
       ? config.pickOrderDecision 
       : (config.pickOrderDecision === 'team1' ? 'team2' : 'team1');
     
-    const firstPickSide = teamSideMapping[firstPickingTeam as 'team1' | 'team2']; // Assert type
+    const firstPickSide = teamSideMapping[firstPickingTeam as 'team1' | 'team2'];
     
     if (firstPickSide === 'red') {
-      // Swap blue and red in the original sequence
       return BAN_PICK_SEQUENCE.map(turn => ({
         ...turn,
         team: turn.team === 'blue' ? 'red' : 'blue',
@@ -243,7 +248,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return BAN_PICK_SEQUENCE;
   }, [config, teamSideMapping]);
 
-  // Load state from URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const data = urlParams.get('data');
@@ -277,16 +281,13 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getAllSelectedChampions = useMemo(() => {
     const selected = new Set<string>();
     
-    // Permanently banned champions in Pro Mode
     permanentlyBannedChampions.forEach(id => selected.add(id));
 
-    // Current draft
     team1Picks.forEach((id) => selected.add(id));
     team2Picks.forEach((id) => selected.add(id));
     team1Bans.forEach((id) => selected.add(id));
     team2Bans.forEach((id) => selected.add(id));
     
-    // Completed drafts
     completedDrafts.forEach((draft) => {
       draft.blueTeamPicks.forEach((id) => selected.add(id));
       draft.redTeamPicks.forEach((id) => selected.add(id));
@@ -322,7 +323,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } else {
           newState.team1.picks.push(championId);
         }
-      } else { // team2
+      } else {
         if (currentTurn.type === 'ban') {
           newState.team2.bans.push(championId);
         } else {
@@ -348,21 +349,21 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const championMap = new Map(allChampions.map(c => [c.name.toLowerCase(), c.id]));
     const championIdsToRegister: string[] = [];
     const invalidNames: string[] = [];
-    const processedNames = new Set<string>(); // To track names already processed from current input
+    const processedNames = new Set<string>();
 
     for (const name of names) {
       const lowerCaseName = name.toLowerCase();
       const id = championMap.get(lowerCaseName);
 
-      if (!id) { // Champion name not found
+      if (!id) {
         invalidNames.push(name);
-      } else if (getAllSelectedChampions.includes(id)) { // Already drafted in previous sets or current draft
+      } else if (getAllSelectedChampions.includes(id)) {
         invalidNames.push(name);
-      } else if (processedNames.has(id)) { // Duplicate in the current bulk input
+      } else if (processedNames.has(id)) {
         invalidNames.push(name);
       } else {
         championIdsToRegister.push(id);
-        processedNames.add(id); // Add to processed set
+        processedNames.add(id);
       }
     }
 
@@ -422,6 +423,9 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setDraftState(initialDraftState);
   }, [draftState, currentTurnIndex, setCompletedDrafts, setDraftState, dynamicBanPickSequence.length, teamSideMapping]);
 
+  // -------------------------------------------------------------
+  // [수정위치 3] handleResetAll 시 maxSets / totalSets 도 초기화
+  // -------------------------------------------------------------
   const handleResetAll = useCallback(() => {
     if (window.confirm('정말 초기화 하시겠습니까?')) {
       setDraftState(initialDraftState);
@@ -433,6 +437,8 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         pickChoice: null,
         sideChoice: null,
         isProMode: false,
+        maxSets: 3,
+        totalSets: 3,
       });
     }
   }, [setDraftState, setCompletedDrafts, setConfig]);
@@ -490,7 +496,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     allChampions,
     filteredChampions,
     currentTurnInfo,
-    BAN_PICK_SEQUENCE: dynamicBanPickSequence, // Consumers should use the dynamic one
+    BAN_PICK_SEQUENCE: dynamicBanPickSequence,
     teamSideMapping,
   }), [
     version,
