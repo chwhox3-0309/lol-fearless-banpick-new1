@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import NoticeBanner from './components/NoticeBanner';
-import LatestPostBanner from './components/LatestPostBanner';
 import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
@@ -25,6 +24,11 @@ const AP_CHAMPIONS = new Set([
   'Orianna', 'Rumble', 'Ryze', 'Syndra', 'Sylas', 'Taliyah', 'Teemo', 'TwistedFate', 
   'Veigar', 'VelKoz', 'Vex', 'Viktor', 'Vladimir', 'Xerath', 'Ziggs', 'Zilean', 'Zoe', 'Zyra'
 ]);
+
+interface Notice {
+  id: string | number;
+  title: string;
+}
 
 export default function Home() {
   const {
@@ -49,14 +53,16 @@ export default function Home() {
     getAllSelectedChampions,
   } = useDraft();
 
-  // 1. 접속 시 바로 뜨지 않도록 기본값을 false로 변경
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(false); // 경기 설정 완료 여부
-
-  const [isContentReady, setIsContentReady] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
+
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const isFirstRender = useRef(true);
 
   const currentSetNumber = (completedDrafts?.length || 0) + 1;
   const baseSets = config?.totalSets || config?.maxSets || 3;
@@ -64,12 +70,22 @@ export default function Home() {
   const calculatedBo = targetSets % 2 === 0 ? targetSets + 1 : targetSets;
   const matchTypeLabel = `BO${calculatedBo}`;
 
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const isFirstRender = useRef(true);
-
-  // 밴픽 종료 여부
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
+
+  // 최신 공지사항 로드
+  useEffect(() => {
+    try {
+      const savedNotices = localStorage.getItem('notices');
+      if (savedNotices) {
+        const parsed = JSON.parse(savedNotices);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLatestNotice(parsed[0]);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load notices:', e);
+    }
+  }, []);
 
   useEffect(() => {
     if (currentTurnIndex > 0) {
@@ -102,6 +118,12 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [isTimerRunning, timeLeft, isDraftFinished]);
 
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const onNextSetWithTimerReset = () => {
     handleNextSet();
     setTimeLeft(30);
@@ -121,14 +143,16 @@ export default function Home() {
       completedDrafts.forEach((prevDraft) => {
         if (!prevDraft) return;
         const draftObj = prevDraft as Record<string, any>;
-        if (draftObj.team1) {
-          if (Array.isArray(draftObj.team1.picks)) draftObj.team1.picks.forEach((id: string) => unavailable.add(id));
-          if (Array.isArray(draftObj.team1.bans)) draftObj.team1.bans.forEach((id: string) => unavailable.add(id));
-        }
-        if (draftObj.team2) {
-          if (Array.isArray(draftObj.team2.picks)) draftObj.team2.picks.forEach((id: string) => unavailable.add(id));
-          if (Array.isArray(draftObj.team2.bans)) draftObj.team2.bans.forEach((id: string) => unavailable.add(id));
-        }
+        ['team1', 'team2'].forEach((teamKey) => {
+          if (draftObj[teamKey]) {
+            if (Array.isArray(draftObj[teamKey].picks)) {
+              draftObj[teamKey].picks.forEach((id: string) => unavailable.add(id));
+            }
+            if (Array.isArray(draftObj[teamKey].bans)) {
+              draftObj[teamKey].bans.forEach((id: string) => unavailable.add(id));
+            }
+          }
+        });
       });
     }
     return unavailable;
@@ -148,10 +172,8 @@ export default function Home() {
     }
 
     let apCount = 0;
-    let adCount = 0;
     picks.forEach((championId) => {
       if (AP_CHAMPIONS.has(championId)) apCount += 1;
-      else adCount += 1;
     });
 
     const totalPicks = picks.length;
@@ -177,18 +199,6 @@ export default function Home() {
       recommendations: recommendations.length > 0 ? recommendations : ['없음'],
     };
   };
-
-  useEffect(() => {
-    if (filteredChampions && filteredChampions.length > 0) {
-      setIsContentReady(true);
-    }
-  }, [filteredChampions]);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleShareUrl = () => {
     const stateToShare = { draft, completedDrafts, config };
@@ -261,7 +271,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 리모컨 */}
+      {/* 상단 리모컨 내비게이션 */}
       <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
         isScrolled ? 'top-[60px] bg-gray-900/95 p-2 max-w-[1100px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
       }`}>
@@ -327,7 +337,6 @@ export default function Home() {
             <button onClick={handleResetAll} className="bg-red-600 hover:bg-red-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
               전부 초기화
             </button>
-
             <button
               onClick={handleUndoLastAction}
               disabled={currentTurnIndex === 0}
@@ -339,7 +348,6 @@ export default function Home() {
             >
               선택 취소
             </button>
-
             <button onClick={() => setIsBulkBanModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
               대량 등록
             </button>
@@ -347,39 +355,15 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 1. 최신 공지사항 데이터를 불러오는 로직 (예시: localStorage나 상태 활용) */}
-{(() => {
-  // 예시: localStorage에 저장된 공지 목록을 불러오는 경우 (DB나 다른 방식이면 그에 맞춰 변경)
-  // 만약 notices가 배열 상태로 관리되고 있다면 해당 배열을 사용하세요.
-  const [latestNotice, setLatestNotice] = useState<{ id: string | number; title: string } | null>(null);
-
-  useEffect(() => {
-    try {
-      const savedNotices = localStorage.getItem('notices');
-      if (savedNotices) {
-        const parsed = JSON.parse(savedNotices);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // 가장 최근에 등록된 글 (보통 배열의 첫 번째 혹은 마지막 인덱스)
-          setLatestNotice(parsed[0]); 
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  // 등록된 공지가 없을 경우 숨기거나 기본 문구 표시
-  if (!latestNotice) return null;
-
-  return (
-    <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
-      <Link href={`/notices/${latestNotice.id}`} className="flex items-center justify-center gap-2 w-full h-full">
-        <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
-        <span className="hover:underline truncate">{latestNotice.title}</span>
-      </Link>
-    </div>
-  );
-})()}
+      {/* 최신 공지사항 배너 */}
+      {latestNotice && (
+        <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
+          <Link href={`/notices/${latestNotice.id}`} className="flex items-center justify-center gap-2 w-full h-full">
+            <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
+            <span className="hover:underline truncate">{latestNotice.title}</span>
+          </Link>
+        </div>
+      )}
 
       <NoticeBanner />
 
@@ -394,7 +378,6 @@ export default function Home() {
               현재 진행: <span className="text-teal-400 font-bold">SET {currentSetNumber}</span>
             </span>
           </div>
-
           <div>
             {isDraftFinished ? (
               <span className="text-xs font-bold px-3 py-1 bg-green-900/80 text-green-300 rounded-full border border-green-700">
@@ -489,7 +472,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* 탭 구분 (모바일) */}
+        {/* 모바일 탭 구분 */}
         <div className="flex border-b border-gray-700 lg:hidden rounded-t-lg overflow-hidden">
           <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
             {blueSideTeamName} (블루)
@@ -516,7 +499,6 @@ export default function Home() {
 
           {/* 챔피언 선택 영역 */}
           <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} lg:block lg:col-span-2 relative`}>
-            {/* 2. 밴픽 완료 또는 미설정 시 선택 제한 오버레이 */}
             {isDraftFinished ? (
               <div className="absolute inset-0 z-20 bg-gray-950/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/30">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">
@@ -544,7 +526,6 @@ export default function Home() {
               </div>
             ) : null}
 
-            {/* 챔피언 그리드 (완료 시 흑백 처리) */}
             <div className={isDraftFinished ? 'grayscale opacity-50 pointer-events-none' : ''}>
               <ChampionGrid />
             </div>
