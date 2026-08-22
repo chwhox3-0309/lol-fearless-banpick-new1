@@ -29,6 +29,7 @@ interface Notice {
   id: string | number;
   title: string;
   date?: string;
+  createdAt?: string;
 }
 
 interface BoardPost {
@@ -71,7 +72,7 @@ export default function Home() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
 
-  // 자유게시판(board) 목록 상태 (임의 글 제거 및 실제 데이터 연동)
+  // 자유게시판(board) 목록 상태
   const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
@@ -86,35 +87,40 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 공지사항 데이터 로드
+  // 공지사항 데이터 로드 (작성된 최신 순으로 정렬)
   useEffect(() => {
     try {
       const savedNotices = localStorage.getItem('notices');
       if (savedNotices) {
         const parsed = JSON.parse(savedNotices);
-        if (Array.isArray(parsed)) {
-          setNotices(parsed);
-          if (parsed.length > 0) {
-            setLatestNotice(parsed[0]);
-          }
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // 최신 작성 순 정렬 (id가 숫자이거나 타임스탬프/날짜인 경우 대응)
+          const sortedNotices = [...parsed].sort((a, b) => {
+            return Number(b.id) - Number(a.id);
+          });
+          setNotices(sortedNotices);
+          setLatestNotice(sortedNotices[0]); // 가장 최신 글을 상단 배너에 노출
+          return;
         }
       }
+      setNotices([]);
+      setLatestNotice(null);
     } catch (e) {
       console.error('Failed to load notices:', e);
     }
   }, []);
 
-  // 자유게시판(board) 데이터 로드 (실제 작성일 기준)
+  // 자유게시판(board) 데이터 로드
   useEffect(() => {
     try {
       const savedPosts = localStorage.getItem('board_posts');
       if (savedPosts) {
         const parsed = JSON.parse(savedPosts);
         if (Array.isArray(parsed)) {
-          setBoardPosts(parsed);
+          const sortedPosts = [...parsed].sort((a, b) => Number(b.id) - Number(a.id));
+          setBoardPosts(sortedPosts);
         }
       } else {
-        // 임의의 글을 넣지 않고 빈 배열로 초기화
         setBoardPosts([]);
       }
     } catch (e) {
@@ -356,7 +362,6 @@ export default function Home() {
             <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               공지사항
             </Link>
-            {/* board 경로로 수정 */}
             <Link href="/board" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               자유게시판
             </Link>
@@ -617,7 +622,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 2. 자유게시판 (/board 경로 및 실제 데이터 기준) */}
+            {/* 2. 자유게시판 */}
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
