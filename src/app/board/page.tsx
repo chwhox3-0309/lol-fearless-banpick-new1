@@ -17,13 +17,19 @@ export default function BoardPage() {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedId, setExpandedId] = useState<string | number | null>(null); // 현재 펼쳐진 글 ID
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchPosts() {
+    async function fetchInitialData() {
       try {
+        // 세션 확인
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+
+        // 게시글 목록 불러오기
         const { data, error } = await supabase
-          .from('board_posts') // 혹은 실제 사용하는 게시판 테이블명
+          .from('board_posts')
           .select('*')
           .order('created_at', { ascending: false });
 
@@ -31,13 +37,20 @@ export default function BoardPage() {
           setPosts(data);
         }
       } catch (e) {
-        console.error('Failed to fetch board posts:', e);
+        console.error('Failed to fetch board data:', e);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchPosts();
+    fetchInitialData();
+
+    // 로그인 상태 변경 감지
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // 검색어 필터링
@@ -52,7 +65,7 @@ export default function BoardPage() {
 
   return (
     <div className="w-full max-w-[1000px] mx-auto flex flex-col space-y-6 py-8 px-4">
-      {/* 상단 타이틀 영역 */}
+      {/* 상단 타이틀 영역 및 로그인/글쓰기 버튼 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-black text-teal-300 flex items-center gap-2">
@@ -60,12 +73,30 @@ export default function BoardPage() {
           </h1>
           <p className="text-xs text-gray-400 mt-1">소통과 유용한 정보들을 공유하는 공간입니다.</p>
         </div>
-        <Link
-          href="/"
-          className="px-3 py-1.5 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 text-xs rounded-lg transition-all"
-        >
-          홈으로 ➔
-        </Link>
+
+        <div className="flex items-center gap-2">
+          {session ? (
+            <Link
+              href="/admin/board" // 필요에 따른 관리/작성 페이지 경로로 수정 가능
+              className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shadow-md"
+            >
+              ✍️ 글쓰기 / 관리
+            </Link>
+          ) : (
+            <Link
+              href="/admin/board" // 로그인 페이지 겸용 관리 페이지
+              className="px-3 py-1.5 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-400 hover:text-white text-xs rounded-lg transition-all"
+            >
+              🔒 관리자 로그인
+            </Link>
+          )}
+          <Link
+            href="/"
+            className="px-3 py-1.5 bg-gray-900 border border-gray-800 hover:border-gray-700 text-gray-300 text-xs rounded-lg transition-all"
+          >
+            홈으로 ➔
+          </Link>
+        </div>
       </div>
 
       {/* 검색 바 영역 */}
