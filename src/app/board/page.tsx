@@ -69,7 +69,7 @@ export default function BoardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-black text-teal-300 flex items-center gap-2">
-            <span>📌</span> 자유 게시판 / 공지
+            <span>📌</span> 자유 게시판
           </h1>
           <p className="text-xs text-gray-400 mt-1">소통과 유용한 정보들을 공유하는 공간입니다.</p>
         </div>
