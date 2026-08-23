@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 interface BoardPost {
-  id: string | number;
+  id: number;
   title: string;
   content: string;
   author_name?: string;
@@ -16,12 +16,12 @@ export default function BoardPage() {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedId, setExpandedId] = useState<string | number | null>(null);
-  const [myPostIds, setMyPostIds] = useState<(string | number)[]>([]);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [myPostIds, setMyPostIds] = useState<number[]>([]);
 
   // 글쓰기/수정 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -36,9 +36,8 @@ export default function BoardPage() {
     const savedMyPosts = localStorage.getItem('my_board_posts');
     if (savedMyPosts) {
       try {
-        // 숫자형/문자형 ID 타입을 모두 원활하게 비교하기 위해 문자열 배열로 변환하여 관리
         const parsed = JSON.parse(savedMyPosts);
-        setMyPostIds(parsed.map((id: any) => String(id)));
+        setMyPostIds(parsed.map((id: any) => Number(id)));
       } catch (e) {
         console.error(e);
       }
@@ -67,33 +66,33 @@ export default function BoardPage() {
     setEditingId(null);
     setTitle('');
     setContent('');
-    setAuthorName('');
+    setAuthorName(''); // 새 글 작성 시 빈 값으로 시작
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (post: BoardPost, e: React.MouseEvent) => {
-    e.stopPropagation(); // 아코디언이 펼쳐지는 것 방지
+    e.stopPropagation();
     setEditingId(post.id);
     setTitle(post.title);
     setContent(post.content);
-    setAuthorName(post.author_name || '');
+    setAuthorName(post.author_name || ''); // 기존 작성자 이름 유지 (수정 불가 처리용)
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim() || !authorName.trim()) {
+    if (!title.trim() || !content.trim() || (!editingId && !authorName.trim())) {
       alert('작성자, 제목, 내용을 모두 입력해주세요.');
       return;
     }
 
     setSubmitting(true);
     try {
-      if (editingId) {
-        // 수정 모드
+      if (editingId !== null) {
+        // 수정 모드: 제목과 내용만 수정 가능하도록 전송 (author_name은 제외하여 변경 방지)
         const { error } = await supabase
           .from('posts')
-          .update({ title, content, author_name: authorName })
+          .update({ title, content })
           .eq('id', editingId);
 
         if (error) throw error;
@@ -116,7 +115,7 @@ export default function BoardPage() {
         if (error) throw error;
 
         if (data && data[0]) {
-          const newId = String(data[0].id);
+          const newId = Number(data[0].id);
           const updatedMyIds = Array.from(new Set([newId, ...myPostIds]));
           setMyPostIds(updatedMyIds);
           localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
@@ -139,16 +138,15 @@ export default function BoardPage() {
     }
   };
 
-  const handleDelete = async (id: string | number, e: React.MouseEvent) => {
-    e.stopPropagation(); // 아코디언 펼침 방지
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
 
     try {
       const { error } = await supabase.from('posts').delete().eq('id', id);
       if (error) throw error;
 
-      // 내가 쓴 글 목록에서도 제거
-      const updatedMyIds = myPostIds.filter((postId) => postId !== String(id));
+      const updatedMyIds = myPostIds.filter((postId) => postId !== id);
       setMyPostIds(updatedMyIds);
       localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
 
@@ -165,7 +163,7 @@ export default function BoardPage() {
     (post.author_name && post.author_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const toggleExpand = (id: string | number) => {
+  const toggleExpand = (id: number) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
@@ -211,7 +209,7 @@ export default function BoardPage() {
         <div className="space-y-3">
           {filteredPosts.map((post) => {
             const isExpanded = expandedId === post.id;
-            const isMyPost = myPostIds.includes(String(post.id));
+            const isMyPost = myPostIds.includes(Number(post.id));
 
             return (
               <div
@@ -237,7 +235,6 @@ export default function BoardPage() {
                   </div>
                   
                   <div className="flex items-center gap-3 shrink-0">
-                    {/* 내가 작성한 글일 경우에만 수정/삭제 버튼 노출 */}
                     {isMyPost && (
                       <div className="flex items-center gap-1.5 mr-2">
                         <button
@@ -282,13 +279,12 @@ export default function BoardPage() {
         </div>
       )}
 
-      {/* 글쓰기/수정 모달 팝업 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-gray-900 border border-gray-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <h2 className="text-base font-bold text-teal-300 flex items-center gap-2">
-                <span>{editingId ? '✏️' : '✍️'}</span> {editingId ? '게시글 수정하기' : '새 게시글 작성'}
+                <span>{editingId !== null ? '✏️' : '✍️'}</span> {editingId !== null ? '게시글 수정하기' : '새 게시글 작성'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -300,13 +296,26 @@ export default function BoardPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">작성자</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-gray-300">작성자</label>
+                  {editingId !== null && (
+                    <span className="text-[10px] text-teal-400">작성된 이름은 수정할 수 없습니다.</span>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
+                  onChange={(e) => {
+                    // 수정 모드일 때는 변경을 막음
+                    if (editingId === null) setAuthorName(e.target.value);
+                  }}
+                  readOnly={editingId !== null} // 수정 모드 시 읽기 전용 처리
                   placeholder="작성자 이름을 입력하세요"
-                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full border rounded-lg p-3 text-sm focus:outline-none ${
+                    editingId !== null
+                      ? 'bg-gray-950/50 border-gray-800 text-gray-500 cursor-not-allowed'
+                      : 'bg-gray-950 border-gray-800 text-white focus:border-teal-500'
+                  }`}
                   required
                 />
               </div>
@@ -348,7 +357,7 @@ export default function BoardPage() {
                   disabled={submitting}
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg shadow-lg transition-colors"
                 >
-                  {submitting ? '처리 중...' : editingId ? '수정 완료' : '등록하기'}
+                  {submitting ? '처리 중...' : editingId !== null ? '수정 완료' : '등록하기'}
                 </button>
               </div>
             </form>
