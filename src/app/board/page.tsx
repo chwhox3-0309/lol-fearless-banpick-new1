@@ -8,6 +8,7 @@ interface BoardPost {
   id: string | number;
   title: string;
   content: string;
+  author_name?: string;
   created_at: string;
 }
 
@@ -17,10 +18,11 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
-  // 글쓰기 모달 상태
+  // 글쓰기 모달 상태 및 작성자(author_name) 추가
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [authorName, setAuthorName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -47,8 +49,8 @@ export default function BoardPage() {
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요.');
+    if (!title.trim() || !content.trim() || !authorName.trim()) {
+      alert('작성자, 제목, 내용을 모두 입력해주세요.');
       return;
     }
 
@@ -56,13 +58,14 @@ export default function BoardPage() {
     try {
       const { error } = await supabase
         .from('posts')
-        .insert([{ title, content }]);
+        .insert([{ title, content, author_name: authorName }]);
 
       if (error) throw error;
 
       alert('게시글이 성공적으로 등록되었습니다!');
       setTitle('');
       setContent('');
+      setAuthorName('');
       setIsWriteModalOpen(false);
       fetchPosts();
     } catch (e: any) {
@@ -75,7 +78,8 @@ export default function BoardPage() {
 
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchTerm.toLowerCase())
+    post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (post.author_name && post.author_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const toggleExpand = (id: string | number) => {
@@ -87,7 +91,7 @@ export default function BoardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-black text-teal-300 flex items-center gap-2">
-            <span>📌</span> 자유 게시판 / 공지
+            <span>📌</span> 자유 게시판
           </h1>
           <p className="text-xs text-gray-400 mt-1">소통과 유용한 정보들을 공유하는 공간입니다.</p>
         </div>
@@ -97,7 +101,7 @@ export default function BoardPage() {
             onClick={() => setIsWriteModalOpen(true)}
             className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center gap-1"
           >
-            ✍️ 글쓰기
+            글쓰기
           </button>
           <Link
             href="/"
@@ -113,7 +117,7 @@ export default function BoardPage() {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="제목 또는 내용을 검색하세요..."
+          placeholder="제목, 내용 또는 작성자를 검색하세요..."
           className="w-full bg-gray-900/90 border border-gray-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-gray-200 focus:outline-none focus:border-teal-500/60 shadow-inner"
         />
       </div>
@@ -142,6 +146,9 @@ export default function BoardPage() {
                       <span className="text-teal-400 text-xs font-mono">#{post.id}</span>
                       {post.title}
                     </h2>
+                    {post.author_name && (
+                      <p className="text-xs text-gray-400 pl-5">작성자: <span className="text-teal-300">{post.author_name}</span></p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-[11px] text-gray-500 font-mono">
@@ -187,6 +194,18 @@ export default function BoardPage() {
             </div>
 
             <form onSubmit={handleCreatePost} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">작성자</label>
+                <input
+                  type="text"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  placeholder="작성자 이름을 입력하세요"
+                  className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-teal-500"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-1">제목</label>
                 <input
