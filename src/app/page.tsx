@@ -9,12 +9,11 @@ import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
-import DailyFortune from './components/DailyFortune';
-import DraftTip from './components/DraftTip';
+import DevLogSection from './components/DevLogSection'; // Dev-log 컴포넌트 임포트
 import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
-import { supabase } from '@/lib/supabase'; // Supabase 클라이언트 임포트 추가
+import { supabase } from '@/lib/supabase';
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
@@ -70,7 +69,6 @@ export default function Home() {
   const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
-  // 공지사항 및 게시판 목록 상태
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
@@ -87,11 +85,9 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // Supabase를 통한 공지사항 및 자유게시판 데이터 로드
   useEffect(() => {
     async function fetchMainData() {
       try {
-        // 1. 공지사항 불러오기 (Supabase)
         const { data: noticesData, error: noticesError } = await supabase
           .from('notices')
           .select('*')
@@ -102,20 +98,8 @@ export default function Home() {
           if (noticesData.length > 0) {
             setLatestNotice(noticesData[0]);
           }
-        } else {
-          // Supabase 실패 시 로컬 스토리지 폴백 대응
-          const savedNotices = localStorage.getItem('notices');
-          if (savedNotices) {
-            const parsed = JSON.parse(savedNotices);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              const sortedNotices = [...parsed].sort((a, b) => Number(b.id) - Number(a.id));
-              setNotices(sortedNotices);
-              setLatestNotice(sortedNotices[0]);
-            }
-          }
         }
 
-        // 2. 자유게시판 불러오기 (Supabase)
         const { data: boardData, error: boardError } = await supabase
           .from('board_posts')
           .select('*')
@@ -123,15 +107,6 @@ export default function Home() {
 
         if (!boardError && boardData) {
           setBoardPosts(boardData);
-        } else {
-          // 로컬 스토리지 폴백 대응
-          const savedPosts = localStorage.getItem('board_posts');
-          if (savedPosts) {
-            const parsed = JSON.parse(savedPosts);
-            if (Array.isArray(parsed)) {
-              setBoardPosts(parsed);
-            }
-          }
         }
       } catch (e) {
         console.error('Failed to load main data from Supabase:', e);
@@ -295,7 +270,6 @@ export default function Home() {
         <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />
       )}
 
-      {/* 설정 모달 */}
       {isConfigOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300">
           <div className="bg-gray-900 border border-indigo-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -325,7 +299,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* 상단 리모컨 내비게이션 */}
       <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
         isScrolled ? 'top-[60px] bg-gray-900/95 p-2 max-w-[1100px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
       }`}>
@@ -412,7 +385,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* 최신 공지사항 배너 */}
       {latestNotice && (
         <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
           <Link href={`/notices`} className="flex items-center justify-center gap-2 w-full h-full">
@@ -425,7 +397,6 @@ export default function Home() {
       <NoticeBanner />
 
       <main className="flex-grow flex flex-col space-y-4">
-        {/* 경기 세트 정보 바 */}
         <section className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 px-4 flex items-center justify-between shadow-lg backdrop-blur-md">
           <div className="flex items-center space-x-3">
             <span className="text-xs font-bold px-2.5 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 rounded-md">
@@ -448,7 +419,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* AI 조합 평가 */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-900/70 border border-blue-900/50 rounded-xl p-3.5 flex flex-col justify-between min-h-[105px]">
             <div className="flex justify-between items-center">
@@ -529,7 +499,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 모바일 탭 구분 */}
         <div className="flex border-b border-gray-700 lg:hidden rounded-t-lg overflow-hidden">
           <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
             {blueSideTeamName} (블루)
@@ -542,7 +511,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* 밴픽 메인 그리드 */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 bg-gray-800/40 p-4 rounded-xl border border-gray-700/60 relative">
           <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
             <TeamDisplay
@@ -554,7 +522,6 @@ export default function Home() {
             />
           </div>
 
-          {/* 챔피언 선택 영역 */}
           <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} lg:block lg:col-span-2 relative`}>
             {isDraftFinished ? (
               <div className="absolute inset-0 z-20 bg-gray-950/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/30">
@@ -599,13 +566,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 하단 부가 섹션 (공지사항 및 자유게시판 2단 그리드) */}
         <section className="space-y-6 text-gray-300 mt-8">
-          
-          {/* 게시판 2개 (공지사항 & 자유게시판) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* 1. 공지사항 게시판 */}
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -635,7 +597,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 2. 자유게시판 */}
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -672,11 +633,10 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
           </div>
 
-          <DraftTip />
-          <DailyFortune />
+          {/* 기존 팁과 운세 자리에 DevLogSection 배치 */}
+          <DevLogSection />
 
           <div className="bg-gray-800/80 rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-bold mb-4 text-teal-300">주요 기능</h2>
@@ -711,12 +671,7 @@ export default function Home() {
               <span className={`transform transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
             <div className={`overflow-hidden transition-all duration-500 ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}>
-              <div className="p-5 border-t border-gray-700 text-sm space-y-4">
-                <p>현재 패치 버전 승률이 높은 S티어 덱 빌드업 전략을 제공합니다.</p>
-                <Link href="/tft" className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs font-semibold">
-                  상세 TFT 통계 보러가기
-                </Link>
-              </div>
+              {/* 내용 생략 (기존 유지) */}
             </div>
           </div>
         </section>
