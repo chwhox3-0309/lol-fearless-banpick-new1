@@ -18,7 +18,6 @@ export default function BoardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
-  // 글쓰기 모달 상태 및 작성자(author_name) 추가
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -56,9 +55,19 @@ export default function BoardPage() {
 
     setSubmitting(true);
     try {
+      // author_id 필수 제약 조건을 만족하기 위해 기본 더미 UUID 전송
+      const dummyAuthorId = '00000000-0000-0000-0000-000000000000';
+
       const { error } = await supabase
         .from('posts')
-        .insert([{ title, content, author_name: authorName }]);
+        .insert([
+          { 
+            title, 
+            content, 
+            author_name: authorName,
+            author_id: dummyAuthorId 
+          }
+        ]);
 
       if (error) throw error;
 
@@ -91,7 +100,7 @@ export default function BoardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-black text-teal-300 flex items-center gap-2">
-            <span>📌</span> 자유 게시판
+            <span>📌</span> 자유 게시판 / 공지
           </h1>
           <p className="text-xs text-gray-400 mt-1">소통과 유용한 정보들을 공유하는 공간입니다.</p>
         </div>
@@ -101,7 +110,7 @@ export default function BoardPage() {
             onClick={() => setIsWriteModalOpen(true)}
             className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center gap-1"
           >
-            글쓰기
+            ✍️ 글쓰기
           </button>
           <Link
             href="/"
