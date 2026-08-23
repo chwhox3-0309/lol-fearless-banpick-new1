@@ -52,7 +52,9 @@ export default function BoardPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
+      if (error) {
+        console.error('Fetch error:', error);
+      } else if (data) {
         setPosts(data);
       }
     } catch (e) {
@@ -66,7 +68,7 @@ export default function BoardPage() {
     setEditingId(null);
     setTitle('');
     setContent('');
-    setAuthorName(''); // 새 글 작성 시 빈 값으로 시작
+    setAuthorName('');
     setIsModalOpen(true);
   };
 
@@ -75,7 +77,7 @@ export default function BoardPage() {
     setEditingId(post.id);
     setTitle(post.title);
     setContent(post.content);
-    setAuthorName(post.author_name || ''); // 기존 작성자 이름 유지 (수정 불가 처리용)
+    setAuthorName(post.author_name || '');
     setIsModalOpen(true);
   };
 
@@ -89,13 +91,21 @@ export default function BoardPage() {
     setSubmitting(true);
     try {
       if (editingId !== null) {
-        // 수정 모드: 제목과 내용만 수정 가능하도록 전송 (author_name은 제외하여 변경 방지)
-        const { error } = await supabase
+        // 수정 모드: 데이터베이스 update 실행
+        console.log('Updating post ID:', editingId);
+        const { data, error } = await supabase
           .from('posts')
           .update({ title, content })
-          .eq('id', editingId);
+          .eq('id', editingId)
+          .select();
 
+        console.log('Update result:', { data, error });
         if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          throw new Error('수정된 데이터가 없습니다. RLS 정책을 확인해주세요.');
+        }
+
         alert('게시글이 성공적으로 수정되었습니다!');
       } else {
         // 작성 모드
@@ -129,10 +139,10 @@ export default function BoardPage() {
       setContent('');
       setAuthorName('');
       setEditingId(null);
-      fetchPosts();
+      await fetchPosts();
     } catch (e: any) {
-      console.error('Failed to save post:', e);
-      alert(`처리 중 오류가 발생했습니다: ${e.message || ''}`);
+      console.error('Failed to save post detail:', e);
+      alert(`처리 중 오류가 발생했습니다: ${e.message || JSON.stringify(e)}`);
     } finally {
       setSubmitting(false);
     }
@@ -143,17 +153,26 @@ export default function BoardPage() {
     if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
 
     try {
-      const { error } = await supabase.from('posts').delete().eq('id', id);
+      console.log('Deleting post ID:', id);
+      const { data, error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id)
+        .select();
+
+      console.log('Delete result:', { data, error });
       if (error) throw error;
 
+      // DB 삭제가 실제로 확인된 경우에만 내 로컬 기록에서도 제거
       const updatedMyIds = myPostIds.filter((postId) => postId !== id);
       setMyPostIds(updatedMyIds);
       localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
 
       alert('삭제되었습니다.');
-      fetchPosts();
+      await fetchPosts();
     } catch (e: any) {
-      alert(`삭제 실패: ${e.message}`);
+      console.error('Failed to delete post detail:', e);
+      alert(`삭제 실패: ${e.message || JSON.stringify(e)}`);
     }
   };
 
@@ -306,10 +325,9 @@ export default function BoardPage() {
                   type="text"
                   value={authorName}
                   onChange={(e) => {
-                    // 수정 모드일 때는 변경을 막음
                     if (editingId === null) setAuthorName(e.target.value);
                   }}
-                  readOnly={editingId !== null} // 수정 모드 시 읽기 전용 처리
+                  readOnly={editingId !== null}
                   placeholder="작성자 이름을 입력하세요"
                   className={`w-full border rounded-lg p-3 text-sm focus:outline-none ${
                     editingId !== null
@@ -321,7 +339,7 @@ export default function BoardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">제목</label>
+                <label className="block text-xs font-semibold text-gray-350 mb-1">제목</label>
                 <input
                   type="text"
                   value={title}
@@ -333,7 +351,7 @@ export default function BoardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">내용</label>
+                <label className="block text-xs font-semibold text-gray-350 mb-1">내용</label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
