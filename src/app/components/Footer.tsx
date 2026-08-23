@@ -20,7 +20,7 @@ export default function Footer() {
           <Link href="/contact" className="text-gray-400 hover:text-white transition-colors duration-300">
             문의하기
           </Link>
-          <Link href="/blog" className="text-gray-400 hover:text-white transition-colors duration-300">
+          <Link href="/dev-log" className="text-gray-400 hover:text-white transition-colors duration-300">
             블로그
           </Link>
           <Link href="/recommended-bans" className="text-gray-400 hover:text-white transition-colors duration-300">
