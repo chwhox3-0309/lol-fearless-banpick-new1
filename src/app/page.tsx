@@ -35,8 +35,7 @@ interface Notice {
 interface BoardPost {
   id: string | number;
   title: string;
-  author?: string;
-  date?: string;
+  author_name?: string;
   created_at?: string;
 }
 
@@ -100,9 +99,10 @@ export default function Home() {
           }
         }
 
+        // posts 테이블에서 id, title, author_name, created_at 가져오기
         const { data: boardData, error: boardError } = await supabase
-          .from('board_posts')
-          .select('*')
+          .from('posts')
+          .select('id, title, author_name, created_at')
           .order('created_at', { ascending: false });
 
         if (!boardError && boardData) {
@@ -620,10 +620,13 @@ export default function Home() {
                         href={`/board`}
                         className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
                       >
-                        <span className="text-gray-200 truncate">{post.title}</span>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0 ml-2">
-                          {post.author && <span>{post.author}</span>}
-                          {post.date && <span>{post.date}</span>}
+                        <span className="text-gray-200 truncate font-medium">{post.title}</span>
+                        <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0 ml-2">
+                          {post.author_name && (
+                            <span className="bg-gray-950 px-2 py-0.5 rounded border border-gray-800 text-teal-300 text-[11px]">
+                              {post.author_name}
+                            </span>
+                          )}
                         </div>
                       </Link>
                     ))
