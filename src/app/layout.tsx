@@ -67,22 +67,6 @@ export default function RootLayout({
               </aside>
 
             </div>
-
-            {/* [추가 권장] 하단 광고 영역 (푸터 바로 위, 다크 테마 박스로 감싸기) */}
-          <section className="w-full max-w-[1280px] mx-auto px-4 my-8">
-            <div className="bg-gray-900/80 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center">
-              <div className="w-full flex justify-between items-center mb-3">
-                <span className="text-xs font-semibold text-gray-400 flex items-center gap-1.5">
-                  <span>📢</span> 스폰서 광고
-                </span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-wider">AD</span>
-              </div>
-              <div className="w-full flex justify-center overflow-hidden rounded-xl bg-white/5 p-2">
-                {/* 구글 애드센스 등 하단 광고 유닛 삽입부 */}
-              </div>
-            </div>
-          </section>
-
             
             <Footer />
           </DraftProvider>
