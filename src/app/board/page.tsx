@@ -17,14 +17,26 @@ export default function BoardPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState<string | number | null>(null);
+  const [myPostIds, setMyPostIds] = useState<(string | number)[]>([]);
 
-  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+  // 글쓰기/수정 모달 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | number | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // 로컬 스토리지에서 내가 작성한 글 ID 목록 불러오기
+    const savedMyPosts = localStorage.getItem('my_board_posts');
+    if (savedMyPosts) {
+      try {
+        setMyPostIds(JSON.parse(savedMyPosts));
+      } catch (e) {
+        console.error(e);
+      }
+    }
     fetchPosts();
   }, []);
 
@@ -46,7 +58,24 @@ export default function BoardPage() {
     }
   }
 
-  const handleCreatePost = async (e: React.FormEvent) => {
+  const handleOpenWriteModal = () => {
+    setEditingId(null);
+    setTitle('');
+    setContent('');
+    setAuthorName('');
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (post: BoardPost, e: React.MouseEvent) => {
+    e.stopPropagation(); // 아코디언이 펼쳐지는 것 방지
+    setEditingId(post.id);
+    setTitle(post.title);
+    setContent(post.content);
+    setAuthorName(post.author_name || '');
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim() || !authorName.trim()) {
       alert('작성자, 제목, 내용을 모두 입력해주세요.');
@@ -55,33 +84,73 @@ export default function BoardPage() {
 
     setSubmitting(true);
     try {
-      // author_id 필수 제약 조건을 만족하기 위해 기본 더미 UUID 전송
-      const dummyAuthorId = '00000000-0000-0000-0000-000000000000';
+      if (editingId) {
+        // 수정 모드
+        const { error } = await supabase
+          .from('posts')
+          .update({ title, content, author_name: authorName })
+          .eq('id', editingId);
 
-      const { error } = await supabase
-        .from('posts')
-        .insert([
-          { 
-            title, 
-            content, 
-            author_name: authorName,
-            author_id: dummyAuthorId 
-          }
-        ]);
+        if (error) throw error;
+        alert('게시글이 성공적으로 수정되었습니다!');
+      } else {
+        // 작성 모드
+        const dummyAuthorId = '00000000-0000-0000-0000-000000000000';
+        const { data, error } = await supabase
+          .from('posts')
+          .insert([
+            { 
+              title, 
+              content, 
+              author_name: authorName,
+              author_id: dummyAuthorId 
+            }
+          ])
+          .select();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      alert('게시글이 성공적으로 등록되었습니다!');
+        if (data && data[0]) {
+          const newId = data[0].id;
+          const updatedMyIds = [newId, ...myPostIds];
+          setMyPostIds(updatedMyIds);
+          localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
+        }
+
+        alert('게시글이 성공적으로 등록되었습니다!');
+      }
+
+      setIsModalOpen(false);
       setTitle('');
       setContent('');
       setAuthorName('');
-      setIsWriteModalOpen(false);
+      setEditingId(null);
       fetchPosts();
     } catch (e: any) {
-      console.error('Failed to create post:', e);
-      alert(`등록 중 오류가 발생했습니다: ${e.message || ''}`);
+      console.error('Failed to save post:', e);
+      alert(`처리 중 오류가 발생했습니다: ${e.message || ''}`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string | number, e: React.MouseEvent) => {
+    e.stopPropagation(); // 아코디언 펼침 방지
+    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+
+    try {
+      const { error } = await supabase.from('posts').delete().eq('id', id);
+      if (error) throw error;
+
+      // 내가 쓴 글 목록에서도 제거
+      const updatedMyIds = myPostIds.filter((postId) => postId !== id);
+      setMyPostIds(updatedMyIds);
+      localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
+
+      alert('삭제되었습니다.');
+      fetchPosts();
+    } catch (e: any) {
+      alert(`삭제 실패: ${e.message}`);
     }
   };
 
@@ -107,7 +176,7 @@ export default function BoardPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setIsWriteModalOpen(true)}
+            onClick={handleOpenWriteModal}
             className="px-3.5 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center gap-1"
           >
             ✍️ 글쓰기
@@ -137,6 +206,8 @@ export default function BoardPage() {
         <div className="space-y-3">
           {filteredPosts.map((post) => {
             const isExpanded = expandedId === post.id;
+            const isMyPost = myPostIds.includes(post.id);
+
             return (
               <div
                 key={post.id}
@@ -159,7 +230,26 @@ export default function BoardPage() {
                       <p className="text-xs text-gray-400 pl-5">작성자: <span className="text-teal-300">{post.author_name}</span></p>
                     )}
                   </div>
+                  
                   <div className="flex items-center gap-3 shrink-0">
+                    {/* 내가 작성한 글일 경우에만 수정/삭제 버튼 노출 */}
+                    {isMyPost && (
+                      <div className="flex items-center gap-1.5 mr-2">
+                        <button
+                          onClick={(e) => handleOpenEditModal(post, e)}
+                          className="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-teal-300 text-[11px] font-semibold rounded-md transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(post.id, e)}
+                          className="px-2.5 py-1 bg-red-950/80 hover:bg-red-900 text-red-300 text-[11px] font-semibold rounded-md transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+
                     <span className="text-[11px] text-gray-500 font-mono">
                       {post.created_at ? post.created_at.split('T')[0] : ''}
                     </span>
@@ -187,22 +277,23 @@ export default function BoardPage() {
         </div>
       )}
 
-      {isWriteModalOpen && (
+      {/* 글쓰기/수정 모달 팝업 */}
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-gray-900 border border-gray-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-800 pb-3">
               <h2 className="text-base font-bold text-teal-300 flex items-center gap-2">
-                <span>✍️</span> 새 게시글 작성
+                <span>{editingId ? '✏️' : '✍️'}</span> {editingId ? '게시글 수정하기' : '새 게시글 작성'}
               </h2>
               <button
-                onClick={() => setIsWriteModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-white text-sm font-bold px-2 py-1 rounded-lg bg-gray-800"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreatePost} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-300 mb-1">작성자</label>
                 <input
@@ -242,7 +333,7 @@ export default function BoardPage() {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsWriteModalOpen(false)}
+                  onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-lg transition-colors"
                 >
                   취소
@@ -252,7 +343,7 @@ export default function BoardPage() {
                   disabled={submitting}
                   className="px-5 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg shadow-lg transition-colors"
                 >
-                  {submitting ? '등록 중...' : '등록하기'}
+                  {submitting ? '처리 중...' : editingId ? '수정 완료' : '등록하기'}
                 </button>
               </div>
             </form>
