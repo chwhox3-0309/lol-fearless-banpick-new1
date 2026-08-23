@@ -28,17 +28,22 @@ export default function BoardPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // 로컬 스토리지에서 내가 작성한 글 ID 목록 불러오기
+    loadMyPosts();
+    fetchPosts();
+  }, []);
+
+  const loadMyPosts = () => {
     const savedMyPosts = localStorage.getItem('my_board_posts');
     if (savedMyPosts) {
       try {
-        setMyPostIds(JSON.parse(savedMyPosts));
+        // 숫자형/문자형 ID 타입을 모두 원활하게 비교하기 위해 문자열 배열로 변환하여 관리
+        const parsed = JSON.parse(savedMyPosts);
+        setMyPostIds(parsed.map((id: any) => String(id)));
       } catch (e) {
         console.error(e);
       }
     }
-    fetchPosts();
-  }, []);
+  };
 
   async function fetchPosts() {
     try {
@@ -111,8 +116,8 @@ export default function BoardPage() {
         if (error) throw error;
 
         if (data && data[0]) {
-          const newId = data[0].id;
-          const updatedMyIds = [newId, ...myPostIds];
+          const newId = String(data[0].id);
+          const updatedMyIds = Array.from(new Set([newId, ...myPostIds]));
           setMyPostIds(updatedMyIds);
           localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
         }
@@ -143,7 +148,7 @@ export default function BoardPage() {
       if (error) throw error;
 
       // 내가 쓴 글 목록에서도 제거
-      const updatedMyIds = myPostIds.filter((postId) => postId !== id);
+      const updatedMyIds = myPostIds.filter((postId) => postId !== String(id));
       setMyPostIds(updatedMyIds);
       localStorage.setItem('my_board_posts', JSON.stringify(updatedMyIds));
 
@@ -206,7 +211,7 @@ export default function BoardPage() {
         <div className="space-y-3">
           {filteredPosts.map((post) => {
             const isExpanded = expandedId === post.id;
-            const isMyPost = myPostIds.includes(post.id);
+            const isMyPost = myPostIds.includes(String(post.id));
 
             return (
               <div
