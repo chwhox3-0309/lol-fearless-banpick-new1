@@ -8,9 +8,7 @@ interface BoardPost {
   id: string | number;
   title: string;
   content: string;
-  author?: string;
   created_at: string;
-  image_url?: string | null;
 }
 
 export default function BoardPage() {
@@ -23,8 +21,6 @@ export default function BoardPage() {
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,14 +45,6 @@ export default function BoardPage() {
     }
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
@@ -66,37 +54,15 @@ export default function BoardPage() {
 
     setSubmitting(true);
     try {
-      let imageUrl = null;
-
-      if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('dev-log-images') // 기존에 사용하는 스토리지 버킷명
-          .upload(filePath, imageFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from('dev-log-images')
-          .getPublicUrl(filePath);
-
-        imageUrl = publicUrlData.publicUrl;
-      }
-
       const { error } = await supabase
         .from('posts')
-        .insert([{ title, content, image_url: imageUrl }]);
+        .insert([{ title, content }]);
 
       if (error) throw error;
 
       alert('게시글이 성공적으로 등록되었습니다!');
       setTitle('');
       setContent('');
-      setImageFile(null);
-      setImagePreview(null);
       setIsWriteModalOpen(false);
       fetchPosts();
     } catch (e: any) {
@@ -118,7 +84,6 @@ export default function BoardPage() {
 
   return (
     <div className="w-full max-w-[1000px] mx-auto flex flex-col space-y-6 py-8 px-4 relative">
-      {/* 상단 타이틀 영역 및 글쓰기 버튼 */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-4 gap-4">
         <div>
           <h1 className="text-2xl font-black text-teal-300 flex items-center gap-2">
@@ -143,7 +108,6 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* 검색 바 영역 */}
       <div className="flex items-center gap-2">
         <input
           type="text"
@@ -154,7 +118,6 @@ export default function BoardPage() {
         />
       </div>
 
-      {/* 게시글 목록 영역 (아코디언 구조) */}
       {loading ? (
         <p className="text-center text-gray-500 py-16 text-xs">게시글을 불러오는 중입니다...</p>
       ) : filteredPosts.length > 0 ? (
@@ -192,11 +155,6 @@ export default function BoardPage() {
 
                 {isExpanded && (
                   <div className="px-4 sm:px-5 pb-5 pt-2 border-t border-gray-800/60 space-y-4 animate-fadeIn">
-                    {post.image_url && (
-                      <div className="max-h-[350px] overflow-hidden rounded-lg bg-gray-900 border border-gray-800 flex justify-center">
-                        <img src={post.image_url} alt={post.title} className="max-h-[350px] w-auto object-contain" />
-                      </div>
-                    )}
                     <div 
                       className="text-xs sm:text-sm text-gray-300 leading-relaxed whitespace-pre-wrap prose prose-invert max-w-none"
                       dangerouslySetInnerHTML={{ __html: post.content }}
@@ -213,7 +171,6 @@ export default function BoardPage() {
         </div>
       )}
 
-      {/* 글쓰기 모달 팝업 */}
       {isWriteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
           <div className="bg-gray-900 border border-gray-800 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -252,28 +209,6 @@ export default function BoardPage() {
                   className="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-teal-500 leading-relaxed"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">이미지 첨부 (선택)</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700 cursor-pointer"
-                />
-                {imagePreview && (
-                  <div className="mt-3 relative w-28 h-28 border border-gray-800 rounded-lg overflow-hidden bg-gray-950">
-                    <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setImageFile(null); setImagePreview(null); }}
-                      className="absolute top-1 right-1 bg-red-600/85 text-white rounded-full p-1 text-[10px]"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
