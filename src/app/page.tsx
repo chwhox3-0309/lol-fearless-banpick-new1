@@ -92,38 +92,58 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수
+  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수 (수정된 버전)
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
       const statsToInsert: { champion_id: string; action_type: string }[] = [];
 
-      ['team1', 'team2'].forEach((teamKey) => {
-        const teamData = draft[teamKey as 'team1' | 'team2'];
-        if (teamData) {
-          if (Array.isArray(teamData.picks)) {
-            teamData.picks.forEach((champId: string) => {
-              statsToInsert.push({ champion_id: champId, action_type: 'PICK' });
-            });
-          }
-          if (Array.isArray(teamData.bans)) {
-            teamData.bans.forEach((champId: string) => {
-              statsToInsert.push({ champion_id: champId, action_type: 'BAN' });
-            });
-          }
+      // 1. 데이터 수집 로직 안전하게 검증
+      const team1Data = draft?.team1;
+      if (team1Data) {
+        if (Array.isArray(team1Data.picks)) {
+          team1Data.picks.forEach((champId: string) => {
+            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'PICK' });
+          });
         }
-      });
+        if (Array.isArray(team1Data.bans)) {
+          team1Data.bans.forEach((champId: string) => {
+            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'BAN' });
+          });
+        }
+      }
 
+      const team2Data = draft?.team2;
+      if (team2Data) {
+        if (Array.isArray(team2Data.picks)) {
+          team2Data.picks.forEach((champId: string) => {
+            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'PICK' });
+          });
+        }
+        if (Array.isArray(team2Data.bans)) {
+          team2Data.bans.forEach((champId: string) => {
+            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'BAN' });
+          });
+        }
+      }
+
+      // 2. 데이터가 존재할 때만 안전하게 Insert 실행
       if (statsToInsert.length > 0) {
-        const { error } = await supabase.from('draft_stats').insert(statsToInsert);
-        if (!error) {
-          hasSavedStatsRef.current = true;
+        console.log('Supabase 전송 데이터:', statsToInsert); // 디버깅용 로그
+        
+        const { error } = await supabase
+          .from('draft_stats')
+          .insert(statsToInsert); // 단순 배열 형태로 전송
+
+        if (error) {
+          console.error('사이트 밴픽 통계 저장 실패 (Supabase Error):', error.message, error.details);
         } else {
-          console.error('사이트 밴픽 통계 저장 실패:', error);
+          hasSavedStatsRef.current = true;
+          console.log('통계 저장 성공!');
         }
       }
     } catch (e) {
-      console.error('통계 저장 에러:', e);
+      console.error('통계 저장 중 예외 발생:', e);
     }
   };
 
