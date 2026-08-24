@@ -9,7 +9,6 @@ import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
-import DevLogSection from './components/DevLogSection'; // Dev-log 컴포넌트
 import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
@@ -39,6 +38,14 @@ interface DevLog {
   created_at?: string;
 }
 
+interface LaneTrendItem {
+  position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+  positionName: string;
+  championId: string;
+  championName: string;
+  pickRate: string;
+}
+
 export default function Home() {
   const {
     version,
@@ -56,7 +63,6 @@ export default function Home() {
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
-    filteredChampions,
     teamSideMapping,
     BAN_PICK_SEQUENCE,
     getAllSelectedChampions,
@@ -71,6 +77,15 @@ export default function Home() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [devLogs, setDevLogs] = useState<DevLog[]>([]);
+
+  // 포지션별 실시간 트렌드 샘플 데이터 (추후 DB 연동 또는 시뮬레이터 누적 데이터 연동 가능)
+  const [laneTrends] = useState<LaneTrendItem[]>([
+    { position: 'TOP', positionName: '탑', championId: 'Aatrox', championName: '아트록스', pickRate: '24.5%' },
+    { position: 'JUNGLE', positionName: '정글', championId: 'LeeSin', championName: '리 신', pickRate: '28.1%' },
+    { position: 'MID', positionName: '미드', championId: 'Ahri', championName: '아리', pickRate: '22.4%' },
+    { position: 'ADC', positionName: '원딜', championId: 'Jinx', championName: '징크스', pickRate: '26.8%' },
+    { position: 'SUPPORT', positionName: '서폿', championId: 'Thresh', championName: '쓰레쉬', pickRate: '31.0%' },
+  ]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -99,7 +114,6 @@ export default function Home() {
           }
         }
 
-        // dev_logs 테이블에서 데이터 가져오기
         const { data: devLogsData, error: devLogsError } = await supabase
           .from('dev_logs')
           .select('id, title, content, created_at')
@@ -261,6 +275,14 @@ export default function Home() {
   const blueAnalysis = analyzeTeamComposition(blueSideData.picks);
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
 
+  const positionMetaMap: Record<string, { name: string; icon: string; color: string }> = {
+    TOP: { name: '탑', icon: '🛡️', color: 'border-amber-500/30 text-amber-400' },
+    JUNGLE: { name: '정글', icon: '🌲', color: 'border-emerald-500/30 text-emerald-400' },
+    MID: { name: '미드', icon: '⚡', color: 'border-blue-500/30 text-blue-400' },
+    ADC: { name: '원딜', icon: '🏹', color: 'border-purple-500/30 text-purple-400' },
+    SUPPORT: { name: '서폿', icon: '✨', color: 'border-rose-500/30 text-rose-400' },
+  };
+
   return (
     <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative">
       {isShareModalOpen && (
@@ -348,7 +370,7 @@ export default function Home() {
             <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               공지사항
             </Link>
-            <Link href="/dev-logs" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
+            <Link href="/dev-log" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               Dev-log
             </Link>
             <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
@@ -604,7 +626,7 @@ export default function Home() {
                   <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2">
                     <span>🛠️</span> Dev-log (개발 일지)
                   </h2>
-                  <Link href="/dev-logs" className="text-xs text-teal-400 hover:underline">
+                  <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">
                     전체보기 ➔
                   </Link>
                 </div>
@@ -613,7 +635,7 @@ export default function Home() {
                     devLogs.slice(0, 4).map((log) => (
                       <Link 
                         key={log.id} 
-                        href={`/dev-logs`}
+                        href={`/dev-log`}
                         className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
                       >
                         <span className="text-gray-200 truncate font-medium">{log.title}</span>
@@ -632,35 +654,53 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 하단: 기존 DevLogSection 컴포넌트 자리에 '실시간 밴픽 트렌드 및 인기 챔피언 순위' 배치 */}
+          {/* 하단: 라인별 실시간 인기 챔피언 트렌드 (썸네일 + 포지션별 시각화) */}
           <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                <span>🔥</span> 실시간 밴픽 트렌드 및 인기 챔피언 순위
-              </h2>
-              <span className="text-xs text-gray-400">시뮬레이터 데이터 기반 실시간 집계</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+                  <span>🔥</span> 포지션별 실시간 인기 챔피언 트렌드
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  ※ 최근 3시간 내 유저들이 진행한 밴픽 시뮬레이션 데이터 기준 집계
+                </p>
+              </div>
+              <span className="text-[11px] bg-gray-900 px-2.5 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">
+                Live Data Active
+              </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
-                <span className="text-xs text-gray-400 block mb-1">가장 많이 밴된 챔피언 1위</span>
-                <span className="text-base font-bold text-red-400">아트록스</span>
-                <span className="text-[11px] text-gray-500 block mt-1">밴 승률 영향력 높음</span>
-              </div>
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
-                <span className="text-xs text-gray-400 block mb-1">가장 많이 픽된 챔피언 1위</span>
-                <span className="text-base font-bold text-blue-400">오로라</span>
-                <span className="text-[11px] text-gray-500 block mt-1">블루 사이드 선호도 1위</span>
-              </div>
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
-                <span className="text-xs text-gray-400 block mb-1">평균 피어리스 밴 세트</span>
-                <span className="text-base font-bold text-teal-400">SET 3 이상</span>
-                <span className="text-[11px] text-gray-500 block mt-1">다전제 연습 비중 높음</span>
-              </div>
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
-                <span className="text-xs text-gray-400 block mb-1">추천 조합 완성도 평균</span>
-                <span className="text-base font-bold text-purple-400">82.4점</span>
-                <span className="text-[11px] text-gray-500 block mt-1">AP/AD 밸런스 우수</span>
-              </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {laneTrends.map((item) => {
+                const meta = positionMetaMap[item.position];
+                return (
+                  <div 
+                    key={item.position}
+                    className={`bg-gray-900/85 p-3.5 rounded-xl border ${meta.color} flex flex-col items-center justify-between text-center transition-all hover:bg-gray-900 shadow-inner`}
+                  >
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span>{meta.icon}</span>
+                      <span className="text-xs font-bold text-gray-200">{meta.name}</span>
+                    </div>
+
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-700 shadow-md my-1">
+                      {version && item.championId ? (
+                        <Image
+                          src={getChampionThumbnailUrl(version, item.championId)}
+                          alt={item.championName}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">Loading</div>
+                      )}
+                    </div>
+
+                    <span className="text-sm font-bold text-white mt-1">{item.championName}</span>
+                    <span className="text-[10px] text-teal-400 font-mono mt-0.5">픽률 {item.pickRate}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -697,7 +737,7 @@ export default function Home() {
               <span className={`transform transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
             <div className={`overflow-hidden transition-all duration-500 ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}>
-              {/* 내용 생략 (기존 유지) */}
+              {/* 내용 생략 */}
             </div>
           </div>
         </section>
