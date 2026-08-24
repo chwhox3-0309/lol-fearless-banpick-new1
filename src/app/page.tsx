@@ -92,7 +92,7 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 챔피언별 카운트를 누적 증가시키는 함수
+  // 밴픽 완료 시 챔피언별 카운트를 누적 증가시키는 함수 (RPC 없이 직접 Upsert 처리)
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
@@ -110,20 +110,53 @@ export default function Home() {
         team2Data.bans?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'BAN' }));
       }
 
-      // 각 픽/밴 항목에 대해 누적 증가 함수 호출
-      for (const action of actions) {
-        const { error } = await supabase.rpc('fn_increment_stats', {
-          p_champion_id: action.champion_id,
-          p_action_type: action.action_type,
-        });
+      // 1. 현재 champion_stats 테이블의 데이터를 한 번에 가져옴
+      const { data: existingStats, error: fetchError } = await supabase
+        .from('champion_stats')
+        .select('*');
 
-        if (error) {
-          console.error('통계 업데이트 실패:', error.message);
-        }
+      if (fetchError) {
+        console.error('기존 통계 조회 실패:', fetchError.message);
+        return;
       }
 
-      hasSavedStatsRef.current = true;
-      console.log('누적 통계 반영 완료!');
+      // 맵으로 변환하여 빠른 조회/수정 가능하게 처리
+      const statsMap = new Map<string, { pick_count: number; ban_count: number }>();
+      existingStats?.forEach((row) => {
+        statsMap.set(row.champion_id, {
+          pick_count: row.pick_count || 0,
+          ban_count: row.ban_count || 0,
+        });
+      });
+
+      // 이번 밴픽 결과 반영
+      actions.forEach((action) => {
+        const current = statsMap.get(action.champion_id) || { pick_count: 0, ban_count: 0 };
+        if (action.action_type === 'PICK') {
+          current.pick_count += 1;
+        } else if (action.action_type === 'BAN') {
+          current.ban_count += 1;
+        }
+        statsMap.set(action.champion_id, current);
+      });
+
+      // 배열 형태로 변환 후 한 번에 upsert
+      const upsertData = Array.from(statsMap.entries()).map(([champion_id, counts]) => ({
+        champion_id,
+        pick_count: counts.pick_count,
+        ban_count: counts.ban_count,
+      }));
+
+      const { error: upsertError } = await supabase
+        .from('champion_stats')
+        .upsert(upsertData, { onConflict: 'champion_id' });
+
+      if (upsertError) {
+        console.error('통계 업데이트 실패:', upsertError.message);
+      } else {
+        hasSavedStatsRef.current = true;
+        console.log('누적 통계 반영 완료!');
+      }
     } catch (e) {
       console.error('통계 저장 중 예외 발생:', e);
     }
