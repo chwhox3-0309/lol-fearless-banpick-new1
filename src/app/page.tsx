@@ -92,56 +92,93 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수 (테이블 구조 맞춤)
+  // 밴픽 완료 시 챔피언별 카운트를 누적 증가시키는 함수
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
-      const statsToInsert: { champion_id: string; position: string }[] = [];
+      const actions: { champion_id: string; action_type: string }[] = [];
 
       const team1Data = draft?.team1;
       if (team1Data) {
-        if (Array.isArray(team1Data.picks)) {
-          team1Data.picks.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'PICK' });
-          });
-        }
-        if (Array.isArray(team1Data.bans)) {
-          team1Data.bans.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'BAN' });
-          });
-        }
+        team1Data.picks?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'PICK' }));
+        team1Data.bans?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'BAN' }));
       }
 
       const team2Data = draft?.team2;
       if (team2Data) {
-        if (Array.isArray(team2Data.picks)) {
-          team2Data.picks.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'PICK' });
-          });
-        }
-        if (Array.isArray(team2Data.bans)) {
-          team2Data.bans.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'BAN' });
-          });
-        }
+        team2Data.picks?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'PICK' }));
+        team2Data.bans?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'BAN' }));
       }
 
-      if (statsToInsert.length > 0) {
-        const { error } = await supabase
-          .from('draft_stats')
-          .insert(statsToInsert);
+      // 각 픽/밴 항목에 대해 누적 증가 함수 호출
+      for (const action of actions) {
+        const { error } = await supabase.rpc('fn_increment_stats', {
+          p_champion_id: action.champion_id,
+          p_action_type: action.action_type,
+        });
 
         if (error) {
-          console.error('사이트 밴픽 통계 저장 실패 (Supabase Error):', error.message, error.details);
-        } else {
-          hasSavedStatsRef.current = true;
-          console.log('통계 저장 성공!');
+          console.error('통계 업데이트 실패:', error.message);
         }
       }
+
+      hasSavedStatsRef.current = true;
+      console.log('누적 통계 반영 완료!');
     } catch (e) {
       console.error('통계 저장 중 예외 발생:', e);
     }
   };
+
+  // Supabase에서 누적된 챔피언 통계를 가져와 Top 5 산출
+  useEffect(() => {
+    async function fetchOurSiteStats() {
+      try {
+        const { data, error } = await supabase
+          .from('champion_stats')
+          .select('*');
+
+        if (error || !data || data.length === 0) return;
+
+        let totalPicks = 0;
+        let totalBans = 0;
+
+        const pickCounts: Record<string, number> = {};
+        const banCounts: Record<string, number> = {};
+
+        data.forEach((row) => {
+          if (row.pick_count > 0) {
+            pickCounts[row.champion_id] = row.pick_count;
+            totalPicks += row.pick_count;
+          }
+          if (row.ban_count > 0) {
+            banCounts[row.champion_id] = row.ban_count;
+            totalBans += row.ban_count;
+          }
+        });
+
+        const getTop5 = (counts: Record<string, number>, total: number): TopStatItem[] => {
+          return Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
+            .map(([id, count]) => ({
+              championId: id,
+              championName: champions[id] ? champions[id].name : id,
+              count,
+              percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+            }));
+        };
+
+        setTopPickStats(getTop5(pickCounts, totalPicks));
+        setTopBanStats(getTop5(banCounts, totalBans));
+      } catch (e) {
+        console.error('우리 사이트 통계 집계 실패:', e);
+      }
+    }
+
+    if (champions && Object.keys(champions).length > 0) {
+      fetchOurSiteStats();
+    }
+  }, [champions, isDraftFinished]);
 
   // 밴픽 완료 감지 시 자동 저장 트리거
   useEffect(() => {
