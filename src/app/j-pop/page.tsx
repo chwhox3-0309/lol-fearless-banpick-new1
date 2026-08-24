@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import KakaoAdFitBanner from "../components/KakaoAdFitBanner";
 
 interface DramaOstItem {
   id: number;
@@ -12,203 +13,150 @@ interface DramaOstItem {
   ost_title: string;
   artist: string;
   description: string;
+  created_at: string;
 }
 
-export default function AdminJPopPage() {
+export default function JPopClientPage() {
   const [items, setItems] = useState<DramaOstItem[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null); // 수정 중인 글 ID
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>("전체");
 
-  // 폼 입력 상태
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('2026 1분기');
-  const [broadcast, setBroadcast] = useState('TBS');
-  const [ostTitle, setOstTitle] = useState('');
-  const [artist, setArtist] = useState('');
-  const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // 목록 불러오기
+  // Supabase에서 데이터 불러오기
   useEffect(() => {
     fetchPosts();
   }, []);
 
   const fetchPosts = async () => {
+    setLoading(true);
     const { data, error } = await supabase
-      .from('jpop_posts')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("jpop_posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('목록 로드 실패:', error);
+      console.error("데이터 로드 실패:", error);
     } else {
       setItems(data || []);
     }
+    setLoading(false);
   };
 
-  // 등록 또는 수정 처리
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !ostTitle || !artist) {
-      alert('필수 항목을 입력해주세요.');
-      return;
-    }
+  // 고유 카테고리 추출 (필터 탭용)
+  const categories = ["전체", ...Array.from(new Set(items.map((item) => item.category)))];
 
-    setIsSubmitting(true);
-
-    if (editingId) {
-      // [수정 모드] Update
-      const { error } = await supabase
-        .from('jpop_posts')
-        .update({ title, category, broadcast, ost_title: ostTitle, artist, description })
-        .eq('id', editingId);
-
-      if (error) {
-        alert('수정 실패: ' + error.message);
-      } else {
-        alert('성공적으로 수정되었습니다!');
-        resetForm();
-        fetchPosts();
-      }
-    } else {
-      // [신규 등록 모드] Insert
-      const { error } = await supabase
-        .from('jpop_posts')
-        .insert([{ title, category, broadcast, ost_title: ostTitle, artist, description }]);
-
-      if (error) {
-        alert('등록 실패: ' + error.message);
-      } else {
-        alert('성공적으로 등록되었습니다!');
-        resetForm();
-        fetchPosts();
-      }
-    }
-    setIsSubmitting(false);
-  };
-
-  // 수정 버튼을 눌렀을 때 폼에 데이터 채우기
-  const handleEditClick = (item: DramaOstItem) => {
-    setEditingId(item.id);
-    setTitle(item.title);
-    setCategory(item.category);
-    setBroadcast(item.broadcast || '');
-    setOstTitle(item.ost_title);
-    setArtist(item.artist);
-    setDescription(item.description || '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // 삭제 기능
-  const handleDelete = async (id: number) => {
-    if (!confirm('정말 이 게시물을 삭제하시겠습니까?')) return;
-
-    const { error } = await supabase.from('jpop_posts').delete().eq('id', id);
-    if (error) {
-      alert('삭제 실패: ' + error.message);
-    } else {
-      alert('삭제되었습니다.');
-      fetchPosts();
-    }
-  };
-
-  // 폼 초기화
-  const resetForm = () => {
-    setEditingId(null);
-    setTitle('');
-    setCategory('2026 1분기');
-    setBroadcast('TBS');
-    setOstTitle('');
-    setArtist('');
-    setDescription('');
-  };
+  const filteredItems = selectedCategory === "전체" 
+    ? items 
+    : items.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
+      <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* 상단 헤더 */}
-        <div className="flex justify-between items-center bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl">
-          <h1 className="text-xl font-bold">J-Pop / 일드 OST 관리자 센터</h1>
-          <Link href="/" className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors border border-gray-700">
-            ← 사이트로 돌아가기
+        {/* 상단 헤더 영역 */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                J-DRAMA OST ARCHIVE
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+              분기별 일본 드라마 & OST 아카이브
+            </h1>
+            <p className="text-sm text-gray-400 mt-1">
+              관리자가 직접 엄선하고 등록하는 화제작 드라마와 명품 OST 모음입니다.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors border border-gray-700 shrink-0"
+          >
+            ← 메인 (밴픽)으로
           </Link>
         </div>
 
-        {/* 등록 / 수정 폼 */}
-        <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4 shadow-xl">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-sm font-semibold text-purple-400">
-              {editingId ? `✏️ 게시물 수정 중 (ID: ${editingId})` : '➕ 새 게시물 등록'}
-            </h2>
-            {editingId && (
-              <button type="button" onClick={resetForm} className="text-xs text-gray-400 hover:text-white underline">
-                수정 취소하고 새로 등록하기
+        {/* 카테고리 필터 탭 */}
+        {categories.length > 1 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex items-center gap-2 flex-wrap shadow-xl">
+            <span className="text-xs text-gray-400 font-medium mr-2">카테고리:</span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+                  selectedCategory === cat
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30"
+                    : "bg-gray-950 text-gray-400 hover:text-white border border-gray-800"
+                }`}
+              >
+                {cat}
               </button>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">드라마/콘텐츠 제목 *</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="예: 언내추럴" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white" required />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">카테고리 (분기/연도)</label>
-              <input type="text" value={category} onChange={e => setCategory(e.target.value)} placeholder="예: 2026 1분기" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">방송국 / 플랫폼</label>
-              <input type="text" value={broadcast} onChange={e => setBroadcast(e.target.value)} placeholder="예: TBS / Netflix" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">OST 곡 제목 *</label>
-              <input type="text" value={ostTitle} onChange={e => setOstTitle(e.target.value)} placeholder="예: Lemon" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white" required />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">아티스트 *</label>
-              <input type="text" value={artist} onChange={e => setArtist(e.target.value)} placeholder="예: Kenshi Yonezu" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white" required />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">설명</label>
-            <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="드라마나 곡에 대한 설명..." className="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white resize-none" />
-          </div>
-
-          <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-purple-600/25">
-            {isSubmitting ? '처리 중...' : editingId ? '수정 완료하기' : '게시물 등록하기'}
-          </button>
-        </form>
-
-        {/* 등록된 게시물 목록 및 관리 기능 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4 shadow-xl">
-          <h2 className="text-sm font-semibold text-gray-200">등록된 목록 관리 ({items.length}건)</h2>
-          
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between bg-gray-950 border border-gray-800/80 rounded-xl p-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20">{item.category}</span>
-                    <span className="text-xs font-bold text-white">{item.title}</span>
-                  </div>
-                  <p className="text-xs text-gray-400">🎵 {item.ost_title} - {item.artist}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleEditClick(item)} className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs rounded-lg transition-colors border border-gray-700">
-                    수정
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs rounded-lg transition-colors border border-red-500/20">
-                    삭제
-                  </button>
-                </div>
-              </div>
             ))}
           </div>
+        )}
+
+        {/* 콘텐츠 카드 리스트 */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-200">
+            등록된 아카이브 목록 <span className="text-purple-400 text-sm font-normal">({filteredItems.length}건)</span>
+          </h2>
+
+          {loading ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm">
+              데이터를 불러오는 중입니다...
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm">
+              등록된 게시물이 없습니다. 관리자 페이지에서 새 글을 추가해보세요!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all space-y-3 shadow-lg flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {item.broadcast && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            {item.broadcast}
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-white pt-1">{item.title}</h3>
+                    {item.description && (
+                      <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-800/80 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-purple-300 font-semibold">🎵 {item.ost_title}</p>
+                      <p className="text-[11px] text-gray-400">아티스트: {item.artist}</p>
+                    </div>
+                    <button 
+                      onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.ost_title + ' ' + item.artist)}`, '_blank')}
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-colors border border-gray-700 shrink-0"
+                    >
+                      유튜브 검색 ↗
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 광고 배너 */}
+        <div className="flex justify-center pt-4">
+          <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
         </div>
 
       </div>
