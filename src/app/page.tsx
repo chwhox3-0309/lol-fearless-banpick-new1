@@ -38,12 +38,11 @@ interface DevLog {
   created_at?: string;
 }
 
-interface LaneTrendItem {
-  position: 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
-  positionName: string;
+interface TopStatItem {
   championId: string;
   championName: string;
-  pickRate: string;
+  count: number;
+  percentage: number;
 }
 
 export default function Home() {
@@ -55,9 +54,7 @@ export default function Home() {
     currentTurnIndex,
     completedDrafts,
     permanentlyBannedChampions,
-    isAccordionOpen,
     activeTab,
-    setIsAccordionOpen,
     setActiveTab,
     handleNextSet,
     handleResetAll,
@@ -78,19 +75,14 @@ export default function Home() {
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [devLogs, setDevLogs] = useState<DevLog[]>([]);
 
-  // 실시간 집계 데이터 상태 (초기값은 기본 샘플 또는 빈 값)
-  const [laneTrends, setLaneTrends] = useState<LaneTrendItem[]>([
-    { position: 'TOP', positionName: '탑', championId: 'Aatrox', championName: '아트록스', pickRate: '0%' },
-    { position: 'JUNGLE', positionName: '정글', championId: 'LeeSin', championName: '리 신', pickRate: '0%' },
-    { position: 'MID', positionName: '미드', championId: 'Ahri', championName: '아리', pickRate: '0%' },
-    { position: 'ADC', positionName: '원딜', championId: 'Jinx', championName: '징크스', pickRate: '0%' },
-    { position: 'SUPPORT', positionName: '서폿', championId: 'Thresh', championName: '쓰레쉬', pickRate: '0%' },
-  ]);
+  // 사이트 이용 데이터 기반 Top 5 통계 상태
+  const [topPickStats, setTopPickStats] = useState<TopStatItem[]>([]);
+  const [topBanStats, setTopBanStats] = useState<TopStatItem[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const isFirstRender = useRef(true);
-  const hasSavedStatsRef = useRef(false); // 중복 저장 방지용 레프
+  const hasSavedStatsRef = useRef(false); // 중복 저장 방지
 
   const currentSetNumber = (completedDrafts?.length || 0) + 1;
   const baseSets = config?.totalSets || config?.maxSets || 3;
@@ -100,32 +92,34 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 통계 데이터를 Supabase에 저장하는 함수
+  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수
   const saveUserDraftStats = async () => {
-    if (hasSavedStatsRef.current) return; // 이미 저장했다면 패스
+    if (hasSavedStatsRef.current) return;
     try {
-      const statsToInsert: { champion_id: string; position: string }[] = [];
-      const positions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as const;
+      const statsToInsert: { champion_id: string; action_type: string }[] = [];
 
       ['team1', 'team2'].forEach((teamKey) => {
         const teamData = draft[teamKey as 'team1' | 'team2'];
-        if (teamData && Array.isArray(teamData.picks)) {
-          teamData.picks.forEach((champId: string, index: number) => {
-            const assignedPosition = positions[index % 5];
-            statsToInsert.push({
-              champion_id: champId,
-              position: assignedPosition,
+        if (teamData) {
+          if (Array.isArray(teamData.picks)) {
+            teamData.picks.forEach((champId: string) => {
+              statsToInsert.push({ champion_id: champId, action_type: 'PICK' });
             });
-          });
+          }
+          if (Array.isArray(teamData.bans)) {
+            teamData.bans.forEach((champId: string) => {
+              statsToInsert.push({ champion_id: champId, action_type: 'BAN' });
+            });
+          }
         }
       });
 
       if (statsToInsert.length > 0) {
         const { error } = await supabase.from('draft_stats').insert(statsToInsert);
         if (!error) {
-          hasSavedStatsRef.current = true; // 저장 완료 체크
+          hasSavedStatsRef.current = true;
         } else {
-          console.error('통계 데이터 저장 실패:', error);
+          console.error('사이트 밴픽 통계 저장 실패:', error);
         }
       }
     } catch (e) {
@@ -133,81 +127,64 @@ export default function Home() {
     }
   };
 
-  // 밴픽이 완료되면 자동으로 통계 저장 함수 호출
+  // 밴픽 완료 감지 시 자동 저장 트리거
   useEffect(() => {
     if (isDraftFinished) {
       saveUserDraftStats();
     } else {
-      hasSavedStatsRef.current = false; // 새로운 밴픽이 시작되면 초기화
+      hasSavedStatsRef.current = false;
     }
   }, [isDraftFinished]);
 
-  // Supabase에서 최근 3시간 동안의 데이터를 불러와 포지션별 픽률 계산
+  // Supabase에서 최근 3시간 동안 우리 사이트에 쌓인 데이터를 집계하여 Top 5 산출
   useEffect(() => {
-    async function fetchLaneTrendsFromOurSite() {
+    async function fetchOurSiteStats() {
       try {
         const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
 
         const { data, error } = await supabase
           .from('draft_stats')
-          .select('champion_id, position')
+          .select('champion_id, action_type')
           .gte('created_at', threeHoursAgo);
 
         if (error || !data || data.length === 0) return;
 
-        const counts: Record<string, Record<string, number>> = {
-          TOP: {}, JUNGLE: {}, MID: {}, ADC: {}, SUPPORT: {}
-        };
-        const positionTotal: Record<string, number> = {
-          TOP: 0, JUNGLE: 0, MID: 0, ADC: 0, SUPPORT: 0
-        };
+        const pickCounts: Record<string, number> = {};
+        const banCounts: Record<string, number> = {};
+        let totalPicks = 0;
+        let totalBans = 0;
 
         data.forEach((row) => {
-          const pos = row.position;
-          const champ = row.champion_id;
-          if (counts[pos]) {
-            counts[pos][champ] = (counts[pos][champ] || 0) + 1;
-            positionTotal[pos] += 1;
+          if (row.action_type === 'PICK') {
+            pickCounts[row.champion_id] = (pickCounts[row.champion_id] || 0) + 1;
+            totalPicks += 1;
+          } else if (row.action_type === 'BAN') {
+            banCounts[row.champion_id] = (banCounts[row.champion_id] || 0) + 1;
+            totalBans += 1;
           }
         });
 
-        const positions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as const;
-        const metaNames: Record<string, string> = { TOP: '탑', JUNGLE: '정글', MID: '미드', ADC: '원딜', SUPPORT: '서폿' };
+        const getTop5 = (counts: Record<string, number>, total: number): TopStatItem[] => {
+          return Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 5)
+            .map(([id, count]) => ({
+              championId: id,
+              championName: champions[id] ? champions[id].name : id,
+              count,
+              percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+            }));
+        };
 
-        const calculatedTrends: LaneTrendItem[] = positions.map((pos) => {
-          const champCounts = counts[pos];
-          const total = positionTotal[pos];
-
-          let topChampId = '';
-          let maxCount = 0;
-
-          Object.entries(champCounts).forEach(([champId, count]) => {
-            if (count > maxCount) {
-              maxCount = count;
-              topChampId = champId;
-            }
-          });
-
-          const championName = topChampId && champions[topChampId] ? champions[topChampId].name : (topChampId || '집계중');
-          const pickRate = total > 0 ? `${Math.round((maxCount / total) * 100)}%` : '0%';
-
-          return {
-            position: pos,
-            positionName: metaNames[pos],
-            championId: topChampId,
-            championName: championName,
-            pickRate: pickRate,
-          };
-        });
-
-        setLaneTrends(calculatedTrends);
+        setTopPickStats(getTop5(pickCounts, totalPicks));
+        setTopBanStats(getTop5(banCounts, totalBans));
       } catch (e) {
-        console.error('트렌드 집계 실패:', e);
+        console.error('우리 사이트 통계 집계 실패:', e);
       }
     }
 
     if (champions && Object.keys(champions).length > 0) {
-      fetchLaneTrendsFromOurSite();
+      fetchOurSiteStats();
     }
   }, [champions, isDraftFinished]);
 
@@ -219,7 +196,7 @@ export default function Home() {
           setNotices(noticesData);
           if (noticesData.length > 0) setLatestNotice(noticesData[0]);
         }
-        const { data: devLogsData } = await supabase.from('dev_logs').select('id, title, content, created_at').order('created_at', { ascending: false });
+        const { data: devLogsData } = await supabase.from('dev_log').select('id, title, content, created_at').order('created_at', { ascending: false });
         if (devLogsData) setDevLogs(devLogsData);
       } catch (e) {
         console.error('메인 데이터 로드 실패:', e);
@@ -355,14 +332,6 @@ export default function Home() {
 
   const blueAnalysis = analyzeTeamComposition(blueSideData.picks);
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
-
-  const positionMetaMap: Record<string, { name: string; icon: string; color: string }> = {
-    TOP: { name: '탑', icon: '🛡️', color: 'border-amber-500/30 text-amber-400' },
-    JUNGLE: { name: '정글', icon: '🌲', color: 'border-emerald-500/30 text-emerald-400' },
-    MID: { name: '미드', icon: '⚡', color: 'border-blue-500/30 text-blue-400' },
-    ADC: { name: '원딜', icon: '🏹', color: 'border-purple-500/30 text-purple-400' },
-    SUPPORT: { name: '서폿', icon: '✨', color: 'border-rose-500/30 text-rose-400' },
-  };
 
   return (
     <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative">
@@ -640,36 +609,80 @@ export default function Home() {
             </div>
           </div>
 
+          {/* 사이트 이용 데이터 기반 실시간 픽률 & 밴률 Top 5 그래프 섹션 */}
           <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
               <div>
-                <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 포지션별 사이트 실시간 인기 트렌드</h2>
-                <p className="text-xs text-gray-400 mt-0.5">※ 최근 3시간 내 유저들이 밴픽 시뮬레이션에서 선택한 데이터 기준 자동 집계</p>
+                <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 사이트 이용 데이터 실시간 랭킹</h2>
+                <p className="text-xs text-gray-400 mt-0.5">※ 최근 3시간 동안 우리 시뮬레이터에서 완료된 밴픽 기록을 바탕으로 자동 집계됩니다.</p>
               </div>
-              <span className="text-[11px] bg-gray-900 px-2.5 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Data Active</span>
+              <span className="text-[11px] bg-gray-900 px-3 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Simulation Stats</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {laneTrends.map((item) => {
-                const meta = positionMetaMap[item.position];
-                return (
-                  <div key={item.position} className={`bg-gray-900/85 p-3.5 rounded-xl border ${meta.color} flex flex-col items-center justify-between text-center transition-all hover:bg-gray-900 shadow-inner`}>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <span>{meta.icon}</span>
-                      <span className="text-xs font-bold text-gray-200">{meta.name}</span>
-                    </div>
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-700 shadow-md my-1">
-                      {version && item.championId ? (
-                        <Image src={getChampionThumbnailUrl(version, item.championId)} alt={item.championName} fill className="object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-500">대기중</div>
-                      )}
-                    </div>
-                    <span className="text-sm font-bold text-white mt-1">{item.championName}</span>
-                    <span className="text-[10px] text-teal-400 font-mono mt-0.5">선택 비중 {item.pickRate}</span>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 픽률 TOP 5 */}
+              <div className="bg-gray-900/85 p-4 rounded-xl border border-indigo-500/30 shadow-inner">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold text-indigo-300 flex items-center gap-1.5">
+                    <span>📈</span> 전체 픽률 TOP 5
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {topPickStats.length > 0 ? (
+                    topPickStats.map((item, index) => (
+                      <div key={item.championId} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="text-gray-200 flex items-center gap-2">
+                            <span className="w-4 text-indigo-400 font-mono">#{index + 1}</span>
+                            {item.championName}
+                          </span>
+                          <span className="text-indigo-400 font-mono">{item.percentage}%</span>
+                        </div>
+                        <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
+                          <div 
+                            className="bg-gradient-to-r from-indigo-600 via-purple-500 to-teal-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                            style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-6">아직 집계된 픽 데이터가 없습니다.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* 밴률 TOP 5 */}
+              <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
+                    <span>🚫</span> 전체 밴률 TOP 5
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {topBanStats.length > 0 ? (
+                    topBanStats.map((item, index) => (
+                      <div key={item.championId} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span className="text-gray-200 flex items-center gap-2">
+                            <span className="w-4 text-red-400 font-mono">#{index + 1}</span>
+                            {item.championName}
+                          </span>
+                          <span className="text-red-400 font-mono">{item.percentage}%</span>
+                        </div>
+                        <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
+                          <div 
+                            className="bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                            style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-6">아직 집계된 밴 데이터가 없습니다.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </section>
