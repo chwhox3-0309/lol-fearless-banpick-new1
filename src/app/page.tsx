@@ -78,18 +78,19 @@ export default function Home() {
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [devLogs, setDevLogs] = useState<DevLog[]>([]);
 
-  // 포지션별 실시간 트렌드 샘플 데이터 (추후 DB 연동 또는 시뮬레이터 누적 데이터 연동 가능)
-  const [laneTrends] = useState<LaneTrendItem[]>([
-    { position: 'TOP', positionName: '탑', championId: 'Aatrox', championName: '아트록스', pickRate: '24.5%' },
-    { position: 'JUNGLE', positionName: '정글', championId: 'LeeSin', championName: '리 신', pickRate: '28.1%' },
-    { position: 'MID', positionName: '미드', championId: 'Ahri', championName: '아리', pickRate: '22.4%' },
-    { position: 'ADC', positionName: '원딜', championId: 'Jinx', championName: '징크스', pickRate: '26.8%' },
-    { position: 'SUPPORT', positionName: '서폿', championId: 'Thresh', championName: '쓰레쉬', pickRate: '31.0%' },
+  // 실시간 집계 데이터 상태 (초기값은 기본 샘플 또는 빈 값)
+  const [laneTrends, setLaneTrends] = useState<LaneTrendItem[]>([
+    { position: 'TOP', positionName: '탑', championId: 'Aatrox', championName: '아트록스', pickRate: '0%' },
+    { position: 'JUNGLE', positionName: '정글', championId: 'LeeSin', championName: '리 신', pickRate: '0%' },
+    { position: 'MID', positionName: '미드', championId: 'Ahri', championName: '아리', pickRate: '0%' },
+    { position: 'ADC', positionName: '원딜', championId: 'Jinx', championName: '징크스', pickRate: '0%' },
+    { position: 'SUPPORT', positionName: '서폿', championId: 'Thresh', championName: '쓰레쉬', pickRate: '0%' },
   ]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const isFirstRender = useRef(true);
+  const hasSavedStatsRef = useRef(false); // 중복 저장 방지용 레프
 
   const currentSetNumber = (completedDrafts?.length || 0) + 1;
   const baseSets = config?.totalSets || config?.maxSets || 3;
@@ -99,34 +100,131 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
+  // 밴픽 완료 시 통계 데이터를 Supabase에 저장하는 함수
+  const saveUserDraftStats = async () => {
+    if (hasSavedStatsRef.current) return; // 이미 저장했다면 패스
+    try {
+      const statsToInsert: { champion_id: string; position: string }[] = [];
+      const positions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as const;
+
+      ['team1', 'team2'].forEach((teamKey) => {
+        const teamData = draft[teamKey as 'team1' | 'team2'];
+        if (teamData && Array.isArray(teamData.picks)) {
+          teamData.picks.forEach((champId: string, index: number) => {
+            const assignedPosition = positions[index % 5];
+            statsToInsert.push({
+              champion_id: champId,
+              position: assignedPosition,
+            });
+          });
+        }
+      });
+
+      if (statsToInsert.length > 0) {
+        const { error } = await supabase.from('draft_stats').insert(statsToInsert);
+        if (!error) {
+          hasSavedStatsRef.current = true; // 저장 완료 체크
+        } else {
+          console.error('통계 데이터 저장 실패:', error);
+        }
+      }
+    } catch (e) {
+      console.error('통계 저장 에러:', e);
+    }
+  };
+
+  // 밴픽이 완료되면 자동으로 통계 저장 함수 호출
   useEffect(() => {
-    async function fetchMainData() {
+    if (isDraftFinished) {
+      saveUserDraftStats();
+    } else {
+      hasSavedStatsRef.current = false; // 새로운 밴픽이 시작되면 초기화
+    }
+  }, [isDraftFinished]);
+
+  // Supabase에서 최근 3시간 동안의 데이터를 불러와 포지션별 픽률 계산
+  useEffect(() => {
+    async function fetchLaneTrendsFromOurSite() {
       try {
-        const { data: noticesData, error: noticesError } = await supabase
-          .from('notices')
-          .select('*')
-          .order('created_at', { ascending: false });
+        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
 
-        if (!noticesError && noticesData) {
-          setNotices(noticesData);
-          if (noticesData.length > 0) {
-            setLatestNotice(noticesData[0]);
+        const { data, error } = await supabase
+          .from('draft_stats')
+          .select('champion_id, position')
+          .gte('created_at', threeHoursAgo);
+
+        if (error || !data || data.length === 0) return;
+
+        const counts: Record<string, Record<string, number>> = {
+          TOP: {}, JUNGLE: {}, MID: {}, ADC: {}, SUPPORT: {}
+        };
+        const positionTotal: Record<string, number> = {
+          TOP: 0, JUNGLE: 0, MID: 0, ADC: 0, SUPPORT: 0
+        };
+
+        data.forEach((row) => {
+          const pos = row.position;
+          const champ = row.champion_id;
+          if (counts[pos]) {
+            counts[pos][champ] = (counts[pos][champ] || 0) + 1;
+            positionTotal[pos] += 1;
           }
-        }
+        });
 
-        const { data: devLogsData, error: devLogsError } = await supabase
-          .from('dev_logs')
-          .select('id, title, content, created_at')
-          .order('created_at', { ascending: false });
+        const positions = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as const;
+        const metaNames: Record<string, string> = { TOP: '탑', JUNGLE: '정글', MID: '미드', ADC: '원딜', SUPPORT: '서폿' };
 
-        if (!devLogsError && devLogsData) {
-          setDevLogs(devLogsData);
-        }
+        const calculatedTrends: LaneTrendItem[] = positions.map((pos) => {
+          const champCounts = counts[pos];
+          const total = positionTotal[pos];
+
+          let topChampId = '';
+          let maxCount = 0;
+
+          Object.entries(champCounts).forEach(([champId, count]) => {
+            if (count > maxCount) {
+              maxCount = count;
+              topChampId = champId;
+            }
+          });
+
+          const championName = topChampId && champions[topChampId] ? champions[topChampId].name : (topChampId || '집계중');
+          const pickRate = total > 0 ? `${Math.round((maxCount / total) * 100)}%` : '0%';
+
+          return {
+            position: pos,
+            positionName: metaNames[pos],
+            championId: topChampId,
+            championName: championName,
+            pickRate: pickRate,
+          };
+        });
+
+        setLaneTrends(calculatedTrends);
       } catch (e) {
-        console.error('Failed to load main data from Supabase:', e);
+        console.error('트렌드 집계 실패:', e);
       }
     }
 
+    if (champions && Object.keys(champions).length > 0) {
+      fetchLaneTrendsFromOurSite();
+    }
+  }, [champions, isDraftFinished]);
+
+  useEffect(() => {
+    async function fetchMainData() {
+      try {
+        const { data: noticesData } = await supabase.from('notices').select('*').order('created_at', { ascending: false });
+        if (noticesData) {
+          setNotices(noticesData);
+          if (noticesData.length > 0) setLatestNotice(noticesData[0]);
+        }
+        const { data: devLogsData } = await supabase.from('dev_logs').select('id, title, content, created_at').order('created_at', { ascending: false });
+        if (devLogsData) setDevLogs(devLogsData);
+      } catch (e) {
+        console.error('메인 데이터 로드 실패:', e);
+      }
+    }
     fetchMainData();
   }, []);
 
@@ -142,7 +240,6 @@ export default function Home() {
       isFirstRender.current = false;
       return;
     }
-
     if (!isDraftFinished && isTimerRunning) {
       setTimeLeft(30);
     } else if (isDraftFinished) {
@@ -206,41 +303,25 @@ export default function Home() {
       const unavailable = getUnavailableChampions();
       const availablePool = Object.keys(champions || {}).filter((id) => !unavailable.has(id));
       const defaultRecs = availablePool.slice(0, 2).map((id) => champions[id]?.name || id);
-      return {
-        totalScore: 0,
-        apRatio: 0,
-        adRatio: 0,
-        recommendations: defaultRecs.length > 0 ? defaultRecs : ['없음'],
-      };
+      return { totalScore: 0, apRatio: 0, adRatio: 0, recommendations: defaultRecs.length > 0 ? defaultRecs : ['없음'] };
     }
-
     let apCount = 0;
     picks.forEach((championId) => {
       if (AP_CHAMPIONS.has(championId)) apCount += 1;
     });
-
     const totalPicks = picks.length;
     const apRatio = Math.round((apCount / totalPicks) * 100);
     const adRatio = 100 - apRatio;
     const balancePenalty = Math.abs(apRatio - adRatio) * 0.3;
     const totalScore = Math.max(10, Math.min(100, Math.round(totalPicks * 18 - balancePenalty + 10)));
-
     const unavailable = getUnavailableChampions();
     const candidatePool = Object.keys(champions || {}).filter((id) => !unavailable.has(id));
-
     let recommendedList: string[] = [];
     if (apRatio > 60) recommendedList = candidatePool.filter((id) => !AP_CHAMPIONS.has(id)).slice(0, 2);
     else if (adRatio > 60) recommendedList = candidatePool.filter((id) => AP_CHAMPIONS.has(id)).slice(0, 2);
     else recommendedList = candidatePool.slice(0, 2);
-
     const recommendations = recommendedList.map((id) => champions[id]?.name || id);
-
-    return {
-      totalScore,
-      apRatio,
-      adRatio,
-      recommendations: recommendations.length > 0 ? recommendations : ['없음'],
-    };
+    return { totalScore, apRatio, adRatio, recommendations: recommendations.length > 0 ? recommendations : ['없음'] };
   };
 
   const handleShareUrl = () => {
@@ -285,12 +366,8 @@ export default function Home() {
 
   return (
     <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative">
-      {isShareModalOpen && (
-        <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />
-      )}
-      {isBulkBanModalOpen && (
-        <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />
-      )}
+      {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
+      {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
 
       {isConfigOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300">
@@ -301,14 +378,11 @@ export default function Home() {
             >
               ✕
             </button>
-
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-white tracking-wide">SET {currentSetNumber} 시작 설정</h2>
               <p className="text-xs text-gray-400 mt-1">팀 이름과 진영을 설정한 후 밴픽을 시작해주세요.</p>
             </div>
-
             <DraftConfigurator />
-
             <div className="mt-6 flex justify-end">
               <button
                 onClick={handleStartDraft}
@@ -345,10 +419,7 @@ export default function Home() {
               {isTimerRunning ? '일시정지' : '시작'}
             </button>
             <button
-              onClick={() => {
-                setTimeLeft(30);
-                setIsTimerRunning(false);
-              }}
+              onClick={() => { setTimeLeft(30); setIsTimerRunning(false); }}
               className="px-1.5 py-0.5 text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 rounded"
             >
               리셋
@@ -359,50 +430,28 @@ export default function Home() {
             <button
               onClick={() => setIsConfigOpen(!isConfigOpen)}
               className={`py-1 px-2.5 text-xs font-semibold rounded transition-all border shadow-sm ${
-                isConfigOpen 
-                  ? 'bg-indigo-600 border-indigo-400 text-white' 
-                  : 'bg-gray-700/80 hover:bg-gray-600 border-gray-600 text-gray-200'
+                isConfigOpen ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-gray-700/80 hover:bg-gray-600 border-gray-600 text-gray-200'
               }`}
             >
               ⚙️ 경기 설정
             </button>
-
-            <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
-              공지사항
-            </Link>
-            <Link href="/dev-log" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
-              Dev-log
-            </Link>
-            <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
-              추천 밴
-            </Link>
-            <Link href="/tier-lists" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
-              티어 리스트
-            </Link>
-
-            <button onClick={() => setIsShareModalOpen(true)} className="bg-purple-600 hover:bg-purple-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
-              공유하기
-            </button>
-            <button onClick={onNextSetWithTimerReset} className="bg-green-600 hover:bg-green-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
-              다음 세트
-            </button>
-            <button onClick={handleResetAll} className="bg-red-600 hover:bg-red-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
-              전부 초기화
-            </button>
+            <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">공지사항</Link>
+            <Link href="/dev-log" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">Dev-log</Link>
+            <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">추천 밴</Link>
+            <Link href="/tier-lists" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">티어 리스트</Link>
+            <button onClick={() => setIsShareModalOpen(true)} className="bg-purple-600 hover:bg-purple-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">공유하기</button>
+            <button onClick={onNextSetWithTimerReset} className="bg-green-600 hover:bg-green-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">다음 세트</button>
+            <button onClick={handleResetAll} className="bg-red-600 hover:bg-red-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">전부 초기화</button>
             <button
               onClick={handleUndoLastAction}
               disabled={currentTurnIndex === 0}
               className={`py-1 px-2.5 text-xs font-semibold rounded border border-transparent transition-all shadow-sm shrink-0 ${
-                currentTurnIndex === 0 
-                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-60' 
-                  : 'bg-amber-600 hover:bg-amber-500 text-white'
+                currentTurnIndex === 0 ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-60' : 'bg-amber-600 hover:bg-amber-500 text-white'
               }`}
             >
               선택 취소
             </button>
-            <button onClick={() => setIsBulkBanModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">
-              대량 등록
-            </button>
+            <button onClick={() => setIsBulkBanModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">대량 등록</button>
           </div>
         </div>
       </nav>
@@ -430,13 +479,9 @@ export default function Home() {
           </div>
           <div>
             {isDraftFinished ? (
-              <span className="text-xs font-bold px-3 py-1 bg-green-900/80 text-green-300 rounded-full border border-green-700">
-                ✅ 밴픽 완료됨
-              </span>
+              <span className="text-xs font-bold px-3 py-1 bg-green-900/80 text-green-300 rounded-full border border-green-700">✅ 밴픽 완료됨</span>
             ) : (
-              <span className="text-xs font-bold px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full border border-blue-700/50">
-                ⚡ 밴픽 진행 중
-              </span>
+              <span className="text-xs font-bold px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full border border-blue-700/50">⚡ 밴픽 진행 중</span>
             )}
           </div>
         </section>
@@ -452,10 +497,7 @@ export default function Home() {
               </span>
             </div>
             <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
-              <div
-                className="bg-gradient-to-r from-blue-600 to-teal-400 h-full transition-all duration-300"
-                style={{ width: `${blueAnalysis.totalScore}%` }}
-              />
+              <div className="bg-gradient-to-r from-blue-600 to-teal-400 h-full transition-all duration-300" style={{ width: `${blueAnalysis.totalScore}%` }} />
             </div>
             <div className="flex justify-between text-[11px] text-gray-400">
               <span>딜 밸런스: AP {blueAnalysis.apRatio}% / AD {blueAnalysis.adRatio}%</span>
@@ -475,10 +517,7 @@ export default function Home() {
               </span>
             </div>
             <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
-              <div
-                className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300"
-                style={{ width: `${redAnalysis.totalScore}%` }}
-              />
+              <div className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300" style={{ width: `${redAnalysis.totalScore}%` }} />
             </div>
             <div className="flex justify-between text-[11px] text-gray-400">
               <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.adRatio}%</span>
@@ -500,14 +539,7 @@ export default function Home() {
                 return (
                   <div key={id} className="flex flex-col items-center">
                     <div className="w-12 h-12 relative rounded border border-red-600 overflow-hidden grayscale">
-                      {version && (
-                        <Image
-                          src={getChampionThumbnailUrl(version, id)}
-                          alt={id}
-                          fill
-                          className="object-cover"
-                        />
-                      )}
+                      {version && <Image src={getChampionThumbnailUrl(version, id)} alt={id} fill className="object-cover" />}
                       <div className="absolute inset-0 flex items-center justify-center bg-red-900/40">
                         <div className="w-full h-0.5 bg-red-600 rotate-45 absolute"></div>
                         <div className="w-full h-0.5 bg-red-600 -rotate-45 absolute"></div>
@@ -535,80 +567,46 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 bg-gray-800/40 p-4 rounded-xl border border-gray-700/60 relative">
           <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
-            <TeamDisplay
-              teamName={blueSideTeamName}
-              teamColor="text-blue-400"
-              teamType="blue"
-              picks={blueSideData.picks}
-              bans={blueSideData.bans}
-            />
+            <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
           </div>
-
           <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} lg:block lg:col-span-2 relative`}>
             {isDraftFinished ? (
               <div className="absolute inset-0 z-20 bg-gray-950/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/30">
-                <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">
-                  ✓
-                </div>
+                <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
                 <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
                 <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
-                <button
-                  onClick={onNextSetWithTimerReset}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md"
-                >
+                <button onClick={onNextSetWithTimerReset} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
                   다음 세트 시작하기 ➔
                 </button>
               </div>
             ) : !isConfigured && currentTurnIndex === 0 ? (
-              <div 
-                onClick={() => setIsConfigOpen(true)}
-                className="absolute inset-0 z-20 bg-gray-950/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center cursor-pointer group hover:bg-gray-950/70 transition-all border border-indigo-500/20 hover:border-indigo-500/50"
-              >
-                <div className="p-3 rounded-full bg-indigo-600/20 text-indigo-400 group-hover:scale-110 transition-transform">
-                  ⚙️
-                </div>
+              <div onClick={() => setIsConfigOpen(true)} className="absolute inset-0 z-20 bg-gray-950/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center cursor-pointer group hover:bg-gray-950/70 transition-all border border-indigo-500/20 hover:border-indigo-500/50">
+                <div className="p-3 rounded-full bg-indigo-600/20 text-indigo-400 group-hover:scale-110 transition-transform">⚙️</div>
                 <h3 className="text-base font-bold text-white">밴픽을 시작하려면 경기 설정이 필요합니다</h3>
                 <p className="text-xs text-indigo-300 underline underline-offset-4">여기를 클릭하여 경기 설정을 진행해주세요.</p>
               </div>
             ) : null}
-
             <div className={isDraftFinished ? 'grayscale opacity-50 pointer-events-none' : ''}>
               <ChampionGrid />
             </div>
           </div>
-
           <div className={`${activeTab === 'red' ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
-            <TeamDisplay
-              teamName={redSideTeamName}
-              teamColor="text-red-400"
-              teamType="red"
-              picks={redSideData.picks}
-              bans={redSideData.bans}
-            />
+            <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
           </div>
         </div>
 
         <section className="space-y-6 text-gray-300 mt-8">
-          {/* 상단: 공지사항 & Dev-log 나란히 배치 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2">
-                    <span>📢</span> 공지사항
-                  </h2>
-                  <Link href="/notices" className="text-xs text-purple-400 hover:underline">
-                    전체보기 ➔
-                  </Link>
+                  <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2"><span>📢</span> 공지사항</h2>
+                  <Link href="/notices" className="text-xs text-purple-400 hover:underline">전체보기 ➔</Link>
                 </div>
                 <div className="space-y-2">
                   {notices.length > 0 ? (
                     notices.slice(0, 4).map((notice) => (
-                      <Link 
-                        key={notice.id} 
-                        href={`/notices`}
-                        className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
-                      >
+                      <Link key={notice.id} href={`/notices`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
                         <span className="text-gray-200 truncate">{notice.title}</span>
                         {notice.date && <span className="text-xs text-gray-500 shrink-0 ml-2">{notice.date}</span>}
                       </Link>
@@ -623,27 +621,15 @@ export default function Home() {
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2">
-                    <span>🛠️</span> Dev-log (개발 일지)
-                  </h2>
-                  <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">
-                    전체보기 ➔
-                  </Link>
+                  <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2"><span>🛠️</span> Dev-log (개발 일지)</h2>
+                  <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">전체보기 ➔</Link>
                 </div>
                 <div className="space-y-2">
                   {devLogs.length > 0 ? (
                     devLogs.slice(0, 4).map((log) => (
-                      <Link 
-                        key={log.id} 
-                        href={`/dev-log`}
-                        className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
-                      >
+                      <Link key={log.id} href={`/dev-log`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
                         <span className="text-gray-200 truncate font-medium">{log.title}</span>
-                        {log.created_at && (
-                          <span className="text-xs text-gray-500 shrink-0 ml-2">
-                            {new Date(log.created_at).toLocaleDateString()}
-                          </span>
-                        )}
+                        {log.created_at && <span className="text-xs text-gray-500 shrink-0 ml-2">{new Date(log.created_at).toLocaleDateString()}</span>}
                       </Link>
                     ))
                   ) : (
@@ -654,90 +640,36 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 하단: 라인별 실시간 인기 챔피언 트렌드 (썸네일 + 포지션별 시각화) */}
           <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
               <div>
-                <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
-                  <span>🔥</span> 포지션별 실시간 인기 챔피언 트렌드
-                </h2>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  ※ 최근 3시간 내 유저들이 진행한 밴픽 시뮬레이션 데이터 기준 집계
-                </p>
+                <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 포지션별 사이트 실시간 인기 트렌드</h2>
+                <p className="text-xs text-gray-400 mt-0.5">※ 최근 3시간 내 유저들이 밴픽 시뮬레이션에서 선택한 데이터 기준 자동 집계</p>
               </div>
-              <span className="text-[11px] bg-gray-900 px-2.5 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">
-                Live Data Active
-              </span>
+              <span className="text-[11px] bg-gray-900 px-2.5 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Data Active</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {laneTrends.map((item) => {
                 const meta = positionMetaMap[item.position];
                 return (
-                  <div 
-                    key={item.position}
-                    className={`bg-gray-900/85 p-3.5 rounded-xl border ${meta.color} flex flex-col items-center justify-between text-center transition-all hover:bg-gray-900 shadow-inner`}
-                  >
+                  <div key={item.position} className={`bg-gray-900/85 p-3.5 rounded-xl border ${meta.color} flex flex-col items-center justify-between text-center transition-all hover:bg-gray-900 shadow-inner`}>
                     <div className="flex items-center gap-1.5 mb-2">
                       <span>{meta.icon}</span>
                       <span className="text-xs font-bold text-gray-200">{meta.name}</span>
                     </div>
-
                     <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-700 shadow-md my-1">
                       {version && item.championId ? (
-                        <Image
-                          src={getChampionThumbnailUrl(version, item.championId)}
-                          alt={item.championName}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={getChampionThumbnailUrl(version, item.championId)} alt={item.championName} fill className="object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">Loading</div>
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-[10px] text-gray-500">대기중</div>
                       )}
                     </div>
-
                     <span className="text-sm font-bold text-white mt-1">{item.championName}</span>
-                    <span className="text-[10px] text-teal-400 font-mono mt-0.5">픽률 {item.pickRate}</span>
+                    <span className="text-[10px] text-teal-400 font-mono mt-0.5">선택 비중 {item.pickRate}</span>
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          <div className="bg-gray-800/80 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-bold mb-4 text-teal-300">주요 기능</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50">
-                <h3 className="font-semibold text-white mb-1">완벽한 Fearless 룰 구현</h3>
-                <p className="text-gray-400">이전 세트에서 사용한 챔피언은 다음 세트에서 자동으로 비활성화되어 프로 경기 조건으로 연습할 수 있습니다.</p>
-              </div>
-              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50">
-                <h3 className="font-semibold text-white mb-1">밴픽 결과 공유</h3>
-                <p className="text-gray-400">생성된 URL로 팀원과 밴픽 결과를 공유하고 피드백을 주고받으세요.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800/80 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-bold mb-4 text-orange-300">자주 묻는 질문 (FAQ)</h2>
-            <div className="space-y-4 text-sm">
-              <div>
-                <h3 className="font-semibold text-white mb-1">Q. 피어리스(Fearless) 룰이 정확히 무엇인가요?</h3>
-                <p className="text-gray-400">A. 다전제 경기에서 이전 세트에 양 팀이 사용했던 모든 챔피언을 다음 세트에서 다시 선택할 수 없도록 금지하는 규칙입니다.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800/80 rounded-lg border border-gray-700">
-            <button
-              onClick={() => setIsAccordionOpen(!isAccordionOpen)}
-              className="w-full flex justify-between items-center p-5 font-semibold text-left"
-            >
-              <span>TFT 메타 및 덱 추천 (클릭)</span>
-              <span className={`transform transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>▼</span>
-            </button>
-            <div className={`overflow-hidden transition-all duration-500 ${isAccordionOpen ? 'max-h-screen' : 'max-h-0'}`}>
-              {/* 내용 생략 */}
             </div>
           </div>
         </section>
