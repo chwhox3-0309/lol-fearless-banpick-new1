@@ -1,73 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+
+// 본인만 사용하는 관리자 이메일 주소 입력
+const ADMIN_EMAIL = 'your_email@gmail.com'; 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
-  // 브라우저에 이미 로그인된 세션이 있는지 확인
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('is_admin_authenticated');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, []);
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // TODO: 본인이 원하는 관리자 비밀번호로 변경하세요!
-    const ADMIN_PASSWORD = 'my_secret_password123'; 
+      // 로그인이 되어있고, 세션의 이메일이 관리자 이메일과 일치하는지 확인
+      if (session?.user && session.user.email === ADMIN_EMAIL) {
+        setIsAuthenticated(true);
+      } else {
+        // 권한이 없거나 로그아웃 상태면 로그인 페이지로 이동
+        router.replace('/admin/login');
+      }
+      setIsLoading(false);
+    };
 
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('is_admin_authenticated', 'true');
-      setIsAuthenticated(true);
-    } else {
-      alert('비밀번호가 올바르지 않습니다.');
-      setPassword('');
-    }
-  };
+    checkUser();
+  }, [router, supabase]);
 
   if (isLoading) {
-    return <div className="min-h-screen bg-gray-955 text-white flex items-center justify-center">보안 확인 중...</div>;
-  }
-
-  // 로그인이 안 되어 있으면 비밀번호 입력 화면 출력
-  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold mb-2">🔒 관리자 인증</h1>
-            <p className="text-sm text-gray-400">관리자 페이지만의 접근 권한이 필요합니다.</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                placeholder="관리자 비밀번호를 입력하세요"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-                autoFocus
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-blue-600/30"
-            >
-              접속하기
-            </button>
-          </form>
-        </div>
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        보안 권한 확인 중...
       </div>
     );
   }
 
-  // 인증 완료 시 원래의 관리자 페이지 컨텐츠 렌더링
+  if (!isAuthenticated) {
+    return null; // 리다이렉트 되는 동안 빈 화면 유지
+  }
+
   return <>{children}</>;
 }
