@@ -1,42 +1,60 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase'; // 프로젝트 내 기존 supabase 클라이언트 경로
-
-// 본인만 사용하는 관리자 이메일 주소 입력
-const ADMIN_EMAIL = 'your_email@gmail.com'; 
+import { useRouter, usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const checkUser = async () => {
+    // 만약 현재 경로가 로그인 페이지(/admin/login)라면 보안 체크를 하지 않고 바로 통과시킴
+    if (pathname === '/admin/login') {
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      return;
+    }
+
+    const checkAdmin = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // 로그인이 되어있고, 세션의 이메일이 관리자 이메일과 일치하는지 확인
-      if (session?.user && session.user.email === ADMIN_EMAIL) {
-        setIsAuthenticated(true);
-      } else {
+      if (!session?.user?.email) {
         router.replace('/admin/login');
+        setIsLoading(false);
+        return;
+      }
+
+      // DB의 admins 테이블에 현재 로그인한 이메일이 존재하는지 확인
+      const { data, error } = await supabase
+        .from('admins')
+        .select('email')
+        .eq('email', session.user.email)
+        .single();
+
+      if (error || !data) {
+        await supabase.auth.signOut();
+        router.replace('/admin/login');
+      } else {
+        setIsAuthenticated(true);
       }
       setIsLoading(false);
     };
 
-    checkUser();
-  }, [router]);
+    checkAdmin();
+  }, [router, pathname]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        보안 권한 확인 중...
+        권한 확인 중...
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && pathname !== '/admin/login') {
     return null;
   }
 
