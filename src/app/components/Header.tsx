@@ -9,7 +9,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'LOL 밴픽', href: '/' },
+    { name: '리그 오브 레전드', href: '/' },
     { name: 'WOS', href: '/wos' },
     { name: 'J-Pop', href: '/j-pop' },
     { name: 'TFT', href: '/tft' },
