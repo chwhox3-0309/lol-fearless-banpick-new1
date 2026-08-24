@@ -152,13 +152,14 @@ export default function Home() {
     }
   }, [isDraftFinished]);
 
-  // Supabase에서 전체 데이터를 집계하여 Top 5 산출 (시간 조건 제거)
+  // Supabase에서 전체 데이터를 집계하여 Top 5 산출 (수정된 버전)
   useEffect(() => {
     async function fetchOurSiteStats() {
       try {
+        // 테이블 구조에 맞게 action_type 대신 position을 가져오도록 수정
         const { data, error } = await supabase
           .from('draft_stats')
-          .select('champion_id, action_type');
+          .select('champion_id, position');
 
         if (error || !data || data.length === 0) return;
 
@@ -168,10 +169,11 @@ export default function Home() {
         let totalBans = 0;
 
         data.forEach((row) => {
-          if (row.action_type === 'PICK') {
+          // action_type 대신 position 값을 확인
+          if (row.position === 'PICK') {
             pickCounts[row.champion_id] = (pickCounts[row.champion_id] || 0) + 1;
             totalPicks += 1;
-          } else if (row.action_type === 'BAN') {
+          } else if (row.position === 'BAN') {
             banCounts[row.champion_id] = (banCounts[row.champion_id] || 0) + 1;
             totalBans += 1;
           }
