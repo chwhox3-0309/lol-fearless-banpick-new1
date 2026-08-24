@@ -24,6 +24,10 @@ export default function JPopClientPage() {
   const [selectedBroadcast, setSelectedBroadcast] = useState<string>("전체");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // 페이징 및 보기 개수 상태
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10); // 기본 10개씩 보기
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -50,11 +54,10 @@ export default function JPopClientPage() {
   ];
 
   // 2. 분기 카테고리 목록 추출 후 최신순(내림차순) 자동 정렬
-  // 예: "2026년 - 3분기", "2026년 - 1분기", "2024년 - 1분기" 형태로 입력하면 역순으로 정렬됩니다.
   const uniqueSeasons = Array.from(
     new Set(items.map((item) => item.category).filter(Boolean))
   );
-  uniqueSeasons.sort((a, b) => b.localeCompare(a)); // 문자열 역순 정렬 (최신 연도/분기가 앞으로 옴)
+  uniqueSeasons.sort((a, b) => b.localeCompare(a));
   const seasons = ["전체", ...uniqueSeasons];
 
   // 필터링 및 검색 로직
@@ -62,7 +65,6 @@ export default function JPopClientPage() {
     const matchSeason = selectedSeason === "전체" || item.category === selectedSeason;
     const matchBroadcast = selectedBroadcast === "전체" || item.broadcast === selectedBroadcast;
     
-    // 검색어 매칭 (드라마 제목, 곡 제목, 아티스트 이름 대상)
     const query = searchQuery.toLowerCase().trim();
     const matchQuery = 
       !query || 
@@ -72,6 +74,17 @@ export default function JPopClientPage() {
 
     return matchSeason && matchBroadcast && matchQuery;
   });
+
+  // 필터나 검색어가 바뀔 때 페이지를 1페이지로 초기화
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSeason, selectedBroadcast, searchQuery, itemsPerPage]);
+
+  // 페이징 계산 로직
+  const totalItems = filteredItems.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredItems.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
@@ -118,7 +131,7 @@ export default function JPopClientPage() {
           </div>
 
           <div className="space-y-3 pt-2 border-t border-gray-800/80">
-            {/* 1차 필터: 분기별 (최신순 자동 정렬 적용) */}
+            {/* 1차 필터: 분기별 */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-400 font-medium w-16 shrink-0">분기별:</span>
               {seasons.map((season) => (
@@ -156,67 +169,116 @@ export default function JPopClientPage() {
           </div>
         </div>
 
-        {/* 콘텐츠 카드 리스트 */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-200">
-              검색 결과 <span className="text-purple-400 text-sm font-normal">({filteredItems.length}건)</span>
-            </h2>
+        {/* 콘텐츠 카드 리스트 헤더 (개수 표시 및 10/50/100개 보기 셀렉터) */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-lg font-semibold text-gray-200">
+            검색 결과 <span className="text-purple-400 text-sm font-normal">({totalItems}건)</span>
+          </h2>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">보기 개수:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="bg-gray-900 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+            >
+              <option value={10}>10개씩 보기</option>
+              <option value={50}>50개씩 보기</option>
+              <option value={100}>100개씩 보기</option>
+            </select>
           </div>
+        </div>
 
-          {loading ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm">
-              데이터를 불러오는 중입니다...
-            </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm space-y-2">
-              <p>조건에 일치하는 드라마 OST가 없습니다.</p>
-              <p className="text-xs text-gray-500">검색어 브라우저나 필터를 초기화해 보세요.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all space-y-3 shadow-lg flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      {item.broadcast && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                          {item.broadcast}
-                        </span>
-                      )}
-                      {item.category && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                          {item.category}
-                        </span>
-                      )}
-                    </div>
-
-                    <h3 className="text-lg font-bold text-white pt-1">{item.title}</h3>
-                    {item.description && (
-                      <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
+        {/* 콘텐츠 카드 리스트 */}
+        {loading ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm">
+            데이터를 불러오는 중입니다...
+          </div>
+        ) : currentItems.length === 0 ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center text-gray-500 text-sm space-y-2">
+            <p>조건에 일치하는 드라마 OST가 없습니다.</p>
+            <p className="text-xs text-gray-500">검색어나 필터를 초기화해 보세요.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {currentItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all space-y-3 shadow-lg flex flex-col justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    {item.broadcast && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        {item.broadcast}
+                      </span>
+                    )}
+                    {item.category && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        {item.category}
+                      </span>
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-gray-800/80 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-purple-300 font-semibold">🎵 {item.ost_title}</p>
-                      <p className="text-[11px] text-gray-400">아티스트: {item.artist}</p>
-                    </div>
-                    <button 
-                      onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.ost_title + ' ' + item.artist)}`, '_blank')}
-                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-colors border border-gray-700 shrink-0"
-                    >
-                      유튜브 검색 ↗
-                    </button>
-                  </div>
+                  <h3 className="text-lg font-bold text-white pt-1">{item.title}</h3>
+                  {item.description && (
+                    <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
+                  )}
                 </div>
+
+                <div className="pt-4 border-t border-gray-800/80 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-purple-300 font-semibold">🎵 {item.ost_title}</p>
+                    <p className="text-[11px] text-gray-400">아티스트: {item.artist}</p>
+                  </div>
+                  <button 
+                    onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.ost_title + ' ' + item.artist)}`, '_blank')}
+                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-colors border border-gray-700 shrink-0"
+                  >
+                    유튜브 검색 ↗
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 페이지네이션 바 */}
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-gray-300 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ◀ 이전
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 rounded-xl text-xs font-medium transition-colors ${
+                    currentPage === page
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30"
+                      : "bg-gray-900 border border-gray-800 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {page}
+                </button>
               ))}
             </div>
-          )}
-        </div>
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-gray-300 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              다음 ▶
+            </button>
+          </div>
+        )}
 
         {/* 광고 배너 */}
         <div className="flex justify-center pt-4">
