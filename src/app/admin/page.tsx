@@ -46,6 +46,19 @@ export default function AdminDashboard() {
             </p>
           </Link>
 
+          {/* 공지사항/개발일지 관리 카드 */}
+          <Link 
+            href="/admin/posts" 
+            className="p-6 bg-gray-900 border border-gray-800 rounded-xl hover:border-blue-500 transition-all block group"
+          >
+            <h2 className="text-xl font-semibold mb-2 text-yellow-400 group-hover:text-yellow-300">
+              📢 공지사항 및 개발일지 관리
+            </h2>
+            <p className="text-gray-400 text-sm">
+              사이트 공지와 업데이트 소식을 하나의 화면에서 작성하고 관리합니다.
+            </p>
+          </Link>
+          
           {/* 사이트 설정 카드 (확장용) */}
           <div className="p-6 bg-gray-900 border border-gray-800 rounded-xl opacity-60 cursor-not-allowed">
             <h2 className="text-xl font-semibold mb-2 text-purple-400">⚙️ 메타 설정 (준비중)</h2>
