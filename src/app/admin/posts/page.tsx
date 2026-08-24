@@ -41,8 +41,7 @@ export default function AdminPostsPage() {
     setLoading(false);
   };
 
-  // 글 작성 핸들러
-  const handleCreatePost = async (e: React.FormEvent) => {
+const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.');
@@ -52,14 +51,19 @@ export default function AdminPostsPage() {
     setIsSubmitting(true);
     const { error } = await supabase
       .from('posts')
-      .insert([{ title, content, category }]);
+      .insert([{ 
+        title, 
+        content, 
+        category,
+        author_name: '관리자' // 이 부분을 추가해 줍니다.
+      }]);
 
     if (error) {
       alert('작성 실패: ' + error.message);
     } else {
       setTitle('');
       setContent('');
-      fetchPosts(); // 목록 새로고침
+      fetchPosts(); 
     }
     setIsSubmitting(false);
   };
