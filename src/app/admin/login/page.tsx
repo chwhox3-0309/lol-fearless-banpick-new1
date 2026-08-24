@@ -2,16 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-// 프로젝트 내 Supabase 클라이언트 경로에 맞게 수정해주세요 (예: @/lib/supabase)
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; 
-// 만약 일반적인 client 생성 방식을 쓴다면: import { supabase } from '@/utils/supabase/client';
+import { supabase } from '@/lib/supabase'; // 프로젝트 내 기존 supabase 클라이언트 경로
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient(); // 혹은 본인 프로젝트의 supabase 클라이언트 사용
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
