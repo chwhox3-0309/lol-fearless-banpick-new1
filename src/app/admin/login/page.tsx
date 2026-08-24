@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase'; // 프로젝트 내 기존 supabase 클라이언트 경로
+import { supabase } from '@/lib/supabase';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -23,16 +23,16 @@ export default function AdminLoginPage() {
       alert(`로그인 실패: ${error.message}`);
       setLoading(false);
     } else {
-      router.push('/admin');
+      router.push('/admin/posts'); // 로그인 성공 후 관리자 게시판으로 이동
       router.refresh();
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4">
+    <div className="flex items-center justify-center min-h-[70vh] px-4">
       <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold mb-2">🔐 관리자 로그인</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">🔐 관리자 로그인</h1>
           <p className="text-sm text-gray-400">등록된 관리자 계정으로 로그인하세요.</p>
         </div>
 
