@@ -136,16 +136,13 @@ export default function Home() {
     }
   }, [isDraftFinished]);
 
-  // Supabase에서 최근 3시간 동안 우리 사이트에 쌓인 데이터를 집계하여 Top 5 산출
+  // Supabase에서 전체 데이터를 집계하여 Top 5 산출 (시간 조건 제거)
   useEffect(() => {
     async function fetchOurSiteStats() {
       try {
-        const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
-
         const { data, error } = await supabase
           .from('draft_stats')
-          .select('champion_id, action_type')
-          .gte('created_at', threeHoursAgo);
+          .select('champion_id, action_type');
 
         if (error || !data || data.length === 0) return;
 
@@ -188,6 +185,7 @@ export default function Home() {
     }
   }, [champions, isDraftFinished]);
 
+  // 공지사항 및 Dev-log 데이터 불러오기 (dev_logs 테이블 명칭 정확히 반영)
   useEffect(() => {
     async function fetchMainData() {
       try {
@@ -196,8 +194,12 @@ export default function Home() {
           setNotices(noticesData);
           if (noticesData.length > 0) setLatestNotice(noticesData[0]);
         }
-        const { data: devLogsData } = await supabase.from('dev_log').select('id, title, content, created_at').order('created_at', { ascending: false });
-        if (devLogsData) setDevLogs(devLogsData);
+        
+        // dev_logs 테이블에서 데이터를 안전하게 가져오기
+        const { data: devLogsData, error: devLogError } = await supabase.from('dev_logs').select('*').order('created_at', { ascending: false });
+        if (devLogsData && !devLogError) {
+          setDevLogs(devLogsData);
+        }
       } catch (e) {
         console.error('메인 데이터 로드 실패:', e);
       }
@@ -614,7 +616,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
               <div>
                 <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 사이트 이용 데이터 실시간 랭킹</h2>
-                <p className="text-xs text-gray-400 mt-0.5">※ 최근 3시간 동안 우리 시뮬레이터에서 완료된 밴픽 기록을 바탕으로 자동 집계됩니다.</p>
+                <p className="text-xs text-gray-400 mt-0.5">※ 시뮬레이터에서 완료된 밴픽 기록을 바탕으로 자동 집계됩니다.</p>
               </div>
               <span className="text-[11px] bg-gray-900 px-3 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Simulation Stats</span>
             </div>
