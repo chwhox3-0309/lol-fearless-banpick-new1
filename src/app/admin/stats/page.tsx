@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient'; // 프로젝트의 supabase 클라이언트 경로에 맞게 확인해주세요
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 interface ChampionStat {
