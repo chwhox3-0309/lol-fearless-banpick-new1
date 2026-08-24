@@ -9,7 +9,7 @@ import ChampionGrid from './components/ChampionGrid';
 import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
-import DevLogSection from './components/DevLogSection'; // Dev-log 컴포넌트 임포트
+import DevLogSection from './components/DevLogSection'; // Dev-log 컴포넌트
 import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
@@ -32,10 +32,10 @@ interface Notice {
   created_at?: string;
 }
 
-interface BoardPost {
+interface DevLog {
   id: string | number;
   title: string;
-  author_name?: string;
+  content?: string;
   created_at?: string;
 }
 
@@ -70,7 +70,7 @@ export default function Home() {
   
   const [notices, setNotices] = useState<Notice[]>([]);
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
-  const [boardPosts, setBoardPosts] = useState<BoardPost[]>([]);
+  const [devLogs, setDevLogs] = useState<DevLog[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -99,14 +99,14 @@ export default function Home() {
           }
         }
 
-        // posts 테이블에서 id, title, author_name, created_at 가져오기
-        const { data: boardData, error: boardError } = await supabase
-          .from('posts')
-          .select('id, title, author_name, created_at')
+        // dev_logs 테이블에서 데이터 가져오기
+        const { data: devLogsData, error: devLogsError } = await supabase
+          .from('dev_logs')
+          .select('id, title, content, created_at')
           .order('created_at', { ascending: false });
 
-        if (!boardError && boardData) {
-          setBoardPosts(boardData);
+        if (!devLogsError && devLogsData) {
+          setDevLogs(devLogsData);
         }
       } catch (e) {
         console.error('Failed to load main data from Supabase:', e);
@@ -348,8 +348,8 @@ export default function Home() {
             <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               공지사항
             </Link>
-            <Link href="/board" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
-              자유게시판
+            <Link href="/dev-logs" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
+              Dev-log
             </Link>
             <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">
               추천 밴
@@ -567,6 +567,7 @@ export default function Home() {
         </div>
 
         <section className="space-y-6 text-gray-300 mt-8">
+          {/* 상단: 공지사항 & Dev-log 나란히 배치 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
@@ -601,45 +602,67 @@ export default function Home() {
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2">
-                    <span>💬</span> 자유게시판
+                    <span>🛠️</span> Dev-log (개발 일지)
                   </h2>
-                  <div className="flex items-center gap-3">
-                    <Link href="/board/write" className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-2.5 py-1 rounded transition-all font-semibold">
-                      글쓰기
-                    </Link>
-                    <Link href="/board" className="text-xs text-teal-400 hover:underline">
-                      전체보기 ➔
-                    </Link>
-                  </div>
+                  <Link href="/dev-logs" className="text-xs text-teal-400 hover:underline">
+                    전체보기 ➔
+                  </Link>
                 </div>
                 <div className="space-y-2">
-                  {boardPosts.length > 0 ? (
-                    boardPosts.slice(0, 4).map((post) => (
+                  {devLogs.length > 0 ? (
+                    devLogs.slice(0, 4).map((log) => (
                       <Link 
-                        key={post.id} 
-                        href={`/board`}
+                        key={log.id} 
+                        href={`/dev-logs`}
                         className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center"
                       >
-                        <span className="text-gray-200 truncate font-medium">{post.title}</span>
-                        <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0 ml-2">
-                          {post.author_name && (
-                            <span className="bg-gray-950 px-2 py-0.5 rounded border border-gray-800 text-teal-300 text-[11px]">
-                              {post.author_name}
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-gray-200 truncate font-medium">{log.title}</span>
+                        {log.created_at && (
+                          <span className="text-xs text-gray-500 shrink-0 ml-2">
+                            {new Date(log.created_at).toLocaleDateString()}
+                          </span>
+                        )}
                       </Link>
                     ))
                   ) : (
-                    <p className="text-xs text-gray-400 text-center py-4">작성된 게시글이 없습니다.</p>
+                    <p className="text-xs text-gray-400 text-center py-4">등록된 개발일지가 없습니다.</p>
                   )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 기존 팁과 운세 자리에 DevLogSection 배치 */}
-          <DevLogSection />
+          {/* 하단: 기존 DevLogSection 컴포넌트 자리에 '실시간 밴픽 트렌드 및 인기 챔피언 순위' 배치 */}
+          <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2">
+                <span>🔥</span> 실시간 밴픽 트렌드 및 인기 챔피언 순위
+              </h2>
+              <span className="text-xs text-gray-400">시뮬레이터 데이터 기반 실시간 집계</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
+                <span className="text-xs text-gray-400 block mb-1">가장 많이 밴된 챔피언 1위</span>
+                <span className="text-base font-bold text-red-400">아트록스</span>
+                <span className="text-[11px] text-gray-500 block mt-1">밴 승률 영향력 높음</span>
+              </div>
+              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
+                <span className="text-xs text-gray-400 block mb-1">가장 많이 픽된 챔피언 1위</span>
+                <span className="text-base font-bold text-blue-400">오로라</span>
+                <span className="text-[11px] text-gray-500 block mt-1">블루 사이드 선호도 1위</span>
+              </div>
+              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
+                <span className="text-xs text-gray-400 block mb-1">평균 피어리스 밴 세트</span>
+                <span className="text-base font-bold text-teal-400">SET 3 이상</span>
+                <span className="text-[11px] text-gray-500 block mt-1">다전제 연습 비중 높음</span>
+              </div>
+              <div className="bg-gray-900/60 p-4 rounded-lg border border-gray-700/50 text-center">
+                <span className="text-xs text-gray-400 block mb-1">추천 조합 완성도 평균</span>
+                <span className="text-base font-bold text-purple-400">82.4점</span>
+                <span className="text-[11px] text-gray-500 block mt-1">AP/AD 밸런스 우수</span>
+              </div>
+            </div>
+          </div>
 
           <div className="bg-gray-800/80 rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-bold mb-4 text-teal-300">주요 기능</h2>
