@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase'; // 프로젝트 내 기존 supabase 클라이언트 경로
 
 // 본인만 사용하는 관리자 이메일 주소 입력
 const ADMIN_EMAIL = 'your_email@gmail.com'; 
@@ -11,7 +11,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -21,14 +20,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (session?.user && session.user.email === ADMIN_EMAIL) {
         setIsAuthenticated(true);
       } else {
-        // 권한이 없거나 로그아웃 상태면 로그인 페이지로 이동
         router.replace('/admin/login');
       }
       setIsLoading(false);
     };
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -39,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!isAuthenticated) {
-    return null; // 리다이렉트 되는 동안 빈 화면 유지
+    return null;
   }
 
   return <>{children}</>;
