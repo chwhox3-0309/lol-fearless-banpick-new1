@@ -92,23 +92,22 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수 (수정된 버전)
+  // 밴픽 완료 시 우리 사이트의 픽/밴 데이터를 Supabase에 저장하는 함수 (테이블 구조 맞춤)
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
-      const statsToInsert: { champion_id: string; action_type: string }[] = [];
+      const statsToInsert: { champion_id: string; position: string }[] = [];
 
-      // 1. 데이터 수집 로직 안전하게 검증
       const team1Data = draft?.team1;
       if (team1Data) {
         if (Array.isArray(team1Data.picks)) {
           team1Data.picks.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'PICK' });
+            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'PICK' });
           });
         }
         if (Array.isArray(team1Data.bans)) {
           team1Data.bans.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'BAN' });
+            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'BAN' });
           });
         }
       }
@@ -117,23 +116,20 @@ export default function Home() {
       if (team2Data) {
         if (Array.isArray(team2Data.picks)) {
           team2Data.picks.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'PICK' });
+            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'PICK' });
           });
         }
         if (Array.isArray(team2Data.bans)) {
           team2Data.bans.forEach((champId: string) => {
-            if (champId) statsToInsert.push({ champion_id: String(champId), action_type: 'BAN' });
+            if (champId) statsToInsert.push({ champion_id: String(champId), position: 'BAN' });
           });
         }
       }
 
-      // 2. 데이터가 존재할 때만 안전하게 Insert 실행
       if (statsToInsert.length > 0) {
-        console.log('Supabase 전송 데이터:', statsToInsert); // 디버깅용 로그
-        
         const { error } = await supabase
           .from('draft_stats')
-          .insert(statsToInsert); // 단순 배열 형태로 전송
+          .insert(statsToInsert);
 
         if (error) {
           console.error('사이트 밴픽 통계 저장 실패 (Supabase Error):', error.message, error.details);
