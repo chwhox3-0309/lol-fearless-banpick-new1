@@ -169,7 +169,7 @@ export default function JPopClientPage() {
           </div>
         </div>
 
-        {/* 콘텐츠 카드 리스트 헤더 (개수 표시 및 10/50/100개 보기 셀렉터) */}
+        {/* 콘텐츠 카드 리스트 헤더 */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-lg font-semibold text-gray-200">
             검색 결과 <span className="text-purple-400 text-sm font-normal">({totalItems}건)</span>
@@ -233,7 +233,7 @@ export default function JPopClientPage() {
                   </div>
                   <button 
                     onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(item.ost_title + ' ' + item.artist)}`, '_blank')}
-                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-colors border border-gray-700 shrink-0"
+                    className="px-3 py-1.5 bg-gray-800 hover:bg-red-600 text-gray-200 hover:text-white text-xs font-medium rounded-xl transition-colors border border-gray-700 hover:border-red-500 shrink-0 shadow-sm"
                   >
                     유튜브 검색 ↗
                   </button>
