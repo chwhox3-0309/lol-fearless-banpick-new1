@@ -7,7 +7,7 @@ import KakaoAdFitBanner from "../components/KakaoAdFitBanner";
 interface DramaOstItem {
   id: number;
   title: string;
-  category: string;    // 연도/분기 (예: "2026 1분기")
+  category: string;    // 연도/분기 (예: "2026년 - 3분기")
   broadcast: string;   // 방송사 (예: "TBS", "후지TV", "넷플릭스" 등)
   ost_title: string;
   artist: string;
@@ -43,9 +43,19 @@ export default function JPopClientPage() {
     setLoading(false);
   };
 
-  // 고유 시즌(연도/분기) 및 방송사 목록 추출 (필터 탭 동적 생성용)
-  const seasons = ["전체", ...Array.from(new Set(items.map((item) => item.category).filter(Boolean)))];
-  const broadcasts = ["전체", ...Array.from(new Set(items.map((item) => item.broadcast).filter(Boolean)))];
+  // 1. 방송사 목록 동적 추출 (가나다 순 정렬)
+  const broadcasts = [
+    "전체",
+    ...Array.from(new Set(items.map((item) => item.broadcast).filter(Boolean))).sort(),
+  ];
+
+  // 2. 분기 카테고리 목록 추출 후 최신순(내림차순) 자동 정렬
+  // 예: "2026년 - 3분기", "2026년 - 1분기", "2024년 - 1분기" 형태로 입력하면 역순으로 정렬됩니다.
+  const uniqueSeasons = Array.from(
+    new Set(items.map((item) => item.category).filter(Boolean))
+  );
+  uniqueSeasons.sort((a, b) => b.localeCompare(a)); // 문자열 역순 정렬 (최신 연도/분기가 앞으로 옴)
+  const seasons = ["전체", ...uniqueSeasons];
 
   // 필터링 및 검색 로직
   const filteredItems = items.filter((item) => {
@@ -67,7 +77,7 @@ export default function JPopClientPage() {
     <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* 상단 헤더 영역 (메인 밴픽 링크 제거 완료) */}
+        {/* 상단 헤더 영역 */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-2">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
@@ -108,7 +118,7 @@ export default function JPopClientPage() {
           </div>
 
           <div className="space-y-3 pt-2 border-t border-gray-800/80">
-            {/* 1차 필터: 연도/분기 */}
+            {/* 1차 필터: 분기별 (최신순 자동 정렬 적용) */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-400 font-medium w-16 shrink-0">분기별:</span>
               {seasons.map((season) => (
@@ -126,7 +136,7 @@ export default function JPopClientPage() {
               ))}
             </div>
 
-            {/* 2차 필터: 방송사 */}
+            {/* 2차 필터: 방송사별 */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs text-gray-400 font-medium w-16 shrink-0">방송사:</span>
               {broadcasts.map((bc) => (
