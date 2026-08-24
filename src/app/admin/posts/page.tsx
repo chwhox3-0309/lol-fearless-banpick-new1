@@ -4,44 +4,51 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
-interface Post {
+interface PostItem {
   id: number;
   title: string;
   content: string;
-  category: 'notice' | 'dev';
   created_at: string;
+  type: 'notice' | 'dev';
 }
 
 export default function AdminPostsPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [items, setItems] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 입력폼 상태
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState<'notice' | 'dev'>('notice');
+  const [targetTable, setTargetTable] = useState<'notices' | 'dev_logs'>('notices');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchPosts();
+    fetchAllPosts();
   }, []);
 
-  const fetchPosts = async () => {
+  // notices와 dev_logs 양쪽에서 데이터를 모두 불러와서 합침
+  const fetchAllPosts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false });
+    
+    const [noticesRes, devLogsRes] = await Promise.all([
+      supabase.from('notices').select('*').order('created_at', { ascending: false }),
+      supabase.from('dev_logs').select('*').order('created_at', { ascending: false })
+    ]);
 
-    if (error) {
-      console.error('게시글 불러오기 실패:', error.message);
-    } else {
-      setPosts(data || []);
-    }
+    const notices: PostItem[] = (noticesRes.data || []).map(item => ({ ...item, type: 'notice' }));
+    const devLogs: PostItem[] = (devLogsRes.data || []).map(item => ({ ...item, type: 'dev' }));
+
+    // 최신순으로 정렬 통합
+    const combined = [...notices, [...devLogs]].flat().sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    setItems(combined);
     setLoading(false);
   };
 
-const handleCreatePost = async (e: React.FormEvent) => {
+  // 글 작성 핸들러 (선택한 테이블에 맞게 insert)
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.');
@@ -50,48 +57,43 @@ const handleCreatePost = async (e: React.FormEvent) => {
 
     setIsSubmitting(true);
     const { error } = await supabase
-      .from('posts')
-      .insert([{ 
-        title, 
-        content, 
-        category,
-        author_name: '관리자' // 이 부분을 추가해 줍니다.
-      }]);
+      .from(targetTable) // 'notices' 또는 'dev_logs'에 동적 저장
+      .insert([{ title, content }]);
 
     if (error) {
       alert('작성 실패: ' + error.message);
     } else {
       setTitle('');
       setContent('');
-      fetchPosts(); 
+      fetchAllPosts(); 
     }
     setIsSubmitting(false);
   };
 
-  // 글 삭제 핸들러
-  const handleDeletePost = async (id: number) => {
+  // 글 삭제 핸들러 (어떤 테이블의 글인지 확인 후 삭제)
+  const handleDeletePost = async (id: number, type: 'notice' | 'dev') => {
     if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
 
+    const tableName = type === 'notice' ? 'notices' : 'dev_logs';
     const { error } = await supabase
-      .from('posts')
+      .from(tableName)
       .delete()
       .eq('id', id);
 
     if (error) {
       alert('삭제 실패: ' + error.message);
     } else {
-      setPosts(posts.filter(p => p.id !== id));
+      setItems(items.filter(item => !(item.id === id && item.type === type)));
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
       <div className="max-w-6xl mx-auto">
-        {/* 헤더 */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold">공지사항 및 개발일지 통합 관리</h1>
-            <p className="text-sm text-gray-400 mt-1">사이트의 소식과 업데이트 내역을 한곳에서 작성하고 관리합니다.</p>
+            <p className="text-sm text-gray-400 mt-1">각각의 테이블에 분리된 소식을 한곳에서 작성하고 관리합니다.</p>
           </div>
           <Link href="/admin" className="text-sm text-gray-400 hover:text-white transition-colors">
             ← 관리자 홈으로
@@ -104,14 +106,14 @@ const handleCreatePost = async (e: React.FormEvent) => {
             <h2 className="text-lg font-semibold mb-4 text-blue-400">새 글 작성하기</h2>
             <form onSubmit={handleCreatePost} className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">카테고리</label>
+                <label className="block text-xs text-gray-400 mb-1">저장할 게시판</label>
                 <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as 'notice' | 'dev')}
+                  value={targetTable}
+                  onChange={(e) => setTargetTable(e.target.value as 'notices' | 'dev_logs')}
                   className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
                 >
-                  <option value="notice">공지사항 (Notice)</option>
-                  <option value="dev">개발일지 (Dev Log)</option>
+                  <option value="notices">공지사항 (notices 테이블)</option>
+                  <option value="dev_logs">개발일지 (dev_logs 테이블)</option>
                 </select>
               </div>
 
@@ -147,35 +149,35 @@ const handleCreatePost = async (e: React.FormEvent) => {
             </form>
           </div>
 
-          {/* 우측: 등록된 글 목록 */}
+          {/* 우측: 통합 등록된 글 목록 */}
           <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-lg font-semibold text-gray-200">등록된 게시글 목록 ({posts.length})</h2>
+            <h2 className="text-lg font-semibold text-gray-200">전체 게시글 목록 ({items.length})</h2>
 
             {loading ? (
               <div className="text-center py-20 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">불러오는 중...</div>
-            ) : posts.length === 0 ? (
+            ) : items.length === 0 ? (
               <div className="text-center py-20 text-gray-500 bg-gray-900 border border-gray-800 rounded-xl">등록된 글이 없습니다.</div>
             ) : (
               <div className="space-y-3">
-                {posts.map((post) => (
-                  <div key={post.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex justify-between items-start gap-4">
+                {items.map((item) => (
+                  <div key={`${item.type}-${item.id}`} className="bg-gray-900 border border-gray-800 rounded-xl p-5 flex justify-between items-start gap-4">
                     <div className="space-y-1.5 flex-1">
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${
-                          post.category === 'notice' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-purple-500/10 text-purple-400 border border-purple-500/30'
+                          item.type === 'notice' ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-purple-500/10 text-purple-400 border border-purple-500/30'
                         }`}>
-                          {post.category === 'notice' ? '공지' : '개발일지'}
+                          {item.type === 'notice' ? '공지' : '개발일지'}
                         </span>
-                        <h3 className="font-semibold text-white">{post.title}</h3>
+                        <h3 className="font-semibold text-white">{item.title}</h3>
                       </div>
-                      <p className="text-sm text-gray-400 whitespace-pre-wrap line-clamp-2">{post.content}</p>
+                      <p className="text-sm text-gray-400 whitespace-pre-wrap line-clamp-2">{item.content}</p>
                       <span className="text-xs text-gray-500 block pt-1">
-                        {new Date(post.created_at).toLocaleDateString()} 작성됨
+                        {new Date(item.created_at).toLocaleDateString()} 작성됨
                       </span>
                     </div>
 
                     <button
-                      onClick={() => handleDeletePost(post.id)}
+                      onClick={() => handleDeletePost(item.id, item.type)}
                       className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs transition-colors shrink-0"
                     >
                       삭제
