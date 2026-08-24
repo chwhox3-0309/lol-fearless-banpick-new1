@@ -19,7 +19,7 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* 챔피언 통계 및 포지션 관리 카드 */}
           <Link 
             href="/admin/stats" 
@@ -59,9 +59,22 @@ export default function AdminDashboard() {
             </p>
           </Link>
           
+          {/* J-Pop / 일드 OST 관리 카드 (새로 추가됨) */}
+          <Link 
+            href="/admin/jpop" 
+            className="p-6 bg-gray-900 border border-gray-800 rounded-xl hover:border-purple-500 transition-all block group"
+          >
+            <h2 className="text-xl font-semibold mb-2 text-purple-400 group-hover:text-purple-300">
+              🎵 J-Pop / 일드 OST 관리
+            </h2>
+            <p className="text-gray-400 text-sm">
+              분기별, 방송사별 일본 드라마 OST 아카이브 게시물을 등록, 수정 및 관리합니다.
+            </p>
+          </Link>
+
           {/* 사이트 설정 카드 (확장용) */}
-          <div className="p-6 bg-gray-900 border border-gray-800 rounded-xl opacity-60 cursor-not-allowed">
-            <h2 className="text-xl font-semibold mb-2 text-purple-400">⚙️ 메타 설정 (준비중)</h2>
+          <div className="p-6 bg-gray-900 border border-gray-800 rounded-xl opacity-60 cursor-not-allowed lg:col-span-4">
+            <h2 className="text-xl font-semibold mb-2 text-gray-400">⚙️ 메타 설정 (준비중)</h2>
             <p className="text-gray-400 text-sm">
               글로벌 패치 버전 및 시스템 환경설정을 관리합니다.
             </p>
