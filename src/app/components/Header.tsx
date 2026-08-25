@@ -13,7 +13,7 @@ export default function Header() {
     { name: 'WOS', href: '/wos' },
     { name: 'J-Pop', href: '/j-pop' },
     { name: 'TFT', href: '/tft' },
-    { name: '사다리 타기', href: '/ladder' },
+    { name: '빵Zip', href: '/bakery' },
   ];
 
   return (
