@@ -41,7 +41,6 @@ export default function AdminJPopPage() {
 
   const fetchPosts = async () => {
     setLoading(true);
-    setSelectedIds(false as any); // 목록 갱신 시 선택 초기화
     setSelectedIds([]);
     const { data, error } = await supabase
       .from("jpop_posts")
@@ -162,7 +161,7 @@ export default function AdminJPopPage() {
     }
   };
 
-  // ── [신규] 전체 선택/해제 토글 핸들러 ──
+  // 전체 선택/해제 토글 핸들러
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       const allIds = items.map((item) => item.id);
@@ -172,7 +171,7 @@ export default function AdminJPopPage() {
     }
   };
 
-  // ── [신규] 개별 체크박스 토글 핸들러 ──
+  // 개별 체크박스 토글 핸들러
   const handleCheckboxChange = (id: number) => {
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
@@ -181,14 +180,14 @@ export default function AdminJPopPage() {
     }
   };
 
-  // ── [신규] 선택 항목 일괄 삭제 핸들러 ──
+  // 선택 항목 일괄 삭제 핸들러
   const handleBatchDelete = async () => {
     if (selectedIds.length === 0) {
       alert("삭제할 항목을 먼저 선택해주세요.");
       return;
     }
 
-    if (!confirm(`정말 선택한 ${selectedIds.length개의 항목을 삭제하시겠습니까?`?.replace("갯", "건의 ") || `정말 선택한 ${selectedIds.length}개의 항목을 삭제하시겠습니까?`)) return;
+    if (!confirm(`정말 선택한 ${selectedIds.length}개의 항목을 삭제하시겠습니까?`)) return;
 
     const { error } = await supabase
       .from("jpop_posts")
