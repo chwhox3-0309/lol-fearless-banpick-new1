@@ -188,8 +188,8 @@ export default function BakeryApp() {
           )}
         </div>
 
-        {/* 우측: 카카오 맵 영역 (부드러운 모서리와 감성적인 여백) */}
-        <div className="hidden lg:block lg:w-1/2 relative border-l border-stone-200/60 bg-stone-100">
+        {/* 우측: 카카오 맵 영역 */}
+        <div className="hidden lg:block lg:w-1/2 relative border-l border-stone-200/60 bg-stone-100 overflow-hidden">
           <Map
             center={mapCenter}
             style={{ width: "100%", height: "100%" }}
