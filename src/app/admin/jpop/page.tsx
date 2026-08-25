@@ -28,6 +28,9 @@ export default function AdminJPopPage() {
   const [artist, setArtist] = useState("");
   const [description, setDescription] = useState("");
 
+  // 일괄 업로드 중복 처리 정책 옵션 ("skip" : 중복 건너뛰기, "update" : 덮어쓰기)
+  const [duplicatePolicy, setDuplicatePolicy] = useState<"skip" | "update">("skip");
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -47,7 +50,7 @@ export default function AdminJPopPage() {
     setLoading(false);
   };
 
-  // 단건 등록 핸들러
+  // 단건 등록 핸들러 (프론트엔드 실시간 중복 검사 포함)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !ostTitle) {
@@ -55,19 +58,37 @@ export default function AdminJPopPage() {
       return;
     }
 
+    // 프론트엔드 중복 체크 (드라마 제목 + OST 곡명 기준)
+    const isDuplicate = items.some(
+      (item) => 
+        item.title.trim().toLowerCase() === title.trim().toLowerCase() && 
+        item.ost_title.trim().toLowerCase() === ostTitle.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      const confirmProceed = confirm(
+        "⚠️ 이미 동일한 드라마와 OST 곡명 조합이 존재합니다. 계속 등록하시겠습니까?"
+      );
+      if (!confirmProceed) return;
+    }
+
     const { error } = await supabase.from("jpop_posts").insert([
       {
-        title,
-        category,
-        broadcast,
-        ost_title: ostTitle,
-        artist,
-        description,
+        title: title.trim(),
+        category: category.trim(),
+        broadcast: broadcast.trim(),
+        ost_title: ostTitle.trim(),
+        artist: artist.trim(),
+        description: description.trim(),
       },
     ]);
 
     if (error) {
-      alert("등록 실패: " + error.message);
+      if (error.code === "23505") {
+        alert("등록 실패: 데이터베이스에 이미 동일한 항목(드라마+곡명+아티스트)이 존재합니다.");
+      } else {
+        alert("등록 실패: " + error.message);
+      }
     } else {
       alert("성공적으로 등록되었습니다!");
       setTitle("");
@@ -107,7 +128,7 @@ export default function AdminJPopPage() {
     document.body.removeChild(link);
   };
 
-  // 2. CSV 파일 업로드 및 일괄 등록 함수
+  // 2. CSV 파일 업로드 및 일괄 등록 함수 (중복 처리 옵션 반영)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -125,12 +146,9 @@ export default function AdminJPopPage() {
           return;
         }
 
-        // 헤더 파싱
-        const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
         const rows = lines.slice(1);
 
         const newRecords = rows.map((row) => {
-          // 간단한 CSV 파싱 (따옴표 처리 고려)
           const values = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((v) => v.trim().replace(/^"|"$/g, ""));
           
           return {
@@ -141,7 +159,7 @@ export default function AdminJPopPage() {
             artist: values[4] || "",
             description: values[5] || "",
           };
-        }).filter(record => record.title && record.ost_title); // 필수값 누락된 행 제외
+        }).filter(record => record.title && record.ost_title);
 
         if (newRecords.length === 0) {
           alert("등록할 수 있는 유효한 데이터 행이 없습니다.");
@@ -149,20 +167,25 @@ export default function AdminJPopPage() {
           return;
         }
 
-        // Supabase 대량 삽입
-        const { error } = await supabase.from("jpop_posts").insert(newRecords);
+        // Supabase Upsert 활용 (중복 발생 시 처리)
+        // ignoreDuplicates: true 이면 중복 시 기존 데이터 유지(건너뛰기)
+        // ignoreDuplicates: false 이면 중복 시 새로운 데이터로 덮어쓰기(업데이트)
+        const { error } = await supabase.from("jpop_posts").upsert(newRecords, {
+          onConflict: "title,ost_title,artist",
+          ignoreDuplicates: duplicatePolicy === "skip",
+        });
 
         if (error) {
           alert("일괄 등록 중 오류가 발생했습니다: " + error.message);
         } else {
-          alert(`성공적으로 ${newRecords.length}개의 항목이 일괄 등록되었습니다!`);
+          alert(`일괄 등록 작업이 완료되었습니다! (처리된 총 행 수: ${newRecords.length}건)`);
           fetchPosts();
         }
       } catch (err: any) {
         alert("파일 처리 중 오류가 발생했습니다: " + err.message);
       } finally {
         setUploading(false);
-        e.target.value = ""; // 파일 입력 초기화
+        e.target.value = "";
       }
     };
     reader.readAsText(file, "utf-8");
@@ -189,13 +212,42 @@ export default function AdminJPopPage() {
         </div>
 
         {/* 일괄 등록 및 폼 다운로드 섹션 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-purple-400">📦 파일 일괄 등록 (CSV)</h2>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            엑셀이나 CSV 파일을 이용해 한 번에 여러 개의 드라마 OST 데이터를 등록할 수 있습니다. 
-            먼저 폼 양식을 다운로드하여 양식에 맞춰 작성한 뒤 업로드해 주세요.
-          </p>
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-purple-400">📦 파일 일괄 등록 (CSV) 및 중복 방지 설정</h2>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              엑셀이나 CSV 파일을 이용해 한 번에 여러 개의 데이터를 등록합니다. 동일한 드라마/곡/아티스트가 이미 존재할 때의 처리 방식을 선택하세요.
+            </p>
+          </div>
+
+          {/* 중복 처리 정책 선택 라디오 박스 */}
+          <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <span className="text-xs text-gray-300 font-medium">🔄 중복 데이터 발견 시 처리 정책:</span>
+            <div className="flex items-center gap-4 text-xs">
+              <label className="flex items-center gap-2 cursor-pointer text-gray-300">
+                <input
+                  type="radio"
+                  name="duplicatePolicy"
+                  checked={duplicatePolicy === "skip"}
+                  onChange={() => setDuplicatePolicy("skip")}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span>중복 건너뛰기 (기존 데이터 유지)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer text-gray-300">
+                <input
+                  type="radio"
+                  name="duplicatePolicy"
+                  checked={duplicatePolicy === "update"}
+                  onChange={() => setDuplicatePolicy("update")}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span>덮어쓰기 (최신 내용으로 업데이트)</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={downloadTemplate}
               className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-all border border-gray-700 flex items-center gap-2"
