@@ -82,7 +82,6 @@ export default function HearthstoneDeckBuilder() {
       alert("덱은 최대 30장까지만 구성할 수 있습니다.");
       return;
     }
-    // 동일 카드 제한 (전설은 1장, 일반/특급은 최대 2장 등 간단히 구현)
     const existingCount = deck.filter((c) => c.cardId === card.cardId).length;
     const maxLimit = card.rarity === "Legendary" ? 1 : 2;
     
@@ -91,7 +90,6 @@ export default function HearthstoneDeckBuilder() {
       return;
     }
 
-    // 마나 비용 순으로 정렬 유지
     const updatedDeck = [...deck, card].sort((a, b) => (a.cost || 0) - (b.cost || 0));
     setDeck(updatedDeck);
   };
@@ -130,7 +128,7 @@ export default function HearthstoneDeckBuilder() {
         </div>
       </header>
 
-      {/* 메인 3단 분할 레이아웃 (좌측: 검색 결과 / 중앙: 카드 선택 리스트 / 우측: 내 덱 빌딩 현황) */}
+      {/* 메인 3단 분할 레이아웃 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 1. 카드 라이브러리 (검색 결과) */}
         <div className="w-full lg:w-7/12 overflow-y-auto p-8 grid grid-cols-2 md:grid-cols-3 gap-5 bg-[#13151A]">
@@ -172,7 +170,6 @@ export default function HearthstoneDeckBuilder() {
 
         {/* 2. 우측: 나만의 덱 리스트 빌더 영역 */}
         <div className="hidden lg:flex lg:w-5/12 flex-col border-l border-stone-800/80 bg-[#161922] overflow-hidden">
-          {/* 덱 헤더 요약 */}
           <div className="p-6 border-b border-stone-800/80 bg-[#181B22] flex justify-between items-center">
             <div>
               <h2 className="text-xs font-bold tracking-widest text-stone-100 uppercase">Current Deck</h2>
@@ -186,7 +183,6 @@ export default function HearthstoneDeckBuilder() {
             </button>
           </div>
 
-          {/* 구성된 덱 카드 리스트 */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
             {deck.map((card, idx) => (
               <div
