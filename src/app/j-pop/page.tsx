@@ -279,12 +279,12 @@ export default function JPopClientPage() {
             </button>
           </div>
         )}
-{/* 
+ 
         {/* 광고 배너 */}
         <div className="flex justify-center pt-4">
           <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
         </div>
- */}
+ 
       </div>
     </div>
   );
