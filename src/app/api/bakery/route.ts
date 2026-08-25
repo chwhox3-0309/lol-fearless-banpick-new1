@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const pageNo = searchParams.get("pageNo") || "1";
-  const numOfRows = searchParams.get("numOfRows") || "1000";
+  const numOfRows = searchParams.get("numOfRows") || "100";
   const keyword = searchParams.get("keyword") || "";
 
   const rawServiceKey = process.env.PUBLIC_DATA_API_KEY || "";
@@ -21,50 +21,34 @@ export async function GET(request: Request) {
     const response = await fetch(targetUrl);
     const textData = await response.text();
 
+    // 🔍 1. 공공데이터 서버가 보내준 원본 응답을 터미널에 무조건 출력
+    console.log("================ [API 원본 응답 시작] ================");
+    console.log(textData.substring(0, 500)); // 앞부분 500자 출력
+    console.log("================ [API 원본 응답 끝] ================");
+
     if (!textData.trim().startsWith("{") && !textData.trim().startsWith("[")) {
-      console.error("API 응답이 JSON이 아닙니다:", textData.substring(0, 200));
-      return NextResponse.json({ items: [], error: "Invalid API Response Format" });
+      return NextResponse.json({ items: [], error: "공공데이터포털이 JSON이 아닌 응답(에러 XML 등)을 반환했습니다. 인증키나 활용신청 상태를 확인하세요." });
     }
 
     const data = JSON.parse(textData);
     
-    // 👉 공공데이터포털 응답 구조에서 아이템 배열을 찾는 가장 유연한 탐색 로직
-    let items = [];
-    
-    // 일반적인 공공데이터 표준 구조 탐색
-    if (data?.response?.body?.items?.item) {
-      items = data.response.body.items.item;
-    } else if (data?.response?.body?.items) {
-      items = data.response.body.items;
-    } else if (data?.body?.items?.item) {
-      items = data.body.items.item;
-    } else if (data?.body?.items) {
-      items = data.body.items;
-    } else if (Array.isArray(data?.body)) {
-      items = data.body;
-    } else if (Array.isArray(data?.items)) {
-      items = data.items;
-    } else {
-      // 구조를 모를 경우 객체 내부에서 배열 타입인 값을 탐색
-      const findArray = (obj: any): any[] | null => {
-        if (!obj || typeof obj !== "object") return null;
-        for (const key of Object.keys(obj)) {
-          if (Array.isArray(obj[key])) return obj[key];
-          if (typeof obj[key] === "object") {
-            const res = findArray(obj[key]);
-            if (res) return res;
-          }
-        }
-        return null;
-      };
-      items = findArray(data) || [];
-    }
+    // 🔍 2. 파싱 시도
+    let items = 
+      data?.response?.body?.items?.item || 
+      data?.response?.body?.items || 
+      data?.body?.items?.item ||
+      data?.body?.items || 
+      data?.body ||
+      data?.items || 
+      [];
 
     if (items && !Array.isArray(items)) {
       items = [items];
     }
 
-    // 서버 단에서 keyword(지역명 또는 상호명) 필터링
+    console.log(`🔍 파싱된 최종 아이템 개수: ${items.length}개`);
+
+    // 검색어 필터링
     let filteredItems = items;
     if (keyword && items.length > 0) {
       const lowerKeyword = keyword.toLowerCase();
@@ -77,7 +61,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ items: filteredItems });
   } catch (error: any) {
-    console.error("Bakery API Error:", error.message);
+    console.error("Bakery API Server Error:", error.message);
     return NextResponse.json({ items: [], error: error.message }, { status: 500 });
   }
 }
