@@ -14,7 +14,6 @@ export async function GET(request: Request) {
     decodedKey = rawServiceKey;
   }
 
-  // 👉 화면에 나온 상세기능 경로(/info)에 맞춘 올바른 엔드포인트
   const baseUrl = "https://apis.data.go.kr/1741000/bakeries/info"; 
   const targetUrl = `${baseUrl}?serviceKey=${encodeURIComponent(decodedKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&type=json`;
 
@@ -29,27 +28,50 @@ export async function GET(request: Request) {
 
     const data = JSON.parse(textData);
     
-    // 응답 데이터 파싱 구조 대응
-    let items = 
-      data?.response?.body?.items?.item || 
-      data?.response?.body?.items || 
-      data?.body?.items?.item ||
-      data?.body?.items || 
-      data?.body ||
-      data?.items || 
-      [];
+    // 👉 공공데이터포털 응답 구조에서 아이템 배열을 찾는 가장 유연한 탐색 로직
+    let items = [];
+    
+    // 일반적인 공공데이터 표준 구조 탐색
+    if (data?.response?.body?.items?.item) {
+      items = data.response.body.items.item;
+    } else if (data?.response?.body?.items) {
+      items = data.response.body.items;
+    } else if (data?.body?.items?.item) {
+      items = data.body.items.item;
+    } else if (data?.body?.items) {
+      items = data.body.items;
+    } else if (Array.isArray(data?.body)) {
+      items = data.body;
+    } else if (Array.isArray(data?.items)) {
+      items = data.items;
+    } else {
+      // 구조를 모를 경우 객체 내부에서 배열 타입인 값을 탐색
+      const findArray = (obj: any): any[] | null => {
+        if (!obj || typeof obj !== "object") return null;
+        for (const key of Object.keys(obj)) {
+          if (Array.isArray(obj[key])) return obj[key];
+          if (typeof obj[key] === "object") {
+            const res = findArray(obj[key]);
+            if (res) return res;
+          }
+        }
+        return null;
+      };
+      items = findArray(data) || [];
+    }
 
     if (items && !Array.isArray(items)) {
       items = [items];
     }
 
-    // 서버 단에서 keyword 필터링 수행
+    // 서버 단에서 keyword(지역명 또는 상호명) 필터링
     let filteredItems = items;
     if (keyword && items.length > 0) {
+      const lowerKeyword = keyword.toLowerCase();
       filteredItems = items.filter((item: any) => {
-        const name = item.bplcNm || item.BPLC_NM || "";
-        const addr = item.rdnWhlAddr || item.ROAD_NM_ADDR || item.siteWhlAddr || item.SITE_WHL_ADDR || "";
-        return name.includes(keyword) || addr.includes(keyword);
+        const name = String(item.bplcNm || item.BPLC_NM || "").toLowerCase();
+        const addr = String(item.rdnWhlAddr || item.ROAD_NM_ADDR || item.siteWhlAddr || item.SITE_WHL_ADDR || "").toLowerCase();
+        return name.includes(lowerKeyword) || addr.includes(lowerKeyword);
       });
     }
 
