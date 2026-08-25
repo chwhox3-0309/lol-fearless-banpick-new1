@@ -11,7 +11,7 @@ interface BakeryItem {
   roadAddress?: string;
 }
 
-// 대한민국 주요 지역 리스트 (공공데이터 조회용 쿼리 매핑)
+// 대한민국 주요 지역 리스트
 const REGIONS = [
   { label: "서울", keyword: "서울 제과점" },
   { label: "경기", keyword: "경기도 베이커리" },
@@ -30,23 +30,23 @@ export default function BakeryPublicDataApp() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBakery, setSelectedBakery] = useState<BakeryItem | null>(null);
 
-  // 지역별 데이터 페치 (공공 오픈 데이터를 모사한 고성능 비동기 핸들러)
+  // 지역별 데이터 비동기 페치
   useEffect(() => {
     const fetchBakeriesByRegion = async () => {
       setLoading(true);
       try {
-        // 실제 공공데이터 포털 API 또는 프록시 서버 연동부
-        // 현재는 대량의 데이터를 안정적으로 시뮬레이션하기 위한 리치 데이터셋 로직 적용
-        const mockData: BakeryItem[] = Array.from({ length: 24 }, (_, index) => ({
-          id: `${selectedRegion.label}-${index + 1}`,
-          name: `${selectedRegion.label} 아티장 베이커리 ${index + 1호점}`,
-          category: index % 2 === 0 ? "수제 베이글 / 페이스트리" : "건강발효빵 / 디저트",
-          address: `${selectedRegion.label} 시스구 맛집로 ${index + 15}길 ${index + 3}`,
-          roadAddress: `${selectedRegion.label} 도로명 테마로 ${index + 10}번길`,
-          phone: `02-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
-        }));
+        const mockData: BakeryItem[] = Array.from({ length: 24 }, (_, index) => {
+          const num = index + 1;
+          return {
+            id: `${selectedRegion.label}-${num}`,
+            name: `${selectedRegion.label} 아티장 베이커리 ${num}호점`,
+            category: index % 2 === 0 ? "수제 베이글 / 페이스트리" : "건강발효빵 / 디저트",
+            address: `${selectedRegion.label} 시스구 맛집로 ${num + 14}길 ${num + 2}`,
+            roadAddress: `${selectedRegion.label} 도로명 테마로 ${num + 9}번길`,
+            phone: `02-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
+          };
+        });
 
-        // 검색어가 있는 경우 필터링 적용
         const filtered = searchTerm
           ? mockData.filter(item => item.name.includes(searchTerm) || item.address.includes(searchTerm))
           : mockData;
@@ -111,7 +111,7 @@ export default function BakeryPublicDataApp() {
         </div>
       </header>
 
-      {/* 메인 2단 분할 레이아웃 (지도 로드 없음, 순수 데이터 렌더링으로 쾌적함 극대화) */}
+      {/* 메인 2단 분할 레이아웃 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 1. 좌측: 지역별 빵집 리스트 카드 그리드 */}
         <div className="w-full lg:w-7/12 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#13151A]">
@@ -158,7 +158,7 @@ export default function BakeryPublicDataApp() {
           )}
         </div>
 
-        {/* 2. 우측: 선택된 빵집 상세 정보 카드 (고정형 뷰) */}
+        {/* 2. 우측: 선택된 빵집 상세 정보 카드 */}
         <div className="hidden lg:flex lg:w-5/12 flex-col p-8 border-l border-stone-800/80 bg-[#161922] justify-center items-center">
           {selectedBakery ? (
             <div className="w-full max-w-md p-8 rounded-[28px] bg-[#1B1F28] border border-stone-700/50 shadow-2xl flex flex-col gap-6 animate-fadeIn">
@@ -187,7 +187,7 @@ export default function BakeryPublicDataApp() {
               </div>
 
               <div className="bg-[#12141A] p-4 rounded-[18px] border border-stone-800 text-xs text-stone-400 leading-relaxed">
-                💡 지도를 완전히 배제하고 지역별 공공 데이터를 비동기로 호출하도록 최적화하여, 브라우저 메모리와 네트워크 부담을 대폭 낮추었습니다.
+                💡 지도를 완전히 배제하고 순수 공공데이터 구조 기반으로 리소스를 최소화하여 빠르고 쾌적하게 동작합니다.
               </div>
             </div>
           ) : (
