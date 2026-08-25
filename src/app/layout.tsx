@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 import Footer from './components/Footer';
@@ -8,7 +7,6 @@ import Header from './components/Header';
 import AuthSessionProvider from './components/AuthSessionProvider';
 import { DraftProvider } from './context/DraftContext';
 import KakaoAdFitBanner from './components/KakaoAdFitBanner';
-import AdPlaceholder from './components/AdPlaceholder'; // 광고 영역 감싸기용
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,20 +26,19 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* Google AdSense Script - next/script로 최적화 */}
-        <Script
+        {/* Google AdSense Script - next/script 대신 일반 HTML script 사용으로 data-nscript 충돌 해결 */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6831227862636699"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        ></script>
       </head>
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-gray-900 text-white`}>
         <AuthSessionProvider>
           <DraftProvider>
             <Header />
 
-            {/* 상단 728x90 메인 광고 구역 (CLS 방지: min-h-[90px]) */}
+            {/* 상단 728x90 메인 광고 구역 */}
             <div className="flex justify-center items-center my-4 min-h-[90px] w-full px-4">
               <KakaoAdFitBanner adUnit="DAN-BKOeD7FOllmXhljU" width="728" height="90" />
             </div>
