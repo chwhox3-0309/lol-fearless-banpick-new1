@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LoL 피어리스 밴픽 도구",
+  title: "Draft Lab.",
   description: "리그 오브 레전드 피어리스 드래프트 밴픽 시뮬레이터",
 };
 
