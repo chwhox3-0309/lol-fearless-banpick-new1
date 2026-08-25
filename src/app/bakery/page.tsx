@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "interface" in window ? {} : {} as any; // 타입 에러 방지용 기본 구조
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 interface BakeryItem {
@@ -11,7 +11,7 @@ interface BakeryItem {
 }
 
 export default function BakeryArchivePage() {
-  const [bakeries, setBakeries] =: [BakeryItem[], any];
+  const [bakeries, setBakeries] = useState<BakeryItem[]>([]);
   const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +27,6 @@ export default function BakeryArchivePage() {
         throw new Error(data.error || "데이터 조회 실패");
       }
 
-      // 공공데이터 응답 구조에 맞게 파싱 (API 스펙에 따라 items 경로가 다를 수 있습니다)
       const items = data?.response?.body?.items || data?.body?.items || [];
       
       // 영업 중인 곳만 필터링
@@ -116,7 +115,6 @@ export default function BakeryArchivePage() {
                 key={idx}
                 className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-700 transition-all shadow-lg flex flex-col justify-between group"
               >
-                {/* 카드 상단 이미지 대체 박스 (추후 사진 API나 아이콘 연동 가능) */}
                 <div className="h-40 bg-gray-800 relative flex items-center justify-center overflow-hidden">
                   <span className="text-4xl group-hover:scale-110 transition-transform duration-300">🥐</span>
                   <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -124,7 +122,6 @@ export default function BakeryArchivePage() {
                   </span>
                 </div>
 
-                {/* 카드 본문 내용 */}
                 <div className="p-5 space-y-2">
                   <h3 className="text-base font-bold text-white truncate">{bakery.bplcnm}</h3>
                   <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
