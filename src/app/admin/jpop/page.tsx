@@ -20,7 +20,8 @@ export default function AdminJPopPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // 단건 등록 폼 상태
+  // 등록 / 수정 공용 폼 상태
+  const [editingId, setEditingId] = useState<number | null>(null); // null이면 등록 모드, 숫자면 수정 모드
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [broadcast, setBroadcast] = useState("");
@@ -28,7 +29,7 @@ export default function AdminJPopPage() {
   const [artist, setArtist] = useState("");
   const [description, setDescription] = useState("");
 
-  // 일괄 업로드 중복 처리 정책 옵션 ("skip" : 중복 건너뛰기, "update" : 덮어쓰기)
+  // 일괄 업로드 중복 처리 정책 옵션
   const [duplicatePolicy, setDuplicatePolicy] = useState<"skip" | "update">("skip");
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function AdminJPopPage() {
     setLoading(false);
   };
 
-  // 단건 등록 핸들러 (프론트엔드 실시간 중복 검사 포함)
+  // 등록 또는 수정 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !ostTitle) {
@@ -58,47 +59,90 @@ export default function AdminJPopPage() {
       return;
     }
 
-    // 프론트엔드 중복 체크 (드라마 제목 + OST 곡명 기준)
-    const isDuplicate = items.some(
-      (item) => 
-        item.title.trim().toLowerCase() === title.trim().toLowerCase() && 
-        item.ost_title.trim().toLowerCase() === ostTitle.trim().toLowerCase()
-    );
+    if (editingId !== null) {
+      // [수정 모드] 업데이트 실행
+      const { error } = await supabase
+        .from("jpop_posts")
+        .update({
+          title: title.trim(),
+          category: category.trim(),
+          broadcast: broadcast.trim(),
+          ost_title: ostTitle.trim(),
+          artist: artist.trim(),
+          description: description.trim(),
+        })
+        .eq("id", editingId);
 
-    if (isDuplicate) {
-      const confirmProceed = confirm(
-        "⚠️ 이미 동일한 드라마와 OST 곡명 조합이 존재합니다. 계속 등록하시겠습니까?"
-      );
-      if (!confirmProceed) return;
-    }
-
-    const { error } = await supabase.from("jpop_posts").insert([
-      {
-        title: title.trim(),
-        category: category.trim(),
-        broadcast: broadcast.trim(),
-        ost_title: ostTitle.trim(),
-        artist: artist.trim(),
-        description: description.trim(),
-      },
-    ]);
-
-    if (error) {
-      if (error.code === "23505") {
-        alert("등록 실패: 데이터베이스에 이미 동일한 항목(드라마+곡명+아티스트)이 존재합니다.");
+      if (error) {
+        alert("수정 실패: " + error.message);
       } else {
-        alert("등록 실패: " + error.message);
+        alert("성공적으로 수정되었습니다!");
+        resetForm();
+        fetchPosts();
       }
     } else {
-      alert("성공적으로 등록되었습니다!");
-      setTitle("");
-      setCategory("");
-      setBroadcast("");
-      setOstTitle("");
-      setArtist("");
-      setDescription("");
-      fetchPosts();
+      // [신규 등록 모드] 프론트엔드 중복 체크
+      const isDuplicate = items.some(
+        (item) => 
+          item.title.trim().toLowerCase() === title.trim().toLowerCase() && 
+          item.ost_title.trim().toLowerCase() === ostTitle.trim().toLowerCase()
+      );
+
+      if (isDuplicate) {
+        const confirmProceed = confirm(
+          "⚠️ 이미 동일한 드라마와 OST 곡명 조합이 존재합니다. 계속 등록하시겠습니까?"
+        );
+        if (!confirmProceed) return;
+      }
+
+      const { error } = await supabase.from("jpop_posts").insert([
+        {
+          title: title.trim(),
+          category: category.trim(),
+          broadcast: broadcast.trim(),
+          ost_title: ostTitle.trim(),
+          artist: artist.trim(),
+          description: description.trim(),
+        },
+      ]);
+
+      if (error) {
+        if (error.code === "23505") {
+          alert("등록 실패: 데이터베이스에 이미 동일한 항목(드라마+곡명+아티스트)이 존재합니다.");
+        } else {
+          alert("등록 실패: " + error.message);
+        }
+      } else {
+        alert("성공적으로 등록되었습니다!");
+        resetForm();
+        fetchPosts();
+      }
     }
+  };
+
+  // 수정 모드 진입 (상단 입력 폼에 기존 데이터 채워넣기)
+  const handleEditClick = (item: DramaOstItem) => {
+    setEditingId(item.id);
+    setTitle(item.title);
+    setCategory(item.category || "");
+    setBroadcast(item.broadcast || "");
+    setOstTitle(item.ost_title);
+    setArtist(item.artist || "");
+    setDescription(item.description || "");
+    
+    // 사용자가 편하게 수정 폼으로 시선이 갈 수 있도록 상단으로 스크롤 이동
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // 폼 초기화
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle("");
+    setCategory("");
+    setBroadcast("");
+    setOstTitle("");
+    setArtist("");
+    setDescription("");
   };
 
   // 삭제 핸들러
@@ -109,11 +153,12 @@ export default function AdminJPopPage() {
     if (error) {
       alert("삭제 실패: " + error.message);
     } else {
+      if (editingId === id) resetForm(); // 수정 중이던 항목을 삭제한 경우 폼 초기화
       fetchPosts();
     }
   };
 
-  // 1. CSV 양식 다운로드 함수
+  // CSV 양식 다운로드
   const downloadTemplate = () => {
     const csvContent = "title,category,broadcast,ost_title,artist,description\n" +
       "예시) 도쿄 메트로,2026년 - 3분기,TBS,아이노우,요네즈 켄시,청춘 로맨스물 드라마";
@@ -128,7 +173,7 @@ export default function AdminJPopPage() {
     document.body.removeChild(link);
   };
 
-  // 2. CSV 파일 업로드 및 일괄 등록 함수 (중복 처리 옵션 반영)
+  // CSV 파일 업로드 및 일괄 등록
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -147,10 +192,8 @@ export default function AdminJPopPage() {
         }
 
         const rows = lines.slice(1);
-
         const newRecords = rows.map((row) => {
           const values = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((v) => v.trim().replace(/^"|"$/g, ""));
-          
           return {
             title: values[0] || "",
             category: values[1] || "",
@@ -167,9 +210,6 @@ export default function AdminJPopPage() {
           return;
         }
 
-        // Supabase Upsert 활용 (중복 발생 시 처리)
-        // ignoreDuplicates: true 이면 중복 시 기존 데이터 유지(건너뛰기)
-        // ignoreDuplicates: false 이면 중복 시 새로운 데이터로 덮어쓰기(업데이트)
         const { error } = await supabase.from("jpop_posts").upsert(newRecords, {
           onConflict: "title,ost_title,artist",
           ignoreDuplicates: duplicatePolicy === "skip",
@@ -211,7 +251,7 @@ export default function AdminJPopPage() {
           </Link>
         </div>
 
-        {/* 일괄 등록 및 폼 다운로드 섹션 */}
+        {/* 파일 일괄 업로드 섹션 */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-purple-400">📦 파일 일괄 등록 (CSV) 및 중복 방지 설정</h2>
@@ -220,7 +260,6 @@ export default function AdminJPopPage() {
             </p>
           </div>
 
-          {/* 중복 처리 정책 선택 라디오 박스 */}
           <div className="bg-gray-950 border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <span className="text-xs text-gray-300 font-medium">🔄 중복 데이터 발견 시 처리 정책:</span>
             <div className="flex items-center gap-4 text-xs">
@@ -268,9 +307,23 @@ export default function AdminJPopPage() {
           </div>
         </div>
 
-        {/* 단건 등록 폼 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-indigo-400">✍️ 개별 항목 직접 등록</h2>
+        {/* 단건 등록 / 수정 폼 */}
+        <div className={`bg-gray-900 border rounded-2xl p-6 shadow-xl space-y-4 transition-colors ${editingId !== null ? 'border-amber-500/50 bg-amber-950/10' : 'border-gray-800'}`}>
+          <div className="flex justify-between items-center">
+            <h2 className={`text-lg font-semibold ${editingId !== null ? 'text-amber-400' : 'text-indigo-400'}`}>
+              {editingId !== null ? `✍️ 항목 수정 중 (ID: ${editingId})` : "✍️ 개별 항목 직접 등록"}
+            </h2>
+            {editingId !== null && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-xs transition-colors border border-gray-700"
+              >
+                수정 취소 ✕
+              </button>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-400 mb-1">드라마 제목 *</label>
@@ -343,9 +396,13 @@ export default function AdminJPopPage() {
             <div className="md:col-span-2 pt-2">
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-indigo-600/30"
+                className={`w-full py-3 font-semibold rounded-xl text-sm transition-all shadow-lg ${
+                  editingId !== null 
+                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/30' 
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/30'
+                }`}
               >
-                단건 등록하기
+                {editingId !== null ? "수정 내용 저장하기" : "단건 등록하기"}
               </button>
             </div>
           </form>
@@ -375,14 +432,20 @@ export default function AdminJPopPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-800/60 text-xs">
                   {items.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-800/40 transition-colors">
+                    <tr key={item.id} className={`hover:bg-gray-800/40 transition-colors ${editingId === item.id ? 'bg-amber-950/20 border-l-2 border-amber-500' : ''}`}>
                       <td className="py-3 px-4 text-indigo-400 font-medium">{item.category || "-"}</td>
                       <td className="py-3 px-4 text-purple-400 font-medium">{item.broadcast || "-"}</td>
                       <td className="py-3 px-4 text-white font-semibold">{item.title}</td>
                       <td className="py-3 px-4 text-gray-300">
                         {item.ost_title} <span className="text-gray-500">({item.artist})</span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => handleEditClick(item)}
+                          className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-600 text-amber-400 hover:text-white rounded-lg transition-colors border border-amber-500/20"
+                        >
+                          수정
+                        </button>
                         <button
                           onClick={() => handleDelete(item.id)}
                           className="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-colors border border-red-500/20"
