@@ -14,15 +14,14 @@ export async function GET(request: Request) {
     decodedKey = rawServiceKey;
   }
 
-  // 공공데이터포털 표준 제과점/식품위생업소 목록 조회 엔드포인트 표준
-  const baseUrl = "https://apis.data.go.kr/1741000/bakeries/getBakeryList"; 
+  // 👉 화면에 나온 상세기능 경로(/info)에 맞춘 올바른 엔드포인트
+  const baseUrl = "https://apis.data.go.kr/1741000/bakeries/info"; 
   const targetUrl = `${baseUrl}?serviceKey=${encodeURIComponent(decodedKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&type=json`;
 
   try {
     const response = await fetch(targetUrl);
     const textData = await response.text();
 
-    // 응답이 JSON 형식이 아닐 경우 (에러 XML, 인증키 오류 등)
     if (!textData.trim().startsWith("{") && !textData.trim().startsWith("[")) {
       console.error("API 응답이 JSON이 아닙니다:", textData.substring(0, 200));
       return NextResponse.json({ items: [], error: "Invalid API Response Format" });
@@ -30,7 +29,7 @@ export async function GET(request: Request) {
 
     const data = JSON.parse(textData);
     
-    // 공공데이터포털 다양한 응답 구조 대응 파싱
+    // 응답 데이터 파싱 구조 대응
     let items = 
       data?.response?.body?.items?.item || 
       data?.response?.body?.items || 
@@ -44,7 +43,7 @@ export async function GET(request: Request) {
       items = [items];
     }
 
-    // 서버 단에서 keyword가 포함된 데이터만 안전하게 필터링
+    // 서버 단에서 keyword 필터링 수행
     let filteredItems = items;
     if (keyword && items.length > 0) {
       filteredItems = items.filter((item: any) => {
