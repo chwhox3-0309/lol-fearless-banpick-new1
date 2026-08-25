@@ -3,21 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Map, MapMarker, useKakaoLoader } from "react-kakao-maps-sdk";
 
-// 베이커리 데이터 인터페이스
-interface BakeryItem {
-  id: string;
-  name: string;
-  category: string;
-  address: string;
-  roadAddress: string;
-  lat: number;
-  lng: number;
-  phone: string;
-  placeUrl: string;
-}
-
 export default function BakeryApp() {
-  // 1. 카카오 맵 SDK 로드 (services 라이브러리 필수)
+  // 1. 카카오 맵 SDK 로드 (중복 호출 방지를 위해 명시적으로 상태 관리)
   const [loading, error] = useKakaoLoader({
     appkey: process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || "",
     libraries: ["services", "clusterer"],
@@ -25,42 +12,26 @@ export default function BakeryApp() {
 
   const [searchTerm, setSearchTerm] = useState("서울 베이커리");
   const [inputVal, setInputVal] = useState("");
-  const [bakeries, setBakeries] = useState<BakeryItem[]>([]);
+  const [bakeries, setBakeries] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  
-  // 지도 중심 좌표 (기본: 서울역 / 강남 등 원하는 위치로 조정 가능)
   const [mapCenter, setMapCenter] = useState({ lat: 37.566826, lng: 126.978656 });
-  const [mapInstance, setMapInstance] = useState<any>(null);
 
-  // 2. 카카오 Places API를 이용한 실시간 베이커리 검색
-  useEffect(() => {
-    if (!loading && window.kakao && window.kakao.maps) {
-      const ps = new window.kakao.maps.services.Places();
+  // 2. 로딩 중이거나 에러가 났을 때의 가드 릴레이션
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#FBF9F5] text-stone-400 font-light tracking-wide text-xs">
+        지도를 불러오는 중입니다...
+      </div>
+    );
+  }
 
-      ps.keywordSearch(searchTerm, (data: any, status: any) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          const formattedData: BakeryItem[] = data.map((place: any) => ({
-            id: place.id,
-            name: place.place_name,
-            category: place.category_name.split(">").pop()?.trim() || "베이커리",
-            address: place.address_name,
-            roadAddress: place.road_address_name || place.address_name,
-            lat: parseFloat(place.y),
-            lng: parseFloat(place.x),
-            phone: place.phone || "정보 없음",
-            placeUrl: place.place_url,
-          }));
-          setBakeries(formattedData);
-          
-          // 검색 결과가 있다면 첫 번째 장소로 지도 중심 이동
-          if (formattedData.length > 0) {
-            setMapCenter({ lat: formattedData[0].lat, lng: formattedData[0].lng });
-          }
-        } else {
-          setBakeries([]);
-        }
-      });
-    }
+  if (error) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center bg-[#FBF9F5] text-stone-700 gap-2">
+        <p className="font-medium text-rose-500 text-sm">지도 스크립트 로드 실패</p>
+        <p className="text-xs text-stone-400">.env.local의 카카오 키와 도메인 설정을 확인해주세요.</p>
+      </div>
+    );
   }, [loading, searchTerm]);
 
   // 검색어 제출 핸들러
