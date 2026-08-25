@@ -7,16 +7,13 @@ export async function GET(request: Request) {
   const keyword = searchParams.get("keyword") || "";
 
   const serviceKey = process.env.PUBLIC_DATA_API_KEY; 
-  
-  // 알려주신 엔드포인트 뒤에 보통 오퍼레이션 명칭이 붙습니다. 
-  // 만약 이 주소 그대로 안 된다면 공공데이터포털 상세페이지의 '오퍼레이션 명'을 확인해야 합니다.
   const baseUrl = "https://apis.data.go.kr/1741000/bakeries/getBakeryList"; 
 
   const params = new URLSearchParams({
     serviceKey: serviceKey || "",
     pageNo,
     numOfRows,
-    type: "json", // 혹은 returnType: "json"
+    type: "json", // 명시적으로 JSON 요청
   });
 
   if (keyword) {
@@ -24,22 +21,16 @@ export async function GET(request: Request) {
   }
 
   const targetUrl = `${baseUrl}?${params.toString()}`;
-  console.log("=========================================");
-  console.log("👉 [서버] 요청 URL:", targetUrl);
-  console.log("👉 [서버] 사용 중인 API Key 존재 여부:", !!serviceKey);
-  console.log("=========================================");
 
   try {
     const response = await fetch(targetUrl);
     const textData = await response.text();
 
-    console.log("👉 [서버] 공공데이터 응답 상태코드:", response.status);
-    console.log("👉 [서버] 공공데이터 응답 본문(앞부분):", textData.slice(0, 500));
-
-    // 응답이 JSON이 아닐 경우(예: XML 에러 메시지) 대비
+    // 만약 공공데이터가 XML을 반환했거나 에러 페이지를 뱉은 경우
     if (!textData.trim().startsWith("{") && !textData.trim().startsWith("[")) {
+      console.error("👉 [서버] 공공데이터가 JSON이 아닌 형식을 반환했습니다:", textData.slice(0, 200));
       return NextResponse.json(
-        { error: "공공데이터 서버가 JSON이 아닌 형식(XML 또는 에러)을 반환했습니다.", raw: textData.slice(0, 200) },
+        { error: "공공데이터 서버가 올바른 JSON 형식을 반환하지 않았습니다.", raw: textData.slice(0, 200) },
         { status: 500 }
       );
     }
@@ -47,7 +38,7 @@ export async function GET(request: Request) {
     const data = JSON.parse(textData);
     return NextResponse.json(data);
   } catch (error) {
-    console.error("👉 [서버] API 호출 중 예외 발생:", error);
+    console.error("👉 [서버] API 호출 에러:", error);
     return NextResponse.json({ error: "데이터를 처리하지 못했습니다." }, { status: 500 });
   }
 }
