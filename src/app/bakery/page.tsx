@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 
-interface PublicBakeryItem {
+interface BakeryItem {
   bplcNm?: string;           
   rdnWhlAddr?: string;       
   siteWhlAddr?: string;      
   bplcInfoTelno?: string;    
   dtlStateNm?: string;       
-  [key: string]: any;        
+  [key: string]: any;
 }
 
 const REGIONS = [
@@ -22,63 +22,41 @@ const REGIONS = [
   { name: "제주", keyword: "제주특별자치도" },
 ];
 
-export default function BakeryPublicAPIApp() {
+export default function BakeryArchivePage() {
   const [selectedRegion, setSelectedRegion] = useState(REGIONS[0]);
-  const [bakeries, setBakeries] = useState<PublicBakeryItem[]>([]);
+  const [bakeries, setBakeries] = useState<BakeryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedBakery, setSelectedBakery] = useState<PublicBakeryItem | null>(null);
+  const [selectedBakery, setSelectedBakery] = useState<BakeryItem | null>(null);
 
   useEffect(() => {
-    const fetchPublicData = async () => {
+    const fetchBakeries = async () => {
       setLoading(true);
       try {
-        const serviceKey = process.env.NEXT_PUBLIC_PUBLIC_DATA_KEY || "";
-        const endpoint = `https://apis.data.go.kr/1741000/bakeries/getBakeryList?serviceKey=${serviceKey}&pageNo=1&numOfRows=100&type=json`;
-
-        const res = await fetch(endpoint);
+        const res = await fetch(`/api/bakery?keyword=${encodeURIComponent(selectedRegion.keyword)}&numOfRows=500`);
+        const json = await res.json();
         
-        if (res.ok) {
-          const json = await res.json();
-          const items = json?.body || json?.response?.body?.items?.item || [];
-          
-          if (Array.isArray(items) && items.length > 0) {
-            const filtered = items.filter((item: PublicBakeryItem) => 
-              (item.rdnWhlAddr || item.siteWhlAddr || "").includes(selectedRegion.keyword)
-            );
-            
-            const targetData = filtered.length > 0 ? filtered : items.slice(0, 30);
-            setBakeries(targetData);
-            setSelectedBakery(targetData[0]);
-          } else {
-            throw new Error("Empty items");
-          }
+        if (json.items && Array.isArray(json.items)) {
+          setBakeries(json.items);
+          setSelectedBakery(json.items[0] || null);
         } else {
-          throw new Error("API Error");
+          setBakeries([]);
+          setSelectedBakery(null);
         }
       } catch (err) {
-        // 실제 데이터 연동 실패 시 보여줄 정돈된 리얼 베이커리 포맷 샘플
-        const realisticData: PublicBakeryItem[] = [
-          { bplcNm: "듸에스베이커리", rdnWhlAddr: `${selectedRegion.keyword} 강남구 테헤란로 123`, siteWhlAddr: `${selectedRegion.keyword} 역삼동 832-1`, bplcInfoTelno: "02-555-0142", dtlStateNm: "영업" },
-          { bplcNm: "아티장베이커스 한남", rdnWhlAddr: `${selectedRegion.keyword} 용산구 대사관로 34`, siteWhlAddr: `${selectedRegion.keyword} 한남동 744-5`, bplcInfoTelno: "02-749-3426", dtlStateNm: "영업" },
-          { bplcNm: "태극당", rdnWhlAddr: `${selectedRegion.keyword} 중구 동호로 24`, siteWhlAddr: `${selectedRegion.keyword} 장충동2가 189-5`, bplcInfoTelno: "02-2273-3134", dtlStateNm: "영업" },
-          { bplcNm: "나폴레옹제과점 성북본점", rdnWhlAddr: `${selectedRegion.keyword} 성북구 성북로 7`, siteWhlAddr: `${selectedRegion.keyword} 성북동1가 35-2`, bplcInfoTelno: "02-742-7421", dtlStateNm: "영업" },
-          { bplcNm: "효자베이커리", rdnWhlAddr: `${selectedRegion.keyword} 종로구 필운대로 54`, siteWhlAddr: `${selectedRegion.keyword} 통인동 43-1`, bplcInfoTelno: "02-736-7639", dtlStateNm: "영업" },
-        ];
-
-        setBakeries(realisticData);
-        setSelectedBakery(realisticData[0]);
+        console.error("데이터 패치 오류:", err);
+        setBakeries([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPublicData();
+    fetchBakeries();
   }, [selectedRegion]);
 
   const filteredBakeries = bakeries.filter((item) => {
-    const name = item.bplcNm || "";
-    const addr = item.rdnWhlAddr || item.siteWhlAddr || "";
+    const name = item.bplcNm || item.BPLC_NM || "";
+    const addr = item.rdnWhlAddr || item.ROAD_NM_ADDR || item.siteWhlAddr || "";
     const term = searchTerm.toLowerCase();
     return name.toLowerCase().includes(term) || addr.toLowerCase().includes(term);
   });
@@ -92,12 +70,12 @@ export default function BakeryPublicAPIApp() {
             PUBLIC BAKERY ARCHIVE
           </span>
           <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium">
-            공공데이터 실시간 연동
+            공공데이터포털 실시간 연동
           </span>
         </div>
 
         {/* 지역 탭 */}
-        <div className="flex items-center gap-1 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0">
           {REGIONS.map((region) => {
             const isSelected = selectedRegion.name === region.name;
             return (
@@ -131,16 +109,21 @@ export default function BakeryPublicAPIApp() {
         </div>
       </header>
 
-      {/* 메인 2단 분할 레이아웃 (오른쪽 패널 찌그러짐 방지용 flex 구조 고정) */}
+      {/* 메인 2단 분할 레이아웃 */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* 1. 좌측 리스트 그리드 영역 */}
+        {/* 1. 좌측 리스트 그리드 */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-[#13151A] content-start">
           {loading ? (
             <div className="col-span-full text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
-              {selectedRegion.name} 공공 데이터 동기화 중...
+              {selectedRegion.name} 공공데이터 서버에서 데이터를 불러오는 중입니다...
             </div>
           ) : filteredBakeries.length > 0 ? (
             filteredBakeries.map((bakery, idx) => {
+              const name = bakery.bplcNm || bakery.BPLC_NM || "상호명 미등록";
+              const addr = bakery.rdnWhlAddr || bakery.ROAD_NM_ADDR || bakery.siteWhlAddr || "주소 정보 없음";
+              const tel = bakery.bplcInfoTelno || bakery.BPLC_INFO_TELNO || "번호없음";
+              const state = bakery.dtlStateNm || bakery.DTL_STATE_NM || "영업중";
+
               const isSelected = selectedBakery?.bplcNm === bakery.bplcNm;
               return (
                 <div
@@ -155,19 +138,19 @@ export default function BakeryPublicAPIApp() {
                   <div className="flex flex-col gap-1">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                        {bakery.dtlStateNm || "영업중"}
+                        {state}
                       </span>
-                      <span className="text-[10px] text-stone-400 font-mono">{bakery.bplcInfoTelno || "번호없음"}</span>
+                      <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
                     </div>
                     <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
-                      {bakery.bplcNm}
+                      {name}
                     </h3>
                     <p className="text-[11px] text-stone-400 truncate">
-                      {bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음"}
+                      {addr}
                     </p>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
-                    <span>지자체 공공 표준</span>
+                    <span>공공데이터포털 실시간 연동</span>
                     <span className="text-amber-500 font-medium">상세보기 →</span>
                   </div>
                 </div>
@@ -175,26 +158,26 @@ export default function BakeryPublicAPIApp() {
             })
           ) : (
             <div className="col-span-full text-center py-24 text-stone-500 text-xs">
-              검색 결과가 없습니다.
+              검색 결과가 없거나 API 인증키 설정을 확인해주세요.
             </div>
           )}
         </div>
 
-        {/* 2. 우측 상세 패널 (고정 폭 부여로 찌그러짐 원천 차단) */}
+        {/* 2. 우측 상세 패널 */}
         <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-6 border-l border-stone-800 bg-[#161922] justify-center items-center">
           {selectedBakery ? (
             <div className="w-full p-6 rounded-3xl bg-[#1B1F28] border border-stone-700/60 shadow-2xl flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-amber-500 tracking-wider uppercase">
-                    공공데이터 표준 인증
+                    공공데이터 표준 인증 업소
                   </span>
                   <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-medium">
-                    {selectedBakery.dtlStateNm || "영업"}
+                    {selectedBakery.dtlStateNm || selectedBakery.DTL_STATE_NM || "영업"}
                   </span>
                 </div>
                 <h2 className="text-base font-bold text-stone-100 tracking-tight break-keep">
-                  {selectedBakery.bplcNm}
+                  {selectedBakery.bplcNm || selectedBakery.BPLC_NM}
                 </h2>
               </div>
 
@@ -202,7 +185,7 @@ export default function BakeryPublicAPIApp() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] text-stone-500">도로명 주소</span>
                   <span className="font-medium text-stone-200 break-keep">
-                    {selectedBakery.rdnWhlAddr || "도로명 주소 없음"}
+                    {selectedBakery.rdnWhlAddr || selectedBakery.ROAD_NM_ADDR || "도로명 주소 없음"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0.5">
@@ -214,13 +197,13 @@ export default function BakeryPublicAPIApp() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[10px] text-stone-500">매장 연락처</span>
                   <span className="font-medium text-stone-200 font-mono">
-                    {selectedBakery.bplcInfoTelno || "정보 없음"}
+                    {selectedBakery.bplcInfoTelno || selectedBakery.BPLC_INFO_TELNO || "정보 없음"}
                   </span>
                 </div>
               </div>
 
               <div className="bg-[#12141A] p-3.5 rounded-2xl border border-stone-800 text-[11px] text-stone-400 leading-relaxed">
-                ✨ 사이드 광고 영역이나 화면 크기 변화에 영향을 받지 않도록 우측 패널의 레이아웃 폭을 안전하게 고정했습니다.
+                🛡️ 본 서비스는 공공데이터포털의 공식 오픈데이터를 직접 연동하여 제공하므로, 이용자들에게 신뢰도 높은 정보를 전달합니다.
               </div>
             </div>
           ) : (
