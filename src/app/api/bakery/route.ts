@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const numOfRows = searchParams.get("numOfRows") || "100";
   const keyword = searchParams.get("keyword") || "";
 
-  const rawServiceKey = process.env.PUBLIC_DATA_API_KEY || "";
+  const rawServiceKey = process.env.DATA_API_KEY || "";
   let decodedKey = rawServiceKey;
   try {
     decodedKey = decodeURIComponent(rawServiceKey);
