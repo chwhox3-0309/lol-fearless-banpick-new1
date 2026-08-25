@@ -220,6 +220,42 @@ export default function AdminJPopPage() {
     document.body.removeChild(link);
   };
 
+  // 현재 등록된 목록을 CSV로 다운로드
+  const downloadCurrentDataAsCsv = () => {
+    if (items.length === 0) {
+      alert("다운로드할 데이터가 없습니다.");
+      return;
+    }
+
+    const headers = ["title", "category", "broadcast", "ost_title", "artist", "description"];
+    
+    const rows = items.map((item) => {
+      const escapeCsvField = (field: string | null) => {
+        if (!field) return '""';
+        return `"${field.replace(/"/g, '""')}"`;
+      };
+
+      return [
+        escapeCsvField(item.title),
+        escapeCsvField(item.category),
+        escapeCsvField(item.broadcast),
+        escapeCsvField(item.ost_title),
+        escapeCsvField(item.artist),
+        escapeCsvField(item.description),
+      ].join(",");
+    });
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `jpop_current_data_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // CSV 파일 업로드 및 일괄 등록
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -298,12 +334,12 @@ export default function AdminJPopPage() {
           </Link>
         </div>
 
-        {/* 파일 일괄 업로드 섹션 */}
+        {/* 파일 일괄 업로드 및 다운로드 섹션 */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-purple-400">📦 파일 일괄 등록 (CSV) 및 중복 방지 설정</h2>
+            <h2 className="text-lg font-semibold text-purple-400">📦 파일 일괄 등록 (CSV) 및 데이터 백업</h2>
             <p className="text-xs text-gray-400 leading-relaxed">
-              엑셀이나 CSV 파일을 이용해 한 번에 여러 개의 데이터를 등록합니다. 동일한 드라마/곡/아티스트가 이미 존재할 때의 처리 방식을 선택하세요.
+              엑셀이나 CSV 파일을 이용해 한 번에 여러 데이터를 등록하거나, 현재 목록을 다운로드하여 대량 수정에 활용하세요.
             </p>
           </div>
 
@@ -339,6 +375,13 @@ export default function AdminJPopPage() {
               className="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl transition-all border border-gray-700 flex items-center gap-2"
             >
               📥 업로드 폼(CSV) 다운로드
+            </button>
+
+            <button
+              onClick={downloadCurrentDataAsCsv}
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center gap-2"
+            >
+              📊 현재 목록 CSV 다운로드
             </button>
 
             <label className={`px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium rounded-xl transition-all shadow-lg shadow-purple-600/30 cursor-pointer flex items-center gap-2 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
