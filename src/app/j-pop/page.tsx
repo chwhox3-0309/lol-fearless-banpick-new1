@@ -11,7 +11,7 @@ interface DramaOstItem {
   broadcast: string;   // 방송사 (예: "TBS", "후지TV", "넷플릭스" 등)
   ost_title: string;
   artist: string;
-  description: string;
+  description: string; 
   created_at: string;
 }
 
@@ -281,10 +281,11 @@ export default function JPopClientPage() {
         )}
  
         {/* 광고 배너 */}
+        {/*
         <div className="flex justify-center pt-4">
           <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
         </div>
- 
+       */}
       </div>
     </div>
   );
