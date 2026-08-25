@@ -1,433 +1,328 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
-import rawTftData from '@/data/tft-stats.json';
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
-interface TftItem {
-  id: string;
-  name: string;
-  image: string | null;
+interface TftMetaItem {
+  id: number;
+  season: string;        // 예: 시즌 11, 시즌 12 등
+  tier: string;          // 예: S티어, A티어
+  comp_name: string;     // 예: 미술가 리븐, 수은 카이사 등
+  key_champions: string; // 예: 리븐, 자야, 라칸
+  items: string;         // 예: 피바라기, 거인의 결의
+  description: string;   // 운영법 및 팁
+  created_at: string;
 }
 
-interface TftAugment {
-  id: string;
-  name: string;
-  image: string | null;
-}
+export default function AdminTftPage() {
+  const [items, setItems] = useState<TftMetaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
-interface TftUnit {
-  id: string;
-  name: string;
-  image?: string;
-  tier?: number; // 1, 2, 3성
-  items?: TftItem[];
-}
+  // 등록 / 수정 공용 폼 상태
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [season, setSeason] = useState("");
+  const [tier, setTier] = useState("");
+  const [compName, setCompName] = useState("");
+  const [keyChampions, setKeyChampions] = useState("");
+  const [itemsText, setItemsText] = useState("");
+  const [description, setDescription] = useState("");
 
-interface TftDeck {
-  id: string;
-  name: string;
-  tier: string;
-  winRate: number;
-  pickRate: number;
-  avgPlacement: number;
-  traits: string[];
-  units?: (string | TftUnit)[];
-}
+  // 중복 처리 정책
+  const [duplicatePolicy, setDuplicatePolicy] = useState<"skip" | "update">("skip");
 
-interface RecentWinner {
-  matchId: string;
-  units: (string | TftUnit)[];
-  traits: string[];
-  augments?: TftAugment[];
-  time: string;
-}
-
-interface TftStats {
-  patchVersion: string;
-  lastUpdated: string;
-  decks: TftDeck[];
-  recentWinners?: RecentWinner[];
-}
-
-type SortKey = 'tier' | 'name' | 'winRate' | 'pickRate' | 'avgPlacement';
-type SortOrder = 'asc' | 'desc';
-type TabType = 'meta' | 'winners';
-
-const TftPage = () => {
-  const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('meta');
-  const [sortKey, setSortKey] = useState<SortKey>('avgPlacement');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-
-  // Next.js에서 JSON 임포트 시 타입 단언
-  const tftData = rawTftData as TftStats;
+  // 일괄 삭제 선택 상태
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   useEffect(() => {
-    setMounted(true);
+    fetchPosts();
   }, []);
 
-  // 유닛 렌더링 도우미
-  const renderUnit = (unit: string | TftUnit, showItems: boolean = false, index: number = 0) => {
-    const isObject = typeof unit !== 'string';
-    const name = isObject ? (unit as TftUnit).name : (unit as string);
-    const imageFilename = isObject ? (unit as TftUnit).image : null;
-    const tier = isObject ? (unit as TftUnit).tier : 1;
-    const items = isObject ? (unit as TftUnit).items : [];
-    
-    // ddragon URL 구성 (patchVersion 사용)
-    const fullVersion = tftData.patchVersion + '.1'; // 간이 버전 구성
-    const imageUrl = imageFilename 
-      ? `https://ddragon.leagueoflegends.com/cdn/${fullVersion}/img/tft-champion/${imageFilename}` 
-      : null;
+  const fetchPosts = async () => {
+    setLoading(true);
+    setSelectedIds([]);
+    const { data, error } = await supabase
+      .from("tft_posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    // 성급 아이콘 생성 (별 모양)
-    const renderStars = () => {
-      if (!tier || tier < 1) return null;
-      const stars = [];
-      for (let i = 0; i < tier; i++) {
-        stars.push(
-          <span key={i} className={`text-[10px] leading-none ${
-            tier === 3 ? 'text-yellow-400 drop-shadow-[0_0_3px_rgba(250,204,21,0.8)]' : 
-            tier === 2 ? 'text-gray-300' : 'text-orange-700'
-          }`}>
-            ★
-          </span>
-        );
-      }
-      return <div className="flex justify-center mt-1 h-3 items-center">{stars}</div>;
-    };
-
-    // 아이템 렌더링 (최근 우승 덱 탭에서만 활성화)
-    const renderItems = () => {
-      if (!showItems) return null;
-      
-      return (
-        <div className="flex justify-center gap-0.5 mt-1 min-h-[16px]">
-          {items && items.length > 0 ? (
-            items.map((item, idx) => (
-              <div key={`${item.id}-${idx}`} className="w-4 h-4 bg-gray-950 border border-gray-700 rounded-sm overflow-hidden shadow-md group/item relative">
-                {item.image ? (
-                  <img 
-                    src={`https://ddragon.leagueoflegends.com/cdn/${fullVersion}/img/tft-item/${item.image}`}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-800" />
-                )}
-                {/* 아이템 툴팁 */}
-                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/item:block z-50">
-                  <div className="bg-gray-900 text-white text-[8px] px-1.5 py-0.5 rounded border border-gray-600 whitespace-nowrap shadow-xl">
-                    {item.name}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="w-4 h-4" /> // 아이템이 없어도 높이 유지
-          )}
-        </div>
-      );
-    };
-
-    return (
-      <div key={`${name}-${index}`} className="flex flex-col items-center group relative py-1">
-        <div className={`w-10 h-10 bg-gray-900 border ${
-          tier === 3 ? 'border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' : 
-          tier === 2 ? 'border-gray-400' : 'border-blue-900/50'
-        } rounded overflow-hidden shadow-lg group-hover:border-blue-400 transition-colors relative`}>
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt={name} 
-              className={`w-full h-full object-cover scale-110 ${tier === 3 ? 'brightness-110' : ''}`}
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-500 font-bold">?</div>
-          )}
-        </div>
-        
-        {/* 성급 (이미지 바로 아래) */}
-        {renderStars()}
-        
-        {/* 아이템 (성급 아래) */}
-        {renderItems()}
-
-        <span className={`text-[10px] ${tier === 3 ? 'text-yellow-400 font-bold' : 'text-blue-100'} max-w-[50px] truncate text-center leading-tight mt-1`}>
-          {name}
-        </span>
-        
-        {/* 유닛 툴팁 효과 */}
-        <div className="absolute bottom-full mb-2 hidden group-hover:block z-50">
-          <div className="bg-gray-950 text-white text-[10px] px-2 py-1 rounded border border-gray-700 whitespace-nowrap shadow-2xl">
-            {name} ({tier}성)
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // 증강 렌더링 도우미
-  const renderAugment = (augment: TftAugment) => {
-    const fullVersion = tftData.patchVersion + '.1';
-    const imageUrl = augment.image 
-      ? `https://ddragon.leagueoflegends.com/cdn/${fullVersion}/img/tft-augment/${augment.image}`
-      : null;
-
-    return (
-      <div key={augment.id} className="group relative">
-        <div className="w-8 h-8 bg-gray-950 border border-gray-600 rounded-lg overflow-hidden shadow-lg group-hover:border-yellow-500 transition-colors p-1">
-          {imageUrl ? (
-            <img 
-              src={imageUrl} 
-              alt={augment.name} 
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[8px] text-gray-600 font-bold">AUG</div>
-          )}
-        </div>
-        {/* 증강 툴팁 */}
-        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-50">
-          <div className="bg-gray-950 text-white text-[10px] px-2 py-1 rounded border border-gray-700 whitespace-nowrap shadow-2xl font-bold">
-            {augment.name}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // 정렬 로직
-  const sortedDecks = useMemo(() => {
-    if (!tftData || !tftData.decks) return [];
-    const decks = [...tftData.decks];
-    return decks.sort((a, b) => {
-      let aValue: string | number = a[sortKey];
-      let bValue: string | number = b[sortKey];
-
-      if (sortKey === 'tier') {
-        const tierOrder = { 'S': 1, 'A': 2, 'B': 3, 'C': 4 };
-        aValue = tierOrder[a.tier as keyof typeof tierOrder] || 99;
-        bValue = tierOrder[b.tier as keyof typeof tierOrder] || 99;
-      }
-
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [tftData, sortKey, sortOrder]);
-
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    if (error) {
+      console.error("데이터 로드 실패:", error);
     } else {
-      setSortKey(key);
-      setSortOrder(key === 'name' || key === 'tier' ? 'asc' : 'desc');
+      setItems(data || []);
+    }
+    setLoading(false);
+  };
+
+  // 등록 또는 수정 제출
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!season || !compName) {
+      alert("시즌 정보와 조합 이름은 필수 입력 항목입니다.");
+      return;
+    }
+
+    if (editingId !== null) {
+      const { error } = await supabase
+        .from("tft_posts")
+        .update({
+          season: season.trim(),
+          tier: tier.trim(),
+          comp_name: compName.trim(),
+          key_champions: keyChampions.trim(),
+          items: itemsText.trim(),
+          description: description.trim(),
+        })
+        .eq("id", editingId);
+
+      if (error) {
+        alert("수정 실패: " + error.message);
+      } else {
+        alert("성공적으로 수정되었습니다!");
+        resetForm();
+        fetchPosts();
+      }
+    } else {
+      const { error } = await supabase.from("tft_posts").insert([
+        {
+          season: season.trim(),
+          tier: tier.trim(),
+          comp_name: compName.trim(),
+          key_champions: keyChampions.trim(),
+          items: itemsText.trim(),
+          description: description.trim(),
+        },
+      ]);
+
+      if (error) {
+        alert("등록 실패: " + error.message);
+      } else {
+        alert("성공적으로 등록되었습니다!");
+        resetForm();
+        fetchPosts();
+      }
     }
   };
 
-  const getSortIcon = (key: SortKey) => {
-    if (sortKey !== key) return '↕️';
-    return sortOrder === 'asc' ? '↑' : '↓';
+  const handleEditClick = (item: TftMetaItem) => {
+    setEditingId(item.id);
+    setSeason(item.season || "");
+    setTier(item.tier || "");
+    setCompName(item.comp_name || "");
+    setKeyChampions(item.key_champions || "");
+    setItemsText(item.items || "");
+    setDescription(item.description || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Hydration 오류 방지: 마운트 전에는 로딩 표시
-  if (!mounted) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center text-2xl font-bold">로딩 중...</div>;
-  }
+  const resetForm = () => {
+    setEditingId(null);
+    setSeason("");
+    setTier("");
+    setCompName("");
+    setKeyChampions("");
+    setItemsText("");
+    setDescription("");
+  };
 
-  // 데이터가 없을 경우 처리
-  if (!tftData || !tftData.decks) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 pt-24 text-center">
-        <h1 className="text-2xl font-bold mb-4">데이터를 불러올 수 없습니다.</h1>
-        <Link href="/" className="text-blue-400 hover:underline">홈으로 돌아가기</Link>
-      </div>
-    );
-  }
+  const handleDelete = async (id: number) => {
+    if (!confirm("정말 이 항목을 삭제하시겠습니까?")) return;
+
+    const { error } = await supabase.from("tft_posts").delete().eq("id", id);
+    if (error) {
+      alert("삭제 실패: " + error.message);
+    } else {
+      if (editingId === id) resetForm();
+      fetchPosts();
+    }
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(items.map((item) => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleCheckboxChange = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.length === 0) {
+      alert("삭제할 항목을 먼저 선택해주세요.");
+      return;
+    }
+
+    if (!confirm(`정말 선택한 ${selectedIds.length}개의 항목을 삭제하시겠습니까?`)) return;
+
+    const { error } = await supabase
+      .from("tft_posts")
+      .delete()
+      .in("id", selectedIds);
+
+    if (error) {
+      alert("일괄 삭제 실패: " + error.message);
+    } else {
+      alert(`선택하신 ${selectedIds.length}개의 항목이 성공적으로 삭제되었습니다.`);
+      if (editingId && selectedIds.includes(editingId)) resetForm();
+      fetchPosts();
+    }
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = "season,tier,comp_name,key_champions,items,description\n" +
+      "시즌12,S티어,리븐 리롤 덱,리븐, 자야, 라칸,피바라기, 거인의 결의,초반 연승 운영 추천";
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "tft_upload_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 pt-24">
-      <div className="max-w-6xl mx-auto">
-        <Link href="/" className="inline-block mb-6 text-gray-400 hover:text-white transition-colors">
-          &larr; LOL 홈으로
-        </Link>
+    <div className="min-h-screen bg-gray-950 text-white p-6 md:p-10">
+      <div className="max-w-5xl mx-auto space-y-8">
         
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            TFT 메타 트래커
-          </h1>
-          <p className="text-gray-300 text-lg font-medium">
-            최신 챌린저 매치 데이터 기반 실시간 분석
-          </p>
-          <div className="flex flex-col items-center mt-3">
-            <div className="px-4 py-1.5 bg-blue-900/30 border border-blue-500/30 rounded-full">
-              <p className="text-blue-400 text-sm font-semibold">
-                최종 업데이트: {new Date(tftData.lastUpdated).toLocaleString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </p>
-            </div>
-            <p className="text-xs text-gray-500 mt-2 font-semibold">헤더를 클릭하여 정렬할 수 있습니다.</p>
+        {/* 상단 헤더 */}
+        <div className="flex justify-between items-center bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl">
+          <div>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              ADMINISTRATION
+            </span>
+            <h1 className="text-2xl font-bold mt-2">⚔️ TFT 메타 조합 관리</h1>
           </div>
-        </header>
-
-        {/* 탭 메뉴 */}
-        <div className="flex justify-center mb-8 border-b border-gray-700">
-          <button 
-            className={`px-8 py-3 font-bold transition-all ${activeTab === 'meta' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
-            onClick={() => setActiveTab('meta')}
+          <Link 
+            href="/admin" 
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-xl text-xs transition-all border border-gray-700"
           >
-            메타 통계
-          </button>
-          <button 
-            className={`px-8 py-3 font-bold transition-all ${activeTab === 'winners' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
-            onClick={() => setActiveTab('winners')}
-          >
-            최근 우승 덱 (10경기)
-          </button>
+            ← 관리자 홈으로
+          </Link>
         </div>
 
-        <div className="grid gap-6">
-          {activeTab === 'meta' ? (
-            <div className="overflow-x-auto bg-gray-800 rounded-xl shadow-2xl border border-gray-700">
+        {/* 폼 영역 */}
+        <div className={`bg-gray-900 border rounded-2xl p-6 shadow-xl space-y-4 ${editingId !== null ? 'border-amber-500/50 bg-amber-950/10' : 'border-gray-800'}`}>
+          <div className="flex justify-between items-center">
+            <h2 className={`text-lg font-semibold ${editingId !== null ? 'text-amber-400' : 'text-indigo-400'}`}>
+              {editingId !== null ? `✍️ 조합 수정 중 (ID: ${editingId})` : "✍️ 신규 TFT 덱 등록"}
+            </h2>
+            {editingId !== null && (
+              <button type="button" onClick={resetForm} className="px-3 py-1 bg-gray-800 text-gray-300 rounded-lg text-xs border border-gray-700">
+                취소 ✕
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">시즌 *</label>
+              <input type="text" value={season} onChange={(e) => setSeason(e.target.value)} placeholder="예: 시즌 12" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" required />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">티어</label>
+              <input type="text" value={tier} onChange={(e) => setTier(e.target.value)} placeholder="예: S티어" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">조합 이름 *</label>
+              <input type="text" value={compName} onChange={(e) => setCompName(e.target.value)} placeholder="예: 미술가 리븐 덱" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" required />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">핵심 챔피언</label>
+              <input type="text" value={keyChampions} onChange={(e) => setKeyChampions(e.target.value)} placeholder="예: 리븐, 조이, 아리" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">추천 아이템</label>
+              <input type="text" value={itemsText} onChange={(e) => setItemsText(e.target.value)} placeholder="예: 피바라기, 거인의 결의" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">운영 팁 / 설명</label>
+              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="예: 6레벨 리롤 중심" className="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-purple-500" />
+            </div>
+
+            <div className="md:col-span-2 pt-2">
+              <button type="submit" className={`w-full py-3 font-semibold rounded-xl text-sm transition-all shadow-lg ${editingId !== null ? 'bg-amber-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                {editingId !== null ? "수정 내용 저장하기" : "조합 등록하기"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* 목록 관리 테이블 */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-200">
+              📋 등록된 메타 덱 목록 <span className="text-purple-400 text-sm">({items.length}건)</span>
+            </h2>
+            {items.length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400">선택됨: <strong className="text-white">{selectedIds.length}</strong>건</span>
+                <button
+                  onClick={handleBatchDelete}
+                  disabled={selectedIds.length === 0}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-medium border ${selectedIds.length > 0 ? 'bg-red-500/20 text-red-300 border-red-500/30 cursor-pointer' : 'bg-gray-800 text-gray-600 border-gray-800 cursor-not-allowed'}`}
+                >
+                  🗑️ 선택 항목 일괄 삭제
+                </button>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="text-center py-8 text-gray-500 text-sm">로딩 중...</div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">등록된 조합 데이터가 없습니다.</div>
+          ) : (
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-700/50">
-                    <th 
-                      className="p-4 font-bold uppercase text-sm text-gray-300 cursor-pointer hover:bg-gray-600 transition-colors"
-                      onClick={() => handleSort('tier')}
-                    >
-                      티어 {getSortIcon('tier')}
+                  <tr className="border-b border-gray-800 text-xs text-gray-400">
+                    <th className="py-3 px-4 w-10 text-center">
+                      <input type="checkbox" onChange={handleSelectAll} checked={items.length > 0 && selectedIds.length === items.length} className="cursor-pointer" />
                     </th>
-                    <th className="p-4 font-bold uppercase text-sm text-gray-300 text-center">핵심 기물 및 시너지</th>
-                    <th 
-                      className="p-4 font-bold uppercase text-sm text-gray-300 text-center cursor-pointer hover:bg-gray-600 transition-colors"
-                      onClick={() => handleSort('winRate')}
-                    >
-                      승률 {getSortIcon('winRate')}
-                    </th>
-                    <th 
-                      className="p-4 font-bold uppercase text-sm text-gray-300 text-center cursor-pointer hover:bg-gray-600 transition-colors"
-                      onClick={() => handleSort('pickRate')}
-                    >
-                      픽률 {getSortIcon('pickRate')}
-                    </th>
-                    <th 
-                      className="p-4 font-bold uppercase text-sm text-gray-300 text-center cursor-pointer hover:bg-gray-600 transition-colors"
-                      onClick={() => handleSort('avgPlacement')}
-                    >
-                      평균 순위 {getSortIcon('avgPlacement')}
-                    </th>
+                    <th className="py-3 px-4">시즌</th>
+                    <th className="py-3 px-4">티어</th>
+                    <th className="py-3 px-4">조합 이름</th>
+                    <th className="py-3 px-4">핵심 챔피언 / 아이템</th>
+                    <th className="py-3 px-4 text-right">관리</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {sortedDecks.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-8 text-center text-gray-400">데이터가 없습니다.</td>
-                    </tr>
-                  ) : (
-                    sortedDecks.map((deck) => (
-                      <tr key={deck.id} className="border-t border-gray-700 hover:bg-gray-700/30 transition-colors">
-                        <td className="p-4 text-center">
-                          <span className={`inline-block w-8 h-8 leading-8 text-center rounded-full font-bold ${
-                            deck.tier === 'S' ? 'bg-yellow-500 text-black' : 
-                            deck.tier === 'A' ? 'bg-gray-300 text-black' : 'bg-orange-600'
-                          }`}>
-                            {deck.tier}
-                          </span>
+                <tbody className="divide-y divide-gray-800/60 text-xs">
+                  {items.map((item) => {
+                    const isSelected = selectedIds.includes(item.id);
+                    return (
+                      <tr key={item.id} className={`hover:bg-gray-800/40 ${isSelected ? 'bg-purple-950/15' : ''}`}>
+                        <td className="py-3 px-4 text-center">
+                          <input type="checkbox" checked={isSelected} onChange={() => handleCheckboxChange(item.id)} className="cursor-pointer" />
                         </td>
-                        <td className="p-4">
-                          <div className="flex flex-col gap-3 items-center">
-                            <div className="flex flex-wrap gap-3 justify-center">
-                              {deck.units?.map((unit, idx) => renderUnit(unit, false, idx))}
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 justify-center">
-                              {deck.traits.map(trait => (
-                                <span key={trait} className="px-2 py-0.5 bg-gray-700 border border-gray-600 rounded text-[10px] text-gray-300 uppercase">
-                                  {trait}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
+                        <td className="py-3 px-4 text-indigo-400">{item.season}</td>
+                        <td className="py-3 px-4 text-purple-400 font-bold">{item.tier}</td>
+                        <td className="py-3 px-4 text-white font-semibold">{item.comp_name}</td>
+                        <td className="py-3 px-4 text-gray-300">
+                          {item.key_champions} <span className="text-gray-500">({item.items})</span>
                         </td>
-                        <td className="p-4 text-center text-blue-400 font-mono font-bold text-lg">{deck.winRate.toFixed(1)}%</td>
-                        <td className="p-4 text-center text-purple-400 font-mono">{deck.pickRate}%</td>
-                        <td className="p-4 text-center text-gray-300 font-mono">{deck.avgPlacement}</td>
+                        <td className="py-3 px-4 text-right space-x-2">
+                          <button onClick={() => handleEditClick(item)} className="px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">수정</button>
+                          <button onClick={() => handleDelete(item.id)} className="px-2.5 py-1 bg-red-500/10 text-red-400 rounded-lg border border-red-500/20">삭제</button>
+                        </td>
                       </tr>
-                    ))
-                  )}
+                    );
+                  })}
                 </tbody>
               </table>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {!tftData.recentWinners || tftData.recentWinners.length === 0 ? (
-                <div className="bg-gray-800 p-8 text-center rounded-xl text-gray-400">우승 기록이 없습니다.</div>
-              ) : (
-                tftData.recentWinners.map((winner, index) => (
-                  <div key={`${winner.matchId}-${index}`} className="bg-gray-800 p-5 rounded-xl border border-gray-700 flex flex-col gap-4 hover:border-blue-500/50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="bg-yellow-500 text-black px-2 py-0.5 rounded text-xs font-bold uppercase shadow-[0_0_10px_rgba(234,179,8,0.3)]">1st Place</span>
-                        <span className="text-gray-500 text-xs">{winner.time}</span>
-                      </div>
-                      <span className="text-xs text-gray-600 font-mono">{winner.matchId}</span>
-                    </div>
-                    
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-wrap items-center gap-6">
-                        {/* 기물 목록 */}
-                        <div className="flex flex-wrap gap-4">
-                          {winner.units.map((unit, idx) => renderUnit(unit, true, idx))}
-                        </div>
-                        
-                        {/* 증강 목록 (우측 또는 아래 구분) */}
-                        {winner.augments && winner.augments.length > 0 && (
-                          <div className="flex items-center gap-2 bg-gray-900/50 p-2 rounded-lg border border-gray-700/50">
-                            <span className="text-[10px] text-gray-500 font-bold uppercase vertical-text hidden sm:block">Augments</span>
-                            <div className="flex gap-2">
-                              {winner.augments.map(aug => renderAugment(aug))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-1.5">
-                        {winner.traits.map(trait => (
-                          <span key={trait} className="px-2 py-0.5 bg-gray-900 border border-gray-600 rounded text-[10px] text-gray-400 uppercase">
-                            {trait}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-              <p className="text-center text-gray-500 text-sm mt-4 italic">※ 챌린저 상위 유저들의 실제 매치에서 1위를 차지한 최종 스쿼드입니다.</p>
             </div>
           )}
         </div>
 
-        <section className="mt-12 bg-gray-800 p-6 rounded-xl border border-gray-700">
-          <h2 className="text-2xl font-bold mb-4">데이터 분석 안내</h2>
-          <p className="text-gray-300 leading-relaxed">
-            위 데이터는 한국 서버 챌린저 상위 유저들의 최근 매치 기록을 실시간으로 분석한 결과입니다. 
-            시너지 조합의 완성도와 최종 순위를 기반으로 성능을 측정하며, <strong>평균 순위가 낮을수록(1위에 가까울수록)</strong> 강력한 덱으로 간주됩니다.
-          </p>
-        </section>
       </div>
     </div>
   );
-};
-
-export default TftPage;
+}
