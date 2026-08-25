@@ -21,7 +21,7 @@ export default function AdminJPopPage() {
   const [uploading, setUploading] = useState(false);
 
   // 등록 / 수정 공용 폼 상태
-  const [editingId, setEditingId] = useState<number | null>(null); // null이면 등록 모드, 숫자면 수정 모드
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [broadcast, setBroadcast] = useState("");
@@ -32,12 +32,17 @@ export default function AdminJPopPage() {
   // 일괄 업로드 중복 처리 정책 옵션
   const [duplicatePolicy, setDuplicatePolicy] = useState<"skip" | "update">("skip");
 
+  // 일괄 삭제를 위한 선택된 ID 관리 상태
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
   useEffect(() => {
     fetchPosts();
   }, []);
 
   const fetchPosts = async () => {
     setLoading(true);
+    setSelectedIds(false as any); // 목록 갱신 시 선택 초기화
+    setSelectedIds([]);
     const { data, error } = await supabase
       .from("jpop_posts")
       .select("*")
@@ -120,7 +125,7 @@ export default function AdminJPopPage() {
     }
   };
 
-  // 수정 모드 진입 (상단 입력 폼에 기존 데이터 채워넣기)
+  // 수정 모드 진입
   const handleEditClick = (item: DramaOstItem) => {
     setEditingId(item.id);
     setTitle(item.title);
@@ -130,7 +135,6 @@ export default function AdminJPopPage() {
     setArtist(item.artist || "");
     setDescription(item.description || "");
     
-    // 사용자가 편하게 수정 폼으로 시선이 갈 수 있도록 상단으로 스크롤 이동
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -145,7 +149,7 @@ export default function AdminJPopPage() {
     setDescription("");
   };
 
-  // 삭제 핸들러
+  // 단건 삭제 핸들러
   const handleDelete = async (id: number) => {
     if (!confirm("정말 이 항목을 삭제하시겠습니까?")) return;
 
@@ -153,7 +157,51 @@ export default function AdminJPopPage() {
     if (error) {
       alert("삭제 실패: " + error.message);
     } else {
-      if (editingId === id) resetForm(); // 수정 중이던 항목을 삭제한 경우 폼 초기화
+      if (editingId === id) resetForm();
+      fetchPosts();
+    }
+  };
+
+  // ── [신규] 전체 선택/해제 토글 핸들러 ──
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const allIds = items.map((item) => item.id);
+      setSelectedIds(allIds);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  // ── [신규] 개별 체크박스 토글 핸들러 ──
+  const handleCheckboxChange = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  // ── [신규] 선택 항목 일괄 삭제 핸들러 ──
+  const handleBatchDelete = async () => {
+    if (selectedIds.length === 0) {
+      alert("삭제할 항목을 먼저 선택해주세요.");
+      return;
+    }
+
+    if (!confirm(`정말 선택한 ${selectedIds.length개의 항목을 삭제하시겠습니까?`?.replace("갯", "건의 ") || `정말 선택한 ${selectedIds.length}개의 항목을 삭제하시겠습니까?`)) return;
+
+    const { error } = await supabase
+      .from("jpop_posts")
+      .delete()
+      .in("id", selectedIds);
+
+    if (error) {
+      alert("일괄 삭제 실패: " + error.message);
+    } else {
+      alert(`선택하신 ${selectedIds.length}개의 항목이 성공적으로 삭제되었습니다.`);
+      if (editingId && selectedIds.includes(editingId)) {
+        resetForm();
+      }
       fetchPosts();
     }
   };
@@ -410,9 +458,32 @@ export default function AdminJPopPage() {
 
         {/* 등록된 목록 관리 테이블 */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <h2 className="text-lg font-semibold text-gray-200">
-            📋 등록된 목록 관리 <span className="text-purple-400 text-sm">({items.length}건)</span>
-          </h2>
+          
+          {/* 헤더 영역 및 일괄 삭제 버튼 */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 className="text-lg font-semibold text-gray-200">
+              📋 등록된 목록 관리 <span className="text-purple-400 text-sm">({items.length}건)</span>
+            </h2>
+
+            {items.length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400">
+                  선택됨: <strong className="text-white">{selectedIds.length}</strong>건
+                </span>
+                <button
+                  onClick={handleBatchDelete}
+                  disabled={selectedIds.length === 0}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all border ${
+                    selectedIds.length > 0 
+                      ? 'bg-red-500/20 hover:bg-red-600 text-red-300 hover:text-white border-red-500/30 shadow-lg shadow-red-900/20 cursor-pointer' 
+                      : 'bg-gray-800 text-gray-600 border-gray-800 cursor-not-allowed'
+                  }`}
+                >
+                  🗑️ 선택 항목 일괄 삭제
+                </button>
+              </div>
+            )}
+          </div>
 
           {loading ? (
             <div className="text-center py-8 text-gray-500 text-sm">목록을 불러오는 중...</div>
@@ -423,6 +494,14 @@ export default function AdminJPopPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-800 text-xs text-gray-400">
+                    <th className="py-3 px-4 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        onChange={handleSelectAll}
+                        checked={items.length > 0 && selectedIds.length === items.length}
+                        className="rounded border-gray-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                    </th>
                     <th className="py-3 px-4">분기</th>
                     <th className="py-3 px-4">방송사</th>
                     <th className="py-3 px-4">드라마 제목</th>
@@ -431,30 +510,46 @@ export default function AdminJPopPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/60 text-xs">
-                  {items.map((item) => (
-                    <tr key={item.id} className={`hover:bg-gray-800/40 transition-colors ${editingId === item.id ? 'bg-amber-950/20 border-l-2 border-amber-500' : ''}`}>
-                      <td className="py-3 px-4 text-indigo-400 font-medium">{item.category || "-"}</td>
-                      <td className="py-3 px-4 text-purple-400 font-medium">{item.broadcast || "-"}</td>
-                      <td className="py-3 px-4 text-white font-semibold">{item.title}</td>
-                      <td className="py-3 px-4 text-gray-300">
-                        {item.ost_title} <span className="text-gray-500">({item.artist})</span>
-                      </td>
-                      <td className="py-3 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleEditClick(item)}
-                          className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-600 text-amber-400 hover:text-white rounded-lg transition-colors border border-amber-500/20"
-                        >
-                          수정
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-colors border border-red-500/20"
-                        >
-                          삭제
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {items.map((item) => {
+                    const isSelected = selectedIds.includes(item.id);
+                    return (
+                      <tr 
+                        key={item.id} 
+                        className={`hover:bg-gray-800/40 transition-colors ${
+                          editingId === item.id ? 'bg-amber-950/25 border-l-2 border-amber-500' : ''
+                        } ${isSelected ? 'bg-purple-950/15' : ''}`}
+                      >
+                        <td className="py-3 px-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleCheckboxChange(item.id)}
+                            className="rounded border-gray-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-3 px-4 text-indigo-400 font-medium">{item.category || "-"}</td>
+                        <td className="py-3 px-4 text-purple-400 font-medium">{item.broadcast || "-"}</td>
+                        <td className="py-3 px-4 text-white font-semibold">{item.title}</td>
+                        <td className="py-3 px-4 text-gray-300">
+                          {item.ost_title} <span className="text-gray-500">({item.artist})</span>
+                        </td>
+                        <td className="py-3 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleEditClick(item)}
+                            className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-600 text-amber-400 hover:text-white rounded-lg transition-colors border border-amber-500/20"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white rounded-lg transition-colors border border-red-500/20"
+                          >
+                            삭제
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
