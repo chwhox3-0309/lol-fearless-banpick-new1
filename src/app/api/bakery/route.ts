@@ -56,41 +56,45 @@ export async function GET(request: Request) {
       rawItems = [rawItems];
     }
 
-    // 🔍 데이터 정제: 상호명과 주소가 뒤바뀌거나 누락되지 않도록 필드 정규화
+    // 🔍 각 필드가 밀리지 않도록 고정 키값으로 정확히 매핑
     const items = rawItems.map((item: any) => {
-      // 가능한 모든 상호명 후보 키 탐색
-      const name = 
-        item.bplcNm || item.BPLC_NM || item.upsoNm || item.UPSO_NM || 
-        item.bzplNm || item.BZPL_NM || item.title || item.name || "상호명 없음";
-
-      // 가능한 모든 주소 후보 키 탐색 (도로명 우선, 지번 차선)
-      const rdnAddr = 
-        item.rdnWhlAddr || item.ROAD_NM_ADDR || item.rdnmAdr || 
-        item.siteWhlAddr || item.SITE_WHL_ADDR || item.locaddr || "";
-
-      const tel = 
-        item.bplcInfoTelno || item.BPLC_INFO_TELNO || item.telNo || 
-        item.TEL_NO || item.sntUptaeNm || "번호 없음";
-
-      const state = 
-        item.dtlStateNm || item.DTL_STATE_NM || item.trdStateNm || "영업중";
-
       return {
-        bplcNm: String(name).trim(),
-        rdnWhlAddr: String(rdnAddr).trim(),
-        bplcInfoTelno: String(tel).trim(),
-        dtlStateNm: String(state).trim(),
+        // 상호명 전용 필드들만 정확히 매칭
+        bplcNm: String(
+          item.bplcNm || item.BPLC_NM || item.upsoNm || item.UPSO_NM || item.bzplNm || "상호명 없음"
+        ).trim(),
+        
+        // 도로명 주소 전용 필드들만 정확히 매칭
+        rdnWhlAddr: String(
+          item.rdnWhlAddr || item.ROAD_NM_ADDR || item.rdnmAdr || ""
+        ).trim(),
+
+        // 지번 주소 전용 필드
+        siteWhlAddr: String(
+          item.siteWhlAddr || item.SITE_WHL_ADDR || item.locaddr || ""
+        ).trim(),
+
+        // 전화번호 전용 필드
+        bplcInfoTelno: String(
+          item.bplcInfoTelno || item.BPLC_INFO_TELNO || item.telNo || item.TEL_NO || "번호 없음"
+        ).trim(),
+
+        // 영업 상태 전용 필드
+        dtlStateNm: String(
+          item.dtlStateNm || item.DTL_STATE_NM || item.trdStateNm || "영업중"
+        ).trim(),
       };
     });
 
-    // 검색어 필터링
+    // 검색어 필터링 (입력한 지역어나 상호명이 상호명 혹은 주소에 포함되는지 정확히 대조)
     let filteredItems = items;
     if (keyword && items.length > 0) {
       const lowerKeyword = keyword.toLowerCase();
       filteredItems = items.filter((item: any) => {
         return (
           item.bplcNm.toLowerCase().includes(lowerKeyword) || 
-          item.rdnWhlAddr.toLowerCase().includes(lowerKeyword)
+          item.rdnWhlAddr.toLowerCase().includes(lowerKeyword) ||
+          item.siteWhlAddr.toLowerCase().includes(lowerKeyword)
         );
       });
     }
