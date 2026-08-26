@@ -742,12 +742,13 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 🚀 랭킹 카드 하단 애드센스 광고 영역 (현 UI 폭과 일치시킴) */}
-              <div className="w-full max-w-7xl mx-auto px-4 my-6">
-                <div className="bg-[#111827]/60 border border-gray-800 rounded-2xl p-4 shadow-lg overflow-hidden">
+              {/* 기존에 폭이 너무 넓거나 여백을 유발하던 컨테이너를 아래처럼 수정 */}
+              <div className="w-full max-w-sm mx-auto my-4"> 
+                <div className="bg-[#111827]/60 border border-gray-800 rounded-2xl p-3 shadow-lg overflow-hidden">
                   <AdsenseBanner />
                 </div>
               </div>
+
               
             </div>
           </div>
