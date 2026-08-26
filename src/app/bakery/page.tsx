@@ -14,8 +14,8 @@ interface BakeryItem {
 }
 
 export default function BakeryArchivePage() {
-  const [inputRegion, setInputRegion] = useState<string>("서울"); // 검색할 지역어
-  const [searchQuery, setSearchQuery] = useState<string>("서울"); // 실제 적용된 검색어
+  const [inputRegion, setInputRegion] = useState<string>("서울");
+  const [searchQuery, setSearchQuery] = useState<string>("서울");
   const [bakeries, setBakeries] = useState<BakeryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedBakery, setSelectedBakery] = useState<BakeryItem | null>(null);
@@ -86,9 +86,10 @@ export default function BakeryArchivePage() {
         </form>
       </header>
 
-      {/* 메인 콘텐츠 영역 (스크롤 분할) */}
+      {/* 메인 콘텐츠 영역 (2단 분할 레이아웃 고정) */}
       <div className="flex flex-1 overflow-hidden relative" style={{ height: "calc(100vh - 61px)" }}>
-        {/* 1. 좌측 리스트 그리드 (애드센스 카드 포함) */}
+        
+        {/* 1. 좌측 리스트 그리드 */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-[#13151A] content-start">
           {loading ? (
             <div className="col-span-full text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
@@ -103,45 +104,34 @@ export default function BakeryArchivePage() {
 
               const isSelected = selectedBakery === bakery;
               return (
-                <React.Fragment key={idx}>
-                  <div
-                    onClick={() => setSelectedBakery(bakery)}
-                    className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
-                      isSelected
-                        ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
-                        : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                          {state}
-                        </span>
-                        <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
-                      </div>
-                      <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
-                        {name}
-                      </h3>
-                      <p className="text-[11px] text-stone-400 truncate">
-                        {addr}
-                      </p>
+                <div
+                  key={idx}
+                  onClick={() => setSelectedBakery(bakery)}
+                  className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
+                    isSelected
+                      ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
+                      : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
+                  }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                        {state}
+                      </span>
+                      <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
                     </div>
-                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
-                      <span>공공데이터포털 실시간 연동</span>
-                      <span className="text-amber-500 font-medium">상세보기 →</span>
-                    </div>
+                    <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
+                      {name}
+                    </h3>
+                    <p className="text-[11px] text-stone-400 truncate">
+                      {addr}
+                    </p>
                   </div>
-
-                  {/* 💡 리스트 중간(예: 3번째 카드 출력 직후) 자연스럽게 녹아드는 애드센스 광고 카드 */}
-                  {idx === 2 && (
-                    <div className="col-span-full bg-[#111827]/80 border border-gray-800 rounded-2xl p-4 my-2 shadow-lg flex flex-col items-center justify-center overflow-hidden">
-                      <span className="text-[10px] text-stone-500 uppercase tracking-widest mb-1">Sponsored Advertisement</span>
-                      <div className="w-full max-w-xs flex justify-center">
-                        <AdsenseBanner />
-                      </div>
-                    </div>
-                  )}
-                </React.Fragment>
+                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
+                    <span>공공데이터포털 실시간 연동</span>
+                    <span className="text-amber-500 font-medium">상세보기 →</span>
+                  </div>
+                </div>
               );
             })
           ) : (
@@ -151,51 +141,62 @@ export default function BakeryArchivePage() {
           )}
         </div>
 
-        {/* 2. 우측 상세 패널 */}
-        <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-6 border-l border-stone-800 bg-[#161922] justify-center items-center">
+        {/* 2. 우측 상세 패널 (스크롤 내에 깔끔하게 맞도록 패딩 및 높이 최적화) */}
+        <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-5 border-l border-stone-800 bg-[#161922] overflow-y-auto justify-start items-center">
           {selectedBakery ? (
-            <div className="w-full p-6 rounded-3xl bg-[#1B1F28] border border-stone-700/60 shadow-2xl flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-amber-500 tracking-wider uppercase">
-                    공공데이터 표준 인증 업소
-                  </span>
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-medium">
-                    {selectedBakery.dtlStateNm || selectedBakery.DTL_STATE_NM || "영업"}
-                  </span>
+            <div className="w-full flex flex-col gap-4">
+              {/* 상세 정보 카드 */}
+              <div className="w-full p-5 rounded-3xl bg-[#1B1F28] border border-stone-700/60 shadow-2xl flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-amber-500 tracking-wider uppercase">
+                      공공데이터 표준 인증 업소
+                    </span>
+                    <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-medium">
+                      {selectedBakery.dtlStateNm || selectedBakery.DTL_STATE_NM || "영업"}
+                    </span>
+                  </div>
+                  <h2 className="text-base font-bold text-stone-100 tracking-tight break-keep">
+                    {selectedBakery.bplcNm || selectedBakery.BPLC_NM}
+                  </h2>
                 </div>
-                <h2 className="text-base font-bold text-stone-100 tracking-tight break-keep">
-                  {selectedBakery.bplcNm || selectedBakery.BPLC_NM}
-                </h2>
+
+                <div className="flex flex-col gap-2.5 py-3 border-y border-stone-800 text-xs text-stone-300">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-stone-500">도로명 주소</span>
+                    <span className="font-medium text-stone-200 break-keep">
+                      {selectedBakery.rdnWhlAddr || selectedBakery.ROAD_NM_ADDR || "도로명 주소 없음"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-stone-500">지번 주소</span>
+                    <span className="font-medium text-stone-400 break-keep">
+                      {selectedBakery.siteWhlAddr || selectedBakery.SITE_WHL_ADDR || "지번 주소 없음"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] text-stone-500">매장 연락처</span>
+                    <span className="font-medium text-stone-200 font-mono">
+                      {selectedBakery.bplcInfoTelno || selectedBakery.BPLC_INFO_TELNO || "정보 없음"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-[#12141A] p-3 rounded-2xl border border-stone-800 text-[11px] text-stone-400 leading-relaxed">
+                  🛡️ 공공데이터포털 공식 오픈데이터 연동 업소입니다.
+                </div>
               </div>
 
-              <div className="flex flex-col gap-3 py-3 border-y border-stone-800 text-xs text-stone-300">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-stone-500">도로명 주소</span>
-                  <span className="font-medium text-stone-200 break-keep">
-                    {selectedBakery.rdnWhlAddr || selectedBakery.ROAD_NM_ADDR || "도로명 주소 없음"}
-                  </span>
+              {/* 💡 우측 패널 하단에 깔끔하게 배치하는 애드센스 위젯 (레이아웃 깨짐 방지) */}
+              <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
+                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored</span>
+                <div className="w-full flex justify-center overflow-hidden">
+                  <AdsenseBanner />
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-stone-500">지번 주소</span>
-                  <span className="font-medium text-stone-400 break-keep">
-                    {selectedBakery.siteWhlAddr || selectedBakery.SITE_WHL_ADDR || "지번 주소 없음"}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-stone-500">매장 연락처</span>
-                  <span className="font-medium text-stone-200 font-mono">
-                    {selectedBakery.bplcInfoTelno || selectedBakery.BPLC_INFO_TELNO || "정보 없음"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-[#12141A] p-3.5 rounded-2xl border border-stone-800 text-[11px] text-stone-400 leading-relaxed">
-                🛡️ 본 서비스는 공공데이터포털의 공식 오픈데이터를 직접 연동하여 제공하므로, 이용자들에게 신뢰도 높은 정보를 전달합니다.
               </div>
             </div>
           ) : (
-            <div className="text-stone-500 text-xs text-center">
+            <div className="text-stone-500 text-xs text-center my-auto">
               목록에서 베이커리를 선택하면<br />상세 정보가 표시됩니다.
             </div>
           )}
