@@ -199,7 +199,7 @@ export default function BakeryArchivePage() {
               <div className="col-span-full flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1B1F28] border border-stone-800 mt-2 shadow-lg">
                 <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-2">SPONSORED ADVERTISEMENT</span>
                 <KakaoAdFitBanner 
-                  adUnit="YOUR_AD_UNIT_ID" 
+                  adUnit="DAN-SQynyBb84UUnztYC" 
                   width="250" 
                   height="250" 
                 />
