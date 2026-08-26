@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AdsenseBanner from "@/app/components/AdsenseBanner";
 // 만약 카카오 애드핏 컴포넌트 파일 경로가 다르다면 이 부분을 프로젝트 구조에 맞게 수정해주세요!
-import AdfitBanner from "@/app/components/AdfitBanner"; 
+import KakaoAdFitBanner from "@/app/components/KakaoAdFitBanner";
 
 interface BakeryItem {
   bplcNm?: string;           
