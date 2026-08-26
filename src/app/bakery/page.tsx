@@ -255,13 +255,20 @@ export default function BakeryArchivePage() {
               </div>
             </div>
 
-            {/* 카카오 애드핏 배너 */}
-            <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
-              <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
-              <div className="w-full flex justify-center overflow-hidden">
-                <KakaoAdFitBanner />
+            {/* 우측 패널 하단 카카오 애드핏 배너 */}
+              <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
+                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Kakao AdFit</span>
+                <div className="w-full flex justify-center overflow-hidden">
+                  <KakaoAdFitBanner 
+                    adUnit="YOUR_KAKAO_AD_UNIT_ID" 
+                    width="250" 
+                    height="250" 
+                  />
+                </div>
               </div>
-            </div>
+
+
+            
           </div>
         </aside>
       </div>
