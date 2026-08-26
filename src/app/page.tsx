@@ -740,6 +740,14 @@ export default function Home() {
                   )}
                 </div>
               </div>
+
+              {/* 🚀 랭킹 카드 하단 애드센스 광고 영역 (현 UI 폭과 일치시킴) */}
+              <div className="w-full max-w-7xl mx-auto px-4 my-6">
+                <div className="bg-[#111827]/60 border border-gray-800 rounded-2xl p-4 shadow-lg overflow-hidden">
+                  <AdsenseBanner />
+                </div>
+              </div>
+              
             </div>
           </div>
         </section>
