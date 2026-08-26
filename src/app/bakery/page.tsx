@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdsenseBanner from "@/app/components/AdsenseBanner";
-import KakaoAdFitBanner from "@/app/components/KakaoAdFitBanner"; // 💡 카카오 애드핏 컴포넌트 임포트
+import KakaoAdFitBanner from "@/app/components/KakaoAdFitBanner"; // 💡 카카오 애드핏 임포트 확인
 import Footer from "@/app/components/Footer";
 
 interface BakeryItem {
@@ -97,56 +97,44 @@ export default function BakeryArchivePage() {
               공공데이터 서버에서 데이터를 안전하게 불러오는 중입니다...
             </div>
           ) : bakeries.length > 0 ? (
-            <>
-              {bakeries.map((bakery, idx) => {
-                const name = bakery.bplcNm || "상호명 미등록";
-                const addr = bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음";
-                const tel = bakery.bplcInfoTelno || "번호없음";
-                const state = bakery.dtlStateNm || "영업중";
+            bakeries.map((bakery, idx) => {
+              const name = bakery.bplcNm || "상호명 미등록";
+              const addr = bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음";
+              const tel = bakery.bplcInfoTelno || "번호없음";
+              const state = bakery.dtlStateNm || "영업중";
 
-                const isSelected = selectedBakery === bakery;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => setSelectedBakery(bakery)}
-                    className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
-                      isSelected
-                        ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
-                        : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
-                    }`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                          {state}
-                        </span>
-                        <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
-                      </div>
-                      <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
-                        {name}
-                      </h3>
-                      <p className="text-[11px] text-stone-400 truncate">
-                        {addr}
-                      </p>
+              const isSelected = selectedBakery === bakery;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedBakery(bakery)}
+                  className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
+                    isSelected
+                      ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
+                      : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
+                  }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                        {state}
+                      </span>
+                      <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
                     </div>
-                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
-                      <span>공공데이터포털 실시간 연동</span>
-                      <span className="text-amber-500 font-medium">상세보기 →</span>
-                    </div>
+                    <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
+                      {name}
+                    </h3>
+                    <p className="text-[11px] text-stone-400 truncate">
+                      {addr}
+                    </p>
                   </div>
-                );
-              })}
-
-              {/* 💡 붉은 박스 위치: 좌측 리스트 하단에 가로로 꽉 차는 카카오 애드핏 영역 추가 */}
-              <div className="col-span-full flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1B1F28] border border-stone-800 mt-2 shadow-lg">
-                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-2">SPONSORED ADVERTISEMENT</span>
-                <KakaoAdFitBanner 
-                  adUnit="YOUR_KAKAO_AD_UNIT_ID" 
-                  width="250" 
-                  height="250" 
-                />
-              </div>
-            </>
+                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
+                    <span>공공데이터포털 실시간 연동</span>
+                    <span className="text-amber-500 font-medium">상세보기 →</span>
+                  </div>
+                </div>
+              );
+            })
           ) : (
             <div className="col-span-full text-center py-24 text-stone-500 text-xs">
               검색 결과가 없습니다. 다른 지역명이나 상호명으로 검색해 보세요.
@@ -200,14 +188,26 @@ export default function BakeryArchivePage() {
                 </div>
               </div>
 
-              {/* 우측 패널 하단 애드센스 배너 (레이아웃 침범 없음) */}
+              {/* 우측 패널 하단 1: 애드센스 배너 */}
               <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
                 <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored</span>
                 <div className="w-full flex justify-center overflow-hidden">
                   <AdsenseBanner />
                 </div>
               </div>
-             
+
+              {/* 💡 우측 패널 하단 2: 카카오 애드핏 배너 추가 완료 */}
+              <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
+                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Kakao AdFit</span>
+                <div className="w-full flex justify-center overflow-hidden">
+                  <KakaoAdFitBanner 
+                    adUnit="DAN-SQynyBb84UUnztYC" 
+                    width="250" 
+                    height="250" 
+                  />
+                </div>
+              </div>
+
             </div>
           ) : (
             <div className="text-stone-500 text-xs text-center my-auto">
