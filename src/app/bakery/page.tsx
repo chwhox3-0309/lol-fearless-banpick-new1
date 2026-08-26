@@ -205,7 +205,7 @@ export default function BakeryArchivePage() {
       </div>
 
       {/* 3. 단 하나의 푸터 컴포넌트 (페이지 최하단 고정) */}
-      <Footer />
+      
       
     </div>
   );
