@@ -217,7 +217,7 @@ export default function BakeryArchivePage() {
           height="250" 
         />
         </div>
-      </div>
+      
     
 
               
