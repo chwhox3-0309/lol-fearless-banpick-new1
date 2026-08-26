@@ -260,14 +260,12 @@ export default function BakeryArchivePage() {
                 <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Kakao AdFit</span>
                 <div className="w-full flex justify-center overflow-hidden">
                   <KakaoAdFitBanner 
-                    adUnit="YOUR_KAKAO_AD_UNIT_ID" 
+                    adUnit="DAN-SQynyBb84UUnztYC" 
                     width="250" 
                     height="250" 
                   />
                 </div>
               </div>
-
-
             
           </div>
         </aside>
