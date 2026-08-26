@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import AdsenseBanner from "@/app/components/AdsenseBanner";
-import KakaoAdFitBanner from "@/app/components/KakaoAdFitBanner";
-import Footer from "@/app/components/Footer";
+// 만약 카카오 애드핏 컴포넌트 파일 경로가 다르다면 이 부분을 프로젝트 구조에 맞게 수정해주세요!
+import AdfitBanner from "@/app/components/AdfitBanner"; 
 
 interface BakeryItem {
   bplcNm?: string;           
@@ -21,9 +21,14 @@ export default function BakeryArchivePage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedBakery, setSelectedBakery] = useState<BakeryItem | null>(null);
 
+  // --- 페이지네이션 상태 ---
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const fetchBakeries = async () => {
       setLoading(true);
+      setCurrentPage(1); // 검색어 변경 시 1페이지로 초기화
       try {
         const res = await fetch(`/api/bakery?keyword=${encodeURIComponent(searchQuery)}&numOfRows=1000`);
         const json = await res.json();
@@ -51,8 +56,15 @@ export default function BakeryArchivePage() {
     setSearchQuery(inputRegion.trim());
   };
 
+  // --- 현재 페이지 데이터 계산 ---
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentBakeries = bakeries.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(bakeries.length / itemsPerPage);
+
   return (
     <div className="flex flex-col min-h-screen w-full bg-[#13151A] font-sans text-stone-200 antialiased select-none">
+      
       {/* 상단 네비게이션 및 지역 검색바 */}
       <header className="flex flex-col md:flex-row items-center justify-between px-6 py-3.5 border-b border-stone-800 bg-[#181B22] shrink-0 gap-3 z-10 shadow-sm">
         <div className="flex items-center gap-3">
@@ -88,77 +100,101 @@ export default function BakeryArchivePage() {
       </header>
 
       {/* 메인 콘텐츠 영역 (스크롤 분할 레이아웃) */}
-      <div className="flex flex-1 overflow-hidden relative" style={{ height: "calc(100vh - 61px)" }}>
+      <div className="flex flex-1 w-full overflow-hidden" style={{ minHeight: "calc(100vh - 61px)" }}>
         
-        {/* 1. 좌측 리스트 영역 (카드 그리드 + 하단 카카오 애드핏 광고) */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-[#13151A]">
-          {loading ? (
-            <div className="text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
-              공공데이터 서버에서 데이터를 안전하게 불러오는 중입니다...
-            </div>
-          ) : bakeries.length > 0 ? (
-            <>
-              {/* 베이커리 카드 그리드 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {bakeries.map((bakery, idx) => {
-                  const name = bakery.bplcNm || "상호명 미등록";
-                  const addr = bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음";
-                  const tel = bakery.bplcInfoTelno || "번호없음";
-                  const state = bakery.dtlStateNm || "영업중";
+        {/* 1. 좌측 리스트 그리드 + 페이지네이션 영역 */}
+        <div className="flex-1 flex flex-col justify-between overflow-y-auto p-6 bg-[#13151A]">
+          
+          {/* 리스트 그리드 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 content-start">
+            {loading ? (
+              <div className="col-span-full text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
+                공공데이터 서버에서 데이터를 안전하게 불러오는 중입니다...
+              </div>
+            ) : currentBakeries.length > 0 ? (
+              currentBakeries.map((bakery, idx) => {
+                const name = bakery.bplcNm || "상호명 미등록";
+                const addr = bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음";
+                const tel = bakery.bplcInfoTelno || "번호없음";
+                const state = bakery.dtlStateNm || "영업중";
 
-                  const isSelected = selectedBakery === bakery;
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedBakery(bakery)}
-                      className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
-                        isSelected
-                          ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
-                          : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-1">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                            {state}
-                          </span>
-                          <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
-                        </div>
-                        <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
-                          {name}
-                        </h3>
-                        <p className="text-[11px] text-stone-400 truncate">
-                          {addr}
-                        </p>
+                const isSelected = selectedBakery === bakery;
+                return (
+                  <div
+                    key={indexOfFirstItem + idx}
+                    onClick={() => setSelectedBakery(bakery)}
+                    className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
+                      isSelected
+                        ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
+                        : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                          {state}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
                       </div>
-                      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
-                        <span>공공데이터포털 실시간 연동</span>
-                        <span className="text-amber-500 font-medium">상세보기 →</span>
-                      </div>
+                      <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
+                        {name}
+                      </h3>
+                      <p className="text-[11px] text-stone-400 truncate">
+                        {addr}
+                      </p>
                     </div>
-                  );
-                })}
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
+                      <span>공공데이터포털 실시간 연동</span>
+                      <span className="text-amber-500 font-medium">상세보기 →</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-24 text-stone-500 text-xs">
+                검색 결과가 없습니다. 다른 지역명이나 상호명으로 검색해 보세요.
               </div>
+            )}
+          </div>
 
-              {/* 좌측 리스트 가장 하단에 배치되는 카카오 애드핏 배너 */}
-              <div className="w-full flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1B1F28] border border-stone-800 shadow-lg mt-auto">
-                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-2">SPONSORED ADVERTISEMENT</span>
-                <KakaoAdFitBanner 
-                  adUnit="YOUR_KAKAO_AD_UNIT_ID" 
-                  width="250" 
-                  height="250" 
-                />
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-24 text-stone-500 text-xs">
-              검색 결과가 없습니다. 다른 지역명이나 상호명으로 검색해 보세요.
+          {/* 페이지 넘버링 UI */}
+          {!loading && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-1.5 mt-6 py-4">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg text-xs bg-[#1B1F28] text-stone-400 border border-stone-800 disabled:opacity-30 hover:bg-[#222733] transition-all"
+              >
+                이전
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    currentPage === page
+                      ? "bg-amber-500 text-stone-950 shadow-md shadow-amber-500/10"
+                      : "bg-[#1B1F28] text-stone-400 border border-stone-800 hover:bg-[#222733]"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg text-xs bg-[#1B1F28] text-stone-400 border border-stone-800 disabled:opacity-30 hover:bg-[#222733] transition-all"
+              >
+                다음
+              </button>
             </div>
           )}
         </div>
 
-        {/* 2. 우측 상세 패널 및 광고 영역 */}
-        <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-5 border-l border-stone-800 bg-[#161922] overflow-y-auto justify-start items-center">
+        {/* 2. 우측 상세 패널 및 광고 영역 (애드센스 + 카카오 애드핏) */}
+        <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-5 border-l border-stone-800 bg-[#161922] overflow-y-auto justify-start items-center gap-4">
           {selectedBakery ? (
             <div className="w-full flex flex-col gap-4">
               {/* 상세 정보 카드 */}
@@ -202,37 +238,34 @@ export default function BakeryArchivePage() {
                   🛡️ 공공데이터포털 공식 오픈데이터 연동 업소입니다.
                 </div>
               </div>
-
-              {/* 우측 패널 하단 애드센스 배너 */}
-              <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
-                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored</span>
-                <div className="w-full flex justify-center overflow-hidden">
-                  <AdsenseBanner />
-                </div>
-              </div>
-
-              {/* 우측 패널 하단 카카오 애드핏 배너 */}
-              <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
-                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Kakao AdFit</span>
-                <div className="w-full flex justify-center overflow-hidden">
-                  <KakaoAdFitBanner 
-                    adUnit="DAN-SQynyBb84UUnztYC" 
-                    width="250" 
-                    height="250" 
-                  />
-                </div>
-              </div>
-
             </div>
           ) : (
             <div className="text-stone-500 text-xs text-center my-auto">
               목록에서 베이커리를 선택하면<br />상세 정보가 표시됩니다.
             </div>
           )}
+
+          {/* 우측 패널 하단 광고 영역 (애드센스 + 카카오 애드핏 연속 배치) */}
+          <div className="w-full flex flex-col gap-3 mt-auto pt-2">
+            {/* 구글 애드센스 배너 */}
+            <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
+              <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adsense)</span>
+              <div className="w-full flex justify-center overflow-hidden">
+                <AdsenseBanner />
+              </div>
+            </div>
+
+            {/* 카카오 애드핏 배너 */}
+            <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
+              <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
+              <div className="w-full flex justify-center overflow-hidden">
+                <AdfitBanner />
+              </div>
+            </div>
+          </div>
         </aside>
       </div>
 
-      
     </div>
   );
 }
