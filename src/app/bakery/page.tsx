@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import AdsenseBanner from "@/app/components/AdsenseBanner";
+import Footer from "@/app/components/Footer";
 
 interface BakeryItem {
   bplcNm?: string;           
@@ -22,7 +24,6 @@ export default function BakeryArchivePage() {
     const fetchBakeries = async () => {
       setLoading(true);
       try {
-        // 전체 데이터를 넉넉히 가져온 뒤 서버/클라이언트에서 검색어 반영
         const res = await fetch(`/api/bakery?keyword=${encodeURIComponent(searchQuery)}&numOfRows=1000`);
         const json = await res.json();
         
@@ -50,7 +51,7 @@ export default function BakeryArchivePage() {
   };
 
   return (
-    <main className="flex flex-col h-screen w-full bg-[#13151A] font-sans text-stone-200 antialiased overflow-hidden select-none">
+    <div className="flex flex-col min-h-screen w-full bg-[#13151A] font-sans text-stone-200 antialiased select-none">
       {/* 상단 네비게이션 및 지역 검색바 */}
       <header className="flex flex-col md:flex-row items-center justify-between px-6 py-3.5 border-b border-stone-800 bg-[#181B22] shrink-0 gap-3 z-10 shadow-sm">
         <div className="flex items-center gap-3">
@@ -85,9 +86,9 @@ export default function BakeryArchivePage() {
         </form>
       </header>
 
-      {/* 메인 2단 분할 레이아웃 */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* 1. 좌측 리스트 그리드 */}
+      {/* 메인 콘텐츠 영역 (스크롤 분할) */}
+      <div className="flex flex-1 overflow-hidden relative" style={{ height: "calc(100vh - 61px)" }}>
+        {/* 1. 좌측 리스트 그리드 (애드센스 카드 포함) */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-[#13151A] content-start">
           {loading ? (
             <div className="col-span-full text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
@@ -102,34 +103,45 @@ export default function BakeryArchivePage() {
 
               const isSelected = selectedBakery === bakery;
               return (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedBakery(bakery)}
-                  className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
-                    isSelected
-                      ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
-                      : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
-                  }`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
-                        {state}
-                      </span>
-                      <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
+                <React.Fragment key={idx}>
+                  <div
+                    onClick={() => setSelectedBakery(bakery)}
+                    className={`group cursor-pointer flex flex-col justify-between p-4 rounded-2xl transition-all bg-[#1B1F28] border ${
+                      isSelected
+                        ? "border-amber-500 bg-[#212633] shadow-lg shadow-amber-500/5"
+                        : "border-stone-800 hover:border-stone-700 hover:bg-[#1E232F]"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20">
+                          {state}
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-mono">{tel}</span>
+                      </div>
+                      <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
+                        {name}
+                      </h3>
+                      <p className="text-[11px] text-stone-400 truncate">
+                        {addr}
+                      </p>
                     </div>
-                    <h3 className="text-xs font-bold text-stone-100 group-hover:text-amber-400 transition-colors mt-1 truncate">
-                      {name}
-                    </h3>
-                    <p className="text-[11px] text-stone-400 truncate">
-                      {addr}
-                    </p>
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
+                      <span>공공데이터포털 실시간 연동</span>
+                      <span className="text-amber-500 font-medium">상세보기 →</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-stone-800/80 text-[10px] text-stone-500">
-                    <span>공공데이터포털 실시간 연동</span>
-                    <span className="text-amber-500 font-medium">상세보기 →</span>
-                  </div>
-                </div>
+
+                  {/* 💡 리스트 중간(예: 3번째 카드 출력 직후) 자연스럽게 녹아드는 애드센스 광고 카드 */}
+                  {idx === 2 && (
+                    <div className="col-span-full bg-[#111827]/80 border border-gray-800 rounded-2xl p-4 my-2 shadow-lg flex flex-col items-center justify-center overflow-hidden">
+                      <span className="text-[10px] text-stone-500 uppercase tracking-widest mb-1">Sponsored Advertisement</span>
+                      <div className="w-full max-w-xs flex justify-center">
+                        <AdsenseBanner />
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })
           ) : (
@@ -189,6 +201,9 @@ export default function BakeryArchivePage() {
           )}
         </aside>
       </div>
-    </main>
+
+      {/* 하단 푸터 연동 */}
+      <Footer />
+    </div>
   );
 }
