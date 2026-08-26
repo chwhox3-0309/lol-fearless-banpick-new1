@@ -742,12 +742,13 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 기존에 폭이 너무 넓거나 여백을 유발하던 컨테이너를 아래처럼 수정 */}
-              <div className="w-full max-w-sm mx-auto my-4"> 
-                <div className="bg-[#111827]/60 border border-gray-800 rounded-2xl p-3 shadow-lg overflow-hidden">
-                  <AdsenseBanner />
-                </div>
-              </div>
+           {/* 랭킹 카드 하단 애드센스 영역 */}
+<div className="w-full max-w-7xl mx-auto px-4 my-6 flex justify-center">
+  {/* 기존에 넓었던 카드의 max-w를 줄이고 컴팩트하게 변경 */}
+  <div className="w-full max-w-xs bg-[#111827]/60 border border-gray-800 rounded-2xl p-3 shadow-lg overflow-hidden">
+    <AdsenseBanner />
+  </div>
+</div>
 
               
             </div>
