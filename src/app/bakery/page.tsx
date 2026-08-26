@@ -194,6 +194,18 @@ export default function BakeryArchivePage() {
                   <AdsenseBanner />
                 </div>
               </div>
+
+              {/* 💡 바로 이 부분! 그리드 하단 붉은 박스 위치에 카카오 애드핏 카드 추가 */}
+              <div className="col-span-full flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1B1F28] border border-stone-800 mt-2 shadow-lg">
+                <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-2">SPONSORED ADVERTISEMENT</span>
+                <KakaoAdFitBanner 
+                  adUnit="YOUR_AD_UNIT_ID" 
+                  width="250" 
+                  height="250" 
+                />
+              </div>
+
+              
             </div>
           ) : (
             <div className="text-stone-500 text-xs text-center my-auto">
