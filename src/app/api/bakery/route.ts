@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const pageNo = searchParams.get("pageNo") || "1";
-  const numOfRows = searchParams.get("numOfRows") || "100"; // 명세서 기준 max: 100
+  const numOfRows = searchParams.get("numOfRows") || "1000"; 
   const keyword = searchParams.get("keyword") || "";
 
   const rawServiceKey = process.env.DATA_API_KEY || "";
@@ -21,15 +21,13 @@ export async function GET(request: Request) {
 
   const baseUrl = "https://apis.data.go.kr/1741000/bakeries/info"; 
   
-  // 🔍 명세서 요청변수(Request Parameter) 규격에 맞게 파라미터 구성
   const queryParams: Record<string, string> = {
     serviceKey: decodedKey,
     pageNo: pageNo,
     numOfRows: numOfRows,
-    returnType: "json" // 명세서상 returnType 사용
+    returnType: "json"
   };
 
-  // 검색어가 있는 경우 명세서의 조건식 파라미터 적용 (상호명 또는 도로명주소 포함 검색)
   if (keyword) {
     queryParams["cond[BPLC_NM::LIKE]"] = keyword;
   }
@@ -51,7 +49,6 @@ export async function GET(request: Request) {
 
     const data = JSON.parse(textData);
     
-    // 🔍 표준 응답 구조 탐색
     let rawItems = 
       data?.response?.body?.items?.item || 
       data?.response?.body?.items || 
@@ -65,30 +62,39 @@ export async function GET(request: Request) {
       rawItems = [rawItems];
     }
 
-    // 🔍 공공데이터 표준 필드명에 맞추어 정확하게 매핑 (상호명, 주소 밀림 현상 방지)
-    const items = rawItems.map((item: any) => {
-      return {
-        bplcNm: String(
-          item.BPLC_NM || item.bplcNm || item.upsoNm || "상호명 없음"
-        ).trim(),
-        
-        rdnWhlAddr: String(
-          item.ROAD_NM_ADDR || item.rdnWhlAddr || item.rdnmAdr || ""
-        ).trim(),
+    // 데이터 매핑 및 공공데이터 원본 오류(주소 불일치 꼬임 현상) 필터링 적용
+    const items = rawItems
+      .map((item: any) => {
+        return {
+          bplcNm: String(
+            item.BPLC_NM || item.bplcNm || item.upsoNm || "상호명 없음"
+          ).trim(),
+          
+          rdnWhlAddr: String(
+            item.ROAD_NM_ADDR || item.rdnWhlAddr || item.rdnmAdr || ""
+          ).trim(),
 
-        siteWhlAddr: String(
-          item.SITE_WHL_ADDR || item.siteWhlAddr || item.locaddr || ""
-        ).trim(),
+          siteWhlAddr: String(
+            item.SITE_WHL_ADDR || item.siteWhlAddr || item.locaddr || ""
+          ).trim(),
 
-        bplcInfoTelno: String(
-          item.BPLC_INFO_TELNO || item.bplcInfoTelno || item.telNo || "번호 없음"
-        ).trim(),
+          bplcInfoTelno: String(
+            item.BPLC_INFO_TELNO || item.bplcInfoTelno || item.telNo || "번호 없음"
+          ).trim(),
 
-        dtlStateNm: String(
-          item.DTL_STATE_NM || item.dtlStateNm || item.trdStateNm || "영업중"
-        ).trim(),
-      };
-    });
+          dtlStateNm: String(
+            item.DTL_STATE_NM || item.dtlStateNm || item.trdStateNm || "영업중"
+          ).trim(),
+        };
+      })
+      .filter((item: any) => {
+        if (keyword) {
+          const q = keyword.trim();
+          // 상호명이나 주소 중 하나라도 검색어가 일치해야 유효한 데이터로 인정
+          return item.bplcNm.includes(q) || item.rdnWhlAddr.includes(q) || item.siteWhlAddr.includes(q);
+        }
+        return true;
+      });
 
     return NextResponse.json({ items });
   } catch (error: any) {
