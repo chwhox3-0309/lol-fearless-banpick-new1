@@ -14,8 +14,8 @@ interface BakeryItem {
 }
 
 export default function BakeryArchivePage() {
-  const [inputRegion, setInputRegion] = useState<string>("서울");
-  const [searchQuery, setSearchQuery] = useState<string>("서울");
+  const [inputRegion, setInputRegion] = useState<string>("서울"); 
+  const [searchQuery, setSearchQuery] = useState<string>("서울"); 
   const [bakeries, setBakeries] = useState<BakeryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedBakery, setSelectedBakery] = useState<BakeryItem | null>(null);
@@ -71,7 +71,7 @@ export default function BakeryArchivePage() {
             </svg>
             <input
               type="text"
-              placeholder="지역명 또는 매장명 검색 (예: 서울, 강남구, 뚜레쥬르)"
+              placeholder="지역명 또는 매장명 검색 (예: 서울, 대구, 뚜레쥬르)"
               value={inputRegion}
               onChange={(e) => setInputRegion(e.target.value)}
               className="outline-none text-xs bg-transparent w-full text-stone-200 placeholder-stone-500"
@@ -86,10 +86,10 @@ export default function BakeryArchivePage() {
         </form>
       </header>
 
-      {/* 메인 콘텐츠 영역 (2단 분할 레이아웃 고정) */}
+      {/* 메인 콘텐츠 영역 (스크롤 분할 레이아웃) */}
       <div className="flex flex-1 overflow-hidden relative" style={{ height: "calc(100vh - 61px)" }}>
         
-        {/* 1. 좌측 리스트 그리드 */}
+        {/* 1. 좌측 리스트 그리드 영역 */}
         <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-[#13151A] content-start">
           {loading ? (
             <div className="col-span-full text-center py-24 text-amber-500 text-xs tracking-widest animate-pulse">
@@ -97,10 +97,10 @@ export default function BakeryArchivePage() {
             </div>
           ) : bakeries.length > 0 ? (
             bakeries.map((bakery, idx) => {
-              const name = bakery.bplcNm || bakery.BPLC_NM || "상호명 미등록";
-              const addr = bakery.rdnWhlAddr || bakery.ROAD_NM_ADDR || bakery.siteWhlAddr || bakery.SITE_WHL_ADDR || "주소 정보 없음";
-              const tel = bakery.bplcInfoTelno || bakery.BPLC_INFO_TELNO || "번호없음";
-              const state = bakery.dtlStateNm || bakery.DTL_STATE_NM || "영업중";
+              const name = bakery.bplcNm || "상호명 미등록";
+              const addr = bakery.rdnWhlAddr || bakery.siteWhlAddr || "주소 정보 없음";
+              const tel = bakery.bplcInfoTelno || "번호없음";
+              const state = bakery.dtlStateNm || "영업중";
 
               const isSelected = selectedBakery === bakery;
               return (
@@ -141,7 +141,7 @@ export default function BakeryArchivePage() {
           )}
         </div>
 
-        {/* 2. 우측 상세 패널 (스크롤 내에 깔끔하게 맞도록 패딩 및 높이 최적화) */}
+        {/* 2. 우측 상세 패널 및 광고 영역 (스크롤 포함으로 화면 이탈 방지) */}
         <aside className="w-[380px] shrink-0 hidden xl:flex flex-col p-5 border-l border-stone-800 bg-[#161922] overflow-y-auto justify-start items-center">
           {selectedBakery ? (
             <div className="w-full flex flex-col gap-4">
@@ -153,11 +153,11 @@ export default function BakeryArchivePage() {
                       공공데이터 표준 인증 업소
                     </span>
                     <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-medium">
-                      {selectedBakery.dtlStateNm || selectedBakery.DTL_STATE_NM || "영업"}
+                      {selectedBakery.dtlStateNm || "영업"}
                     </span>
                   </div>
                   <h2 className="text-base font-bold text-stone-100 tracking-tight break-keep">
-                    {selectedBakery.bplcNm || selectedBakery.BPLC_NM}
+                    {selectedBakery.bplcNm}
                   </h2>
                 </div>
 
@@ -165,19 +165,19 @@ export default function BakeryArchivePage() {
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-stone-500">도로명 주소</span>
                     <span className="font-medium text-stone-200 break-keep">
-                      {selectedBakery.rdnWhlAddr || selectedBakery.ROAD_NM_ADDR || "도로명 주소 없음"}
+                      {selectedBakery.rdnWhlAddr || "도로명 주소 없음"}
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-stone-500">지번 주소</span>
                     <span className="font-medium text-stone-400 break-keep">
-                      {selectedBakery.siteWhlAddr || selectedBakery.SITE_WHL_ADDR || "지번 주소 없음"}
+                      {selectedBakery.siteWhlAddr || "지번 주소 없음"}
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-stone-500">매장 연락처</span>
                     <span className="font-medium text-stone-200 font-mono">
-                      {selectedBakery.bplcInfoTelno || selectedBakery.BPLC_INFO_TELNO || "정보 없음"}
+                      {selectedBakery.bplcInfoTelno || "정보 없음"}
                     </span>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function BakeryArchivePage() {
                 </div>
               </div>
 
-              {/* 💡 우측 패널 하단에 깔끔하게 배치하는 애드센스 위젯 (레이아웃 깨짐 방지) */}
+              {/* 우측 패널 하단 애드센스 배너 (레이아웃 침범 없음) */}
               <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
                 <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored</span>
                 <div className="w-full flex justify-center overflow-hidden">
