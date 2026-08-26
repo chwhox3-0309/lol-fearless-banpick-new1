@@ -13,6 +13,7 @@ import DraftConfigurator from './components/DraftConfigurator';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
+import AdsenseBanner from '@/components/AdsenseBanner'; // 경로에 맞게 수정
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
