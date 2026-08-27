@@ -9,7 +9,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(`https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${drwNo}`);
+    const response = await fetch(
+      `https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${drwNo}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`External API failed with status ${response.status}`);
+    }
+
     const data = await response.json();
 
     if (data.returnValue === 'success') {
@@ -27,10 +39,11 @@ export async function GET(request: Request) {
         bonusNo: data.bnusNo,
       });
     } else {
-      return NextResponse.json({ error: '데이터를 불러오지 못했습니다.' }, { status: 404 });
+      // 아직 추첨하지 않은 회차이거나 데이터가 없는 경우
+      return NextResponse.json({ error: '해당 회차 데이터가 없습니다.' }, { status: 404 });
     }
   } catch (error) {
-    console.error('Lotto API Error:', error);
+    console.error(`Lotto API Error (drwNo: ${drwNo}):`, error);
     return NextResponse.json({ error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
 }
