@@ -28,34 +28,43 @@ export default function LottoArchivePage() {
     }
   };
 
+  // 기준 최신 회차 구하기 (예시 기준점: 2026년 기준 대략적인 최신 회차 또는 계산식 적용 가능)
+  // 실제 서비스 시 최신 회차 번호를 먼저 판별하는 API 호출을 두거나 상수로 지정할 수 있습니다.
+  const getLatestDrwNo = () => {
+    // 2026년 기준 대략적인 회차 계산 또는 고정 최신 회차 지정
+    return 1213; // 예시 최신 회차
+  };
+
   useEffect(() => {
-    const fetchLottoData = async () => {
+    const fetchRealLottoData = async () => {
       setLoading(true);
       try {
         const targetCount = getDrawCount(selectedPeriod);
-        const mockData: LottoResult[] = [];
-        const latestDrwNo = 1210; // 현재 시점 기준 최신 회차 예시
+        const latestNo = getLatestDrwNo();
+        const fetchedData: LottoResult[] = [];
 
+        // 최근 회차부터 역순으로 API 호출
         for (let i = 0; i < targetCount; i++) {
-          const drwNo = latestDrwNo - i;
-          mockData.push({
-            drwNo,
-            drwNoDate: "2026-00-00",
-            numbers: Array.from({ length: 6 }, () => Math.floor(Math.random() * 45) + 1).sort((a,b)=>a-b),
-            bonusNo: Math.floor(Math.random() * 45) + 1
-          });
+          const currentDrwNo = latestNo - i;
+          if (currentDrwNo <= 0) break;
+
+          const res = await fetch(`/api/lotto?drwNo=${currentDrwNo}`);
+          if (res.ok) {
+            const json = await res.json();
+            fetchedData.push(json);
+          }
         }
 
-        setRecentDraws(mockData);
-        calculateStats(mockData);
+        setRecentDraws(fetchedData);
+        calculateStats(fetchedData);
       } catch (err) {
-        console.error("로또 데이터 로드 실패:", err);
+        console.error("실제 로또 데이터 연동 실패:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLottoData();
+    fetchRealLottoData();
   }, [selectedPeriod]);
 
   // 빈도수 계산 및 통계 내기
@@ -104,7 +113,7 @@ export default function LottoArchivePage() {
             LOTTO STATS ARCHIVE
           </span>
           <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium">
-            기간별 당첨 통계 & 조합기
+            실시간 동행복권 통계 & 조합기
           </span>
         </div>
 
@@ -137,7 +146,7 @@ export default function LottoArchivePage() {
             <div className="w-full p-6 rounded-3xl bg-[#1B1F28] border border-stone-700/60 shadow-2xl flex flex-col items-center gap-5">
               <div className="text-center">
                 <span className="text-[10px] text-amber-400 font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-                  최근 {selectedPeriod}개월 통계 기반 픽
+                  최근 {selectedPeriod}개월 실데이터 통계 픽
                 </span>
                 <h2 className="text-sm font-bold text-stone-100 mt-2">
                   가장 많이 출현한 숫자를 조합한 스마트 로또 번호
@@ -202,7 +211,7 @@ export default function LottoArchivePage() {
             <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1">
               {loading ? (
                 <div className="text-center py-12 text-amber-500 text-xs animate-pulse">
-                  데이터를 불러오는 중입니다...
+                  동행복권 최신 데이터를 가져오는 중...
                 </div>
               ) : (
                 recentDraws.map((draw) => (
@@ -237,7 +246,7 @@ export default function LottoArchivePage() {
             <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
               <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
               <div className="w-full flex justify-center overflow-hidden">
-                <KakaoAdFitBanner adUnit="your-ad-unit-id" width="300" height="250" />
+                <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
               </div>
             </div>
           </div>
