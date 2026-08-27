@@ -210,7 +210,7 @@ export default function LottoArchivePage() {
             <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
               <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
               <div className="w-full flex justify-center overflow-hidden">
-                <KakaoAdFitBanner adUnit="your-ad-unit-id" width="300" height="250" />
+                <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
               </div>
             </div>
           </div>
