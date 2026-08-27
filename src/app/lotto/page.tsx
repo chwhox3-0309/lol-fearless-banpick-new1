@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AdsenseBanner from "@/app/components/AdsenseBanner";
-import AdfitBanner from "@/app/components/AdfitBanner";
+import AdfitBanner from "@/app/components/KakaoAdFitBanner.tsx";
 
 interface LottoResult {
   drwNo: number;
