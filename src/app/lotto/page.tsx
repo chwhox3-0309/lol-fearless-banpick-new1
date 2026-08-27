@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import lottoHistoryData from "@/data/lottoHistory.json";
 import AdsenseBanner from "@/app/components/AdsenseBanner";
 import KakaoAdFitBanner from "@/app/components/KakaoAdFitBanner";
 
@@ -12,13 +13,12 @@ interface LottoResult {
 }
 
 export default function LottoArchivePage() {
-  const [selectedPeriod, setSelectedPeriod] = useState<number>(1); // 1개월, 3개월, 5개월
-  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(1); // 1개월(4회), 3개월(13회), 5개월(22회)
   const [recentDraws, setRecentDraws] = useState<LottoResult[]>([]);
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
   const [hotNumbersStats, setHotNumbersStats] = useState<{ number: number; count: number }[]>([]);
 
-  // 기간별 회차 수 계산 (1개월 ≈ 4회차, 3개월 ≈ 13회차, 5개월 ≈ 22회차)
+  // 기간별 회차 수 매핑
   const getDrawCount = (period: number) => {
     switch (period) {
       case 1: return 4;
@@ -28,46 +28,16 @@ export default function LottoArchivePage() {
     }
   };
 
-  // 기준 최신 회차 구하기 (예시 기준점: 2026년 기준 대략적인 최신 회차 또는 계산식 적용 가능)
-  // 실제 서비스 시 최신 회차 번호를 먼저 판별하는 API 호출을 두거나 상수로 지정할 수 있습니다.
-  const getLatestDrwNo = () => {
-    // 2026년 기준 대략적인 회차 계산 또는 고정 최신 회차 지정
-    return 1213; // 예시 최신 회차
-  };
-
   useEffect(() => {
-    const fetchRealLottoData = async () => {
-      setLoading(true);
-      try {
-        const targetCount = getDrawCount(selectedPeriod);
-        const latestNo = getLatestDrwNo();
-        const fetchedData: LottoResult[] = [];
+    const targetCount = getDrawCount(selectedPeriod);
+    // 최신 데이터부터 순서대로 자름
+    const slicedData = (lottoHistoryData as LottoResult[]).slice(0, targetCount);
 
-        // 최근 회차부터 역순으로 API 호출
-        for (let i = 0; i < targetCount; i++) {
-          const currentDrwNo = latestNo - i;
-          if (currentDrwNo <= 0) break;
-
-          const res = await fetch(`/api/lotto?drwNo=${currentDrwNo}`);
-          if (res.ok) {
-            const json = await res.json();
-            fetchedData.push(json);
-          }
-        }
-
-        setRecentDraws(fetchedData);
-        calculateStats(fetchedData);
-      } catch (err) {
-        console.error("실제 로또 데이터 연동 실패:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRealLottoData();
+    setRecentDraws(slicedData);
+    calculateStats(slicedData);
   }, [selectedPeriod]);
 
-  // 빈도수 계산 및 통계 내기
+  // 빈도수 통계 계산
   const calculateStats = (draws: LottoResult[]) => {
     const counts: { [key: number]: number } = {};
     for (let i = 1; i <= 45; i++) counts[i] = 0;
@@ -113,7 +83,7 @@ export default function LottoArchivePage() {
             LOTTO STATS ARCHIVE
           </span>
           <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium">
-            실시간 동행복권 통계 & 조합기
+            안정적인 로또 통계 & 조합기
           </span>
         </div>
 
@@ -146,14 +116,14 @@ export default function LottoArchivePage() {
             <div className="w-full p-6 rounded-3xl bg-[#1B1F28] border border-stone-700/60 shadow-2xl flex flex-col items-center gap-5">
               <div className="text-center">
                 <span className="text-[10px] text-amber-400 font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
-                  최근 {selectedPeriod}개월 실데이터 통계 픽
+                  최근 {selectedPeriod}개월 통계 데이터 픽
                 </span>
                 <h2 className="text-sm font-bold text-stone-100 mt-2">
                   가장 많이 출현한 숫자를 조합한 스마트 로또 번호
                 </h2>
               </div>
 
-              {/* 생성된 번호 볼 (Ball) UI */}
+              {/* 생성된 번호 볼 UI */}
               <div className="flex items-center justify-center gap-2.5 my-2">
                 {generatedNumbers.length > 0 ? (
                   generatedNumbers.map((num, idx) => (
@@ -209,28 +179,22 @@ export default function LottoArchivePage() {
             </span>
 
             <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-              {loading ? (
-                <div className="text-center py-12 text-amber-500 text-xs animate-pulse">
-                  동행복권 최신 데이터를 가져오는 중...
-                </div>
-              ) : (
-                recentDraws.map((draw) => (
-                  <div key={draw.drwNo} className="p-3.5 rounded-2xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-2">
-                    <div className="flex justify-between items-center text-[11px]">
-                      <span className="font-bold text-amber-400">{draw.drwNo}회차</span>
-                      <span className="text-stone-500 font-mono">{draw.drwNoDate}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {draw.numbers.map((n, i) => (
-                        <span key={i} className="w-6 h-6 rounded-full bg-[#222733] text-stone-300 text-[10px] font-bold flex items-center justify-center border border-stone-700">
-                          {n}
-                        </span>
-                      ))}
-                      <span className="text-stone-500 text-xs ml-1">+ {draw.bonusNo}</span>
-                    </div>
+              {recentDraws.map((draw) => (
+                <div key={draw.drwNo} className="p-3.5 rounded-2xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-2">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="font-bold text-amber-400">{draw.drwNo}회차</span>
+                    <span className="text-stone-500 font-mono">{draw.drwNoDate}</span>
                   </div>
-                ))
-              )}
+                  <div className="flex items-center gap-1.5">
+                    {draw.numbers.map((n, i) => (
+                      <span key={i} className="w-6 h-6 rounded-full bg-[#222733] text-stone-300 text-[10px] font-bold flex items-center justify-center border border-stone-700">
+                        {n}
+                      </span>
+                    ))}
+                    <span className="text-stone-500 text-xs ml-1">+ {draw.bonusNo}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -246,7 +210,7 @@ export default function LottoArchivePage() {
             <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
               <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
               <div className="w-full flex justify-center overflow-hidden">
-                <KakaoAdFitBanner adUnit="DAN-s7ZfoKBcZ1QEap9Y" width="300" height="250" />
+                <KakaoAdFitBanner adUnit="your-ad-unit-id" width="300" height="250" />
               </div>
             </div>
           </div>
