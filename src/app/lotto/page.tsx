@@ -28,22 +28,16 @@ export default function LottoArchivePage() {
     }
   };
 
-  // 가상의 최근 로또 데이터 패치 (실제 구현 시 동행복권 API 연동 또는 백엔드 라우트 활용)
   useEffect(() => {
     const fetchLottoData = async () => {
       setLoading(true);
       try {
-        // 예시 최신 회차 기준 (예: 1210회차 가정)
-        // 실제 운영 시 최신 회차를 먼저 조회한 뒤 해당 개수만큼 반복 호출하거나 백엔드에서 묶어서 가져오면 됩니다.
         const targetCount = getDrawCount(selectedPeriod);
-        
-        // 동행복권 공개 API 활용 예시 구조 (실제로는 CORS 이슈로 인해 Next.js API Route를 거치는 것이 안전합니다)
         const mockData: LottoResult[] = [];
         const latestDrwNo = 1210; // 현재 시점 기준 최신 회차 예시
 
         for (let i = 0; i < targetCount; i++) {
           const drwNo = latestDrwNo - i;
-          // 임시 테스트용 데이터 생성 (실제 API 연동부로 대체 필요)
           mockData.push({
             drwNo,
             drwNoDate: "2026-00-00",
@@ -86,7 +80,6 @@ export default function LottoArchivePage() {
   const generateSmartLotto = () => {
     if (hotNumbersStats.length === 0) return;
 
-    // 상위 빈출 번호들에 가중치 부여 (예: 상위 20개 숫자를 풀(Pool)로 삼아 가중 추첨)
     const topPool = hotNumbersStats.slice(0, 25).map(item => item.number);
     const results: number[] = [];
 
@@ -244,7 +237,7 @@ export default function LottoArchivePage() {
             <div className="w-full bg-[#1B1F28]/80 border border-stone-800 rounded-2xl p-3 flex flex-col items-center justify-center shadow-lg">
               <span className="text-[9px] text-stone-500 uppercase tracking-widest mb-1.5">Sponsored (Adfit)</span>
               <div className="w-full flex justify-center overflow-hidden">
-                <KakaoAdFitBanner />
+                <KakaoAdFitBanner adUnit="your-ad-unit-id" width="300" height="250" />
               </div>
             </div>
           </div>
