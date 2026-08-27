@@ -47,12 +47,12 @@ export default function DevLogListPage() {
           <p className="text-xs text-gray-400 mt-1">사이트 업데이트 내역과 기능 개선 사항을 기록하는 공간입니다.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link
+          {/*<Link
             href="/admin/dev-log"
             className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition-all"
           >
             관리자 페이지
-          </Link>
+          </Link>*/}
           <Link
             href="/"
             className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-all"
