@@ -185,13 +185,20 @@ export default function LottoArchivePage() {
                     <span className="font-bold text-amber-400">{draw.drwNo}회차</span>
                     <span className="text-stone-500 font-mono">{draw.drwNoDate}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  
+                  {/* 당첨 번호 및 보너스 번호 UI */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {draw.numbers.map((n, i) => (
                       <span key={i} className="w-6 h-6 rounded-full bg-[#222733] text-stone-300 text-[10px] font-bold flex items-center justify-center border border-stone-700">
                         {n}
                       </span>
                     ))}
-                    <span className="text-stone-500 text-xs ml-1">+ {draw.bonusNo}</span>
+                    
+                    <span className="text-stone-500 text-xs font-bold px-0.5">+</span>
+
+                    <span className="w-6 h-6 rounded-full bg-amber-600/20 text-amber-400 text-[10px] font-black flex items-center justify-center border border-amber-500/40 shadow-sm">
+                      {draw.bonusNo}
+                    </span>
                   </div>
                 </div>
               ))}
