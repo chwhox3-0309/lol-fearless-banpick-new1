@@ -58,7 +58,6 @@ export default function LottoArchivePage() {
   const generateSmartLotto = () => {
     if (hotNumbersStats.length === 0) return;
 
-    // 상위 출현 빈도 풀에서 가중 확률적 성격을 더해 6개 추출
     const topPool = hotNumbersStats.slice(0, 25).map(item => item.number);
     const results: number[] = [];
 
@@ -105,7 +104,7 @@ export default function LottoArchivePage() {
         </div>
       </header>
 
-      {/* 메인 콘텐츠 영역 (좌우 분할 레이아웃) */}
+      {/* 메인 콘텐츠 영역 */}
       <div className="flex flex-1 w-full overflow-hidden flex-col xl:flex-row">
         
         {/* 1. 좌측: 번호 생성기 및 통계 요약 영역 */}
@@ -149,13 +148,13 @@ export default function LottoArchivePage() {
               </button>
             </div>
 
-            {/* 통계 기반 TOP 5 숫자 미리보기 카드 */}
+            {/* 통계 기반 TOP 6 숫자 미리보기 카드 (수정됨) */}
             <div className="w-full p-5 sm:p-6 rounded-3xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-3.5">
               <span className="text-xs font-bold text-stone-300 px-1">
-                📊 최근 {selectedPeriod}개월 최다 출현 번호 TOP 5
+                📊 최근 {selectedPeriod}개월 최다 출현 번호 TOP 6
               </span>
-              <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                {hotNumbersStats.slice(0, 5).map((stat, idx) => (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                {hotNumbersStats.slice(0, 6).map((stat, idx) => (
                   <div key={idx} className="flex flex-col items-center p-3 rounded-2xl bg-[#222733] border border-stone-800/80 shadow-sm">
                     <span className="text-sm sm:text-base font-black text-amber-400">{stat.number}번</span>
                     <span className="text-[10px] text-stone-400 mt-1 font-medium">{stat.count}회 출현</span>
