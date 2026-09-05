@@ -16,6 +16,8 @@ export default function LottoArchivePage() {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1); // 1개월(4회), 3개월(13회), 5개월(22회)
   const [recentDraws, setRecentDraws] = useState<LottoResult[]>([]);
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
+  const [weightedNumbers, setWeightedNumbers] = useState<number[]>([]); // 🌟 확률 가중치 기반 생성 픽
+
   const [hotNumbersStats, setHotNumbersStats] = useState<{ number: number; count: number }[]>([]);
 
   // 1, 3, 5개월 각각의 추천 픽 상태
@@ -26,7 +28,7 @@ export default function LottoArchivePage() {
   });
 
   // 복사 완료 상태 피드백용
-  const [copiedPeriod, setCopiedPeriod] = useState<number | null>(null);
+  const [copiedPeriod, setCopiedPeriod] = useState<string | null>(null);
 
   // 기간별 회차 수 매핑
   const getDrawCount = (period: number) => {
@@ -87,7 +89,6 @@ export default function LottoArchivePage() {
       .map((num) => ({ number: Number(num), count: counts[Number(num)] }))
       .sort((a, b) => b.count - a.count || a.number - b.number);
 
-    // 상위 25개 번호 추출 후 6개 무작위 선택
     const topPool = sorted.slice(0, 25).map((item) => item.number);
     const results: number[] = [];
 
@@ -119,7 +120,7 @@ export default function LottoArchivePage() {
     }));
   };
 
-  // 선택된 기간 기준 스마트 로또 번호 생성기 (메인)
+  // 선택된 기간 기준 상위 풀 단순 조합 생성기
   const generateSmartLotto = () => {
     if (hotNumbersStats.length === 0) return;
 
@@ -137,12 +138,39 @@ export default function LottoArchivePage() {
     setGeneratedNumbers(results.sort((a, b) => a - b));
   };
 
+  // 🌟 [NEW] 등장 확률 비례 가중치(Weighted) 번호 생성기
+  const generateWeightedLotto = () => {
+    if (hotNumbersStats.length === 0) return;
+
+    const results: number[] = [];
+
+    while (results.length < 6) {
+      // 출현 횟수(count)를 가중치로 활용 (출현 횟수가 적어도 기본 가중치 1을 부여하여 최소한의 기회 보장)
+      const poolWithWeights: number[] = [];
+      hotNumbersStats.forEach((stat) => {
+        const weight = Math.max(stat.count * 2 + 1, 1); 
+        for (let w = 0; w < weight; w++) {
+          poolWithWeights.push(stat.number);
+        }
+      });
+
+      const randomIndex = Math.floor(Math.random() * poolWithWeights.length);
+      const chosen = poolWithWeights[randomIndex];
+
+      if (!results.includes(chosen)) {
+        results.push(chosen);
+      }
+    }
+
+    setWeightedNumbers(results.sort((a, b) => a - b));
+  };
+
   // 번호 복사 함수
-  const copyToClipboard = (numbers: number[], period: number) => {
+  const copyToClipboard = (numbers: number[], key: string) => {
     if (numbers.length === 0) return;
     const text = numbers.join(", ");
     navigator.clipboard.writeText(text);
-    setCopiedPeriod(period);
+    setCopiedPeriod(key);
     setTimeout(() => setCopiedPeriod(null), 1500);
   };
 
@@ -185,52 +213,108 @@ export default function LottoArchivePage() {
         <main className="flex-1 flex flex-col justify-between overflow-y-auto p-4 sm:p-6 bg-[#13151A] gap-6">
           <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
             
-            {/* 메인 스마트 번호 생성 카드 */}
-            <div className="w-full p-6 sm:p-8 rounded-3xl bg-[#1B1F28] border border-stone-800 shadow-2xl flex flex-col items-center gap-6">
+            {/* 1) 기존: 통계 기반 상위 풀 조합 카드 */}
+            <div className="w-full p-6 sm:p-8 rounded-3xl bg-[#1B1F28] border border-stone-800 shadow-2xl flex flex-col items-center gap-5">
               <div className="text-center">
                 <span className="text-[10px] text-amber-400 font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
                   최근 {selectedPeriod}개월 통계 데이터 픽
                 </span>
                 <h2 className="text-sm sm:text-base font-bold text-stone-100 mt-2.5">
-                  출현 빈도가 높은 숫자를 조합한 스마트 로또 번호
+                  상위 출현 빈도 풀 기반 스마트 로또 번호
                 </h2>
               </div>
 
-              {/* 생성된 번호 볼 UI */}
               <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap my-1">
                 {generatedNumbers.length > 0 ? (
                   generatedNumbers.map((num, idx) => (
                     <div
                       key={idx}
-                      className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 font-black text-base sm:text-lg flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300/30 animate-in fade-in zoom-in duration-200"
+                      className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 font-black text-base sm:text-lg flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300/30"
                     >
                       {num}
                     </div>
                   ))
                 ) : (
-                  <div className="text-xs text-stone-500 py-6">
-                    버튼을 눌러 통계 조합 번호를 생성해 보세요!
+                  <div className="text-xs text-stone-500 py-4">
+                    버튼을 눌러 상위 풀 조합 번호를 생성해 보세요!
                   </div>
                 )}
               </div>
 
-              <button
-                onClick={generateSmartLotto}
-                className="w-full sm:w-auto px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-2xl text-xs sm:text-sm font-black tracking-wider transition-all shadow-lg shadow-amber-500/15 active:scale-95 cursor-pointer"
-              >
-                ✨ 스마트 번호 조합 생성하기
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={generateSmartLotto}
+                  className="flex-1 sm:flex-none px-6 py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-2xl text-xs sm:text-sm font-black tracking-wider transition-all shadow-lg shadow-amber-500/15 active:scale-95 cursor-pointer"
+                >
+                  ✨ 상위 풀 조합 생성
+                </button>
+                {generatedNumbers.length > 0 && (
+                  <button
+                    onClick={() => copyToClipboard(generatedNumbers, "main")}
+                    className="px-4 py-3 bg-[#222733] hover:bg-[#2A303F] text-stone-300 border border-stone-700 rounded-2xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    {copiedPeriod === "main" ? "✅ 복사됨!" : "📋 복사"}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* 🔥 NEW: 최근 1, 3, 5개월 맞춤 추천 픽 카드 세트 */}
+            {/* 🌟 2) [NEW] 등장 확률 비례 가중치 픽 카드 */}
+            <div className="w-full p-6 sm:p-8 rounded-3xl bg-[#1B1F28] border border-amber-500/30 shadow-2xl flex flex-col items-center gap-5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-amber-500 text-stone-950 text-[9px] font-black px-3 py-1 rounded-bl-2xl tracking-widest uppercase">
+                Probability Weighted
+              </div>
+
+              <div className="text-center">
+                <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">
+                  최근 {selectedPeriod}개월 확률 가중치 픽
+                </span>
+                <h2 className="text-sm sm:text-base font-bold text-stone-100 mt-2.5">
+                  출현 빈도에 비례해 당첨 확률이 높은 가중치 조합
+                </h2>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap my-1">
+                {weightedNumbers.length > 0 ? (
+                  weightedNumbers.map((num, idx) => (
+                    <div
+                      key={idx}
+                      className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-stone-950 font-black text-base sm:text-lg flex items-center justify-center shadow-lg shadow-orange-500/20 border border-orange-300/30"
+                    >
+                      {num}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-stone-500 py-4">
+                    버튼을 눌러 확률 비례 가중치 번호를 생성해 보세요!
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={generateWeightedLotto}
+                  className="flex-1 sm:flex-none px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-stone-950 rounded-2xl text-xs sm:text-sm font-black tracking-wider transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
+                >
+                  🔥 확률 비례 가중치 픽 생성
+                </button>
+                {weightedNumbers.length > 0 && (
+                  <button
+                    onClick={() => copyToClipboard(weightedNumbers, "weighted")}
+                    className="px-4 py-3 bg-[#222733] hover:bg-[#2A303F] text-stone-300 border border-stone-700 rounded-2xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                  >
+                    {copiedPeriod === "weighted" ? "✅ 복사됨!" : "📋 복사"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 3) 최근 1·3·5개월 맞춤 추천 픽 카드 세트 */}
             <div className="w-full p-5 sm:p-6 rounded-3xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-stone-200">
                     🎯 최근 1·3·5개월 데이터 기반 추천 픽
-                  </span>
-                  <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
-                    기간별 빈도 상위 가중치 반영
                   </span>
                 </div>
                 <button
@@ -246,44 +330,47 @@ export default function LottoArchivePage() {
                   { period: 1, title: "최근 1개월 추천 픽", desc: "4회차 데이터 기반", color: "from-amber-500/20 to-transparent border-amber-500/30" },
                   { period: 3, title: "최근 3개월 추천 픽", desc: "13회차 데이터 기반", color: "from-amber-600/15 to-transparent border-stone-700/80" },
                   { period: 5, title: "최근 5개월 추천 픽", desc: "22회차 데이터 기반", color: "from-amber-700/10 to-transparent border-stone-700/80" },
-                ].map(({ period, title, desc, color }) => (
-                  <div
-                    key={period}
-                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r ${color} border bg-[#161922] gap-3`}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-black text-amber-400">{title}</span>
-                      <span className="text-[10px] text-stone-500">{desc}</span>
-                    </div>
+                ].map(({ period, title, desc, color }) => {
+                  const keyName = `period_${period}`;
+                  return (
+                    <div
+                      key={period}
+                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r ${color} border bg-[#161922] gap-3`}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-black text-amber-400">{title}</span>
+                        <span className="text-[10px] text-stone-500">{desc}</span>
+                      </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                      {periodPicks[period]?.map((num, i) => (
-                        <span
-                          key={i}
-                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#222733] text-amber-300 text-xs font-black flex items-center justify-center border border-amber-500/30 shadow-xs"
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                        {periodPicks[period]?.map((num, i) => (
+                          <span
+                            key={i}
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#222733] text-amber-300 text-xs font-black flex items-center justify-center border border-amber-500/30 shadow-xs"
+                          >
+                            {num}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 self-end sm:self-center">
+                        <button
+                          onClick={() => refreshSinglePeriodPick(period)}
+                          title="이 번호만 다시 생성"
+                          className="text-[11px] text-stone-400 hover:text-stone-200 bg-[#222733] border border-stone-700/60 p-2 rounded-xl transition-all active:scale-95 cursor-pointer"
                         >
-                          {num}
-                        </span>
-                      ))}
+                          🔄
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(periodPicks[period], keyName)}
+                          className="text-[11px] font-bold text-stone-300 hover:text-amber-400 bg-[#222733] hover:bg-[#2A303F] border border-stone-700/60 px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer"
+                        >
+                          {copiedPeriod === keyName ? "✅ 복사됨!" : "📋 복사"}
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="flex items-center gap-1.5 self-end sm:self-center">
-                      <button
-                        onClick={() => refreshSinglePeriodPick(period)}
-                        title="이 번호만 다시 생성"
-                        className="text-[11px] text-stone-400 hover:text-stone-200 bg-[#222733] border border-stone-700/60 p-2 rounded-xl transition-all active:scale-95 cursor-pointer"
-                      >
-                        🔄
-                      </button>
-                      <button
-                        onClick={() => copyToClipboard(periodPicks[period], period)}
-                        className="text-[11px] font-bold text-stone-300 hover:text-amber-400 bg-[#222733] hover:bg-[#2A303F] border border-stone-700/60 px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer"
-                      >
-                        {copiedPeriod === period ? "✅ 복사됨!" : "📋 복사"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
