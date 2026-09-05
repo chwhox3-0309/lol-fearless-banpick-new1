@@ -18,6 +18,16 @@ export default function LottoArchivePage() {
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
   const [hotNumbersStats, setHotNumbersStats] = useState<{ number: number; count: number }[]>([]);
 
+  // 1, 3, 5개월 각각의 추천 픽 상태
+  const [periodPicks, setPeriodPicks] = useState<{ [key: number]: number[] }>({
+    1: [],
+    3: [],
+    5: [],
+  });
+
+  // 복사 완료 상태 피드백용
+  const [copiedPeriod, setCopiedPeriod] = useState<number | null>(null);
+
   // 기간별 회차 수 매핑
   const getDrawCount = (period: number) => {
     switch (period) {
@@ -35,6 +45,11 @@ export default function LottoArchivePage() {
     setRecentDraws(slicedData);
     calculateStats(slicedData);
   }, [selectedPeriod]);
+
+  // 초기에 1, 3, 5개월 추천 픽 일괄 생성
+  useEffect(() => {
+    generateAllPeriodPicks();
+  }, []);
 
   // 빈도수 통계 계산
   const calculateStats = (draws: LottoResult[]) => {
@@ -54,11 +69,61 @@ export default function LottoArchivePage() {
     setHotNumbersStats(sortedStats);
   };
 
-  // 통계 기반 스마트 로또 번호 생성기
+  // 특정 기간(1,3,5개월) 기준 단일 추천 픽 생성 로직
+  const generatePickForPeriod = (period: number): number[] => {
+    const targetCount = getDrawCount(period);
+    const slicedData = (lottoHistoryData as LottoResult[]).slice(0, targetCount);
+
+    const counts: { [key: number]: number } = {};
+    for (let i = 1; i <= 45; i++) counts[i] = 0;
+
+    slicedData.forEach((draw) => {
+      draw.numbers.forEach((num) => {
+        counts[num] = (counts[num] || 0) + 1;
+      });
+    });
+
+    const sorted = Object.keys(counts)
+      .map((num) => ({ number: Number(num), count: counts[Number(num)] }))
+      .sort((a, b) => b.count - a.count || a.number - b.number);
+
+    // 상위 25개 번호 추출 후 6개 무작위 선택
+    const topPool = sorted.slice(0, 25).map((item) => item.number);
+    const results: number[] = [];
+
+    while (results.length < 6) {
+      const randomIndex = Math.floor(Math.random() * topPool.length);
+      const chosen = topPool[randomIndex];
+      if (!results.includes(chosen)) {
+        results.push(chosen);
+      }
+    }
+
+    return results.sort((a, b) => a - b);
+  };
+
+  // 1, 3, 5개월 전체 추천 픽 생성
+  const generateAllPeriodPicks = () => {
+    setPeriodPicks({
+      1: generatePickForPeriod(1),
+      3: generatePickForPeriod(3),
+      5: generatePickForPeriod(5),
+    });
+  };
+
+  // 단일 기간 추천 픽 새로고침
+  const refreshSinglePeriodPick = (period: number) => {
+    setPeriodPicks((prev) => ({
+      ...prev,
+      [period]: generatePickForPeriod(period),
+    }));
+  };
+
+  // 선택된 기간 기준 스마트 로또 번호 생성기 (메인)
   const generateSmartLotto = () => {
     if (hotNumbersStats.length === 0) return;
 
-    const topPool = hotNumbersStats.slice(0, 25).map(item => item.number);
+    const topPool = hotNumbersStats.slice(0, 25).map((item) => item.number);
     const results: number[] = [];
 
     while (results.length < 6) {
@@ -70,6 +135,15 @@ export default function LottoArchivePage() {
     }
 
     setGeneratedNumbers(results.sort((a, b) => a - b));
+  };
+
+  // 번호 복사 함수
+  const copyToClipboard = (numbers: number[], period: number) => {
+    if (numbers.length === 0) return;
+    const text = numbers.join(", ");
+    navigator.clipboard.writeText(text);
+    setCopiedPeriod(period);
+    setTimeout(() => setCopiedPeriod(null), 1500);
   };
 
   return (
@@ -107,11 +181,11 @@ export default function LottoArchivePage() {
       {/* 메인 콘텐츠 영역 */}
       <div className="flex flex-1 w-full overflow-hidden flex-col xl:flex-row">
         
-        {/* 1. 좌측: 번호 생성기 및 통계 요약 영역 */}
+        {/* 1. 좌측: 번호 생성기, 기간별 추천 픽 및 통계 요약 */}
         <main className="flex-1 flex flex-col justify-between overflow-y-auto p-4 sm:p-6 bg-[#13151A] gap-6">
           <div className="flex flex-col gap-6 max-w-3xl mx-auto w-full">
             
-            {/* 번호 생성 카드 */}
+            {/* 메인 스마트 번호 생성 카드 */}
             <div className="w-full p-6 sm:p-8 rounded-3xl bg-[#1B1F28] border border-stone-800 shadow-2xl flex flex-col items-center gap-6">
               <div className="text-center">
                 <span className="text-[10px] text-amber-400 font-bold uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full">
@@ -148,7 +222,72 @@ export default function LottoArchivePage() {
               </button>
             </div>
 
-            {/* 통계 기반 TOP 6 숫자 미리보기 카드 (수정됨) */}
+            {/* 🔥 NEW: 최근 1, 3, 5개월 맞춤 추천 픽 카드 세트 */}
+            <div className="w-full p-5 sm:p-6 rounded-3xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-stone-200">
+                    🎯 최근 1·3·5개월 데이터 기반 추천 픽
+                  </span>
+                  <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium hidden sm:inline-block">
+                    기간별 빈도 상위 가중치 반영
+                  </span>
+                </div>
+                <button
+                  onClick={generateAllPeriodPicks}
+                  className="text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-[#222733] hover:bg-[#2A303F] border border-stone-700/80 px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer"
+                >
+                  🔄 전체 추천 픽 재생성
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {[
+                  { period: 1, title: "최근 1개월 추천 픽", desc: "4회차 데이터 기반", color: "from-amber-500/20 to-transparent border-amber-500/30" },
+                  { period: 3, title: "최근 3개월 추천 픽", desc: "13회차 데이터 기반", color: "from-amber-600/15 to-transparent border-stone-700/80" },
+                  { period: 5, title: "최근 5개월 추천 픽", desc: "22회차 데이터 기반", color: "from-amber-700/10 to-transparent border-stone-700/80" },
+                ].map(({ period, title, desc, color }) => (
+                  <div
+                    key={period}
+                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r ${color} border bg-[#161922] gap-3`}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-black text-amber-400">{title}</span>
+                      <span className="text-[10px] text-stone-500">{desc}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                      {periodPicks[period]?.map((num, i) => (
+                        <span
+                          key={i}
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#222733] text-amber-300 text-xs font-black flex items-center justify-center border border-amber-500/30 shadow-xs"
+                        >
+                          {num}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 self-end sm:self-center">
+                      <button
+                        onClick={() => refreshSinglePeriodPick(period)}
+                        title="이 번호만 다시 생성"
+                        className="text-[11px] text-stone-400 hover:text-stone-200 bg-[#222733] border border-stone-700/60 p-2 rounded-xl transition-all active:scale-95 cursor-pointer"
+                      >
+                        🔄
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(periodPicks[period], period)}
+                        className="text-[11px] font-bold text-stone-300 hover:text-amber-400 bg-[#222733] hover:bg-[#2A303F] border border-stone-700/60 px-3 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer"
+                      >
+                        {copiedPeriod === period ? "✅ 복사됨!" : "📋 복사"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 통계 기반 TOP 6 숫자 미리보기 카드 */}
             <div className="w-full p-5 sm:p-6 rounded-3xl bg-[#1B1F28] border border-stone-800 flex flex-col gap-3.5">
               <span className="text-xs font-bold text-stone-300 px-1">
                 📊 최근 {selectedPeriod}개월 최다 출현 번호 TOP 6
