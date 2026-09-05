@@ -39,9 +39,11 @@ export default function RootLayout({
             <Header />
 
             {/* 상단 728x90 메인 광고 구역 */}
+            {/*
             <div className="flex justify-center items-center my-4 min-h-[90px] w-full px-4">
               <KakaoAdFitBanner adUnit="DAN-BKOeD7FOllmXhljU" width="728" height="90" />
             </div>
+            */}
 
             {/* 메인 컨텐츠 및 양쪽 사이드바 광고 영역 */}
             <div className="flex-grow container mx-auto flex gap-4 px-4 pt-4">
