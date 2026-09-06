@@ -10,6 +10,7 @@ import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DraftConfigurator from './components/DraftConfigurator';
+import FearlessMatchLoader from './components/FearlessMatchLoader'; // 새로 추가된 피어리스 연동 모듈
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
@@ -93,7 +94,7 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 각 챔피언의 카운트를 DB 내부에서 1씩 증가시키는 깔끔한 방식
+  // 밴픽 완료 시 각 챔피언의 카운트를 DB 내부에서 1씩 증가시키는 함수
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
@@ -111,7 +112,6 @@ export default function Home() {
         team2Data.bans?.forEach((id: string) => id && actions.push({ champion_id: String(id), action_type: 'BAN' }));
       }
 
-      // 각 픽/밴 항목에 대해 DB 함수 호출 (중복 조회 없이 바로 반영)
       for (const action of actions) {
         const { error } = await supabase.rpc('fn_increment_stats', {
           p_champion_id: action.champion_id,
@@ -124,13 +124,12 @@ export default function Home() {
       }
 
       hasSavedStatsRef.current = true;
-      console.log('누적 통계 반영 완료!');
     } catch (e) {
       console.error('통계 저장 중 예외 발생:', e);
     }
   };
 
-  // Supabase에서 누적된 챔피언 통계를 가져와 Top 5 산출
+  // Supabase에서 누적된 챔피언 통계를 가져와 Top 5 산출 (통합본)
   useEffect(() => {
     async function fetchOurSiteStats() {
       try {
@@ -190,58 +189,7 @@ export default function Home() {
     }
   }, [isDraftFinished]);
 
- // Supabase에서 누적된 챔피언 통계를 가져와 Top 5 산출 (champion_stats 테이블 기준)
-  useEffect(() => {
-    async function fetchOurSiteStats() {
-      try {
-        const { data, error } = await supabase
-          .from('champion_stats')
-          .select('*');
-
-        if (error || !data || data.length === 0) return;
-
-        let totalPicks = 0;
-        let totalBans = 0;
-
-        const pickCounts: Record<string, number> = {};
-        const banCounts: Record<string, number> = {};
-
-        data.forEach((row) => {
-          if (row.pick_count > 0) {
-            pickCounts[row.champion_id] = row.pick_count;
-            totalPicks += row.pick_count;
-          }
-          if (row.ban_count > 0) {
-            banCounts[row.champion_id] = row.ban_count;
-            totalBans += row.ban_count;
-          }
-        });
-
-        const getTop5 = (counts: Record<string, number>, total: number): TopStatItem[] => {
-          return Object.entries(counts)
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 5)
-            .map(([id, count]) => ({
-              championId: id,
-              championName: champions[id] ? champions[id].name : id,
-              count,
-              percentage: total > 0 ? Math.round((count / total) * 100) : 0,
-            }));
-        };
-
-        setTopPickStats(getTop5(pickCounts, totalPicks));
-        setTopBanStats(getTop5(banCounts, totalBans));
-      } catch (e) {
-        console.error('우리 사이트 통계 집계 실패:', e);
-      }
-    }
-
-    if (champions && Object.keys(champions).length > 0) {
-      fetchOurSiteStats();
-    }
-  }, [champions, isDraftFinished]);
-
-  // 공지사항 및 Dev-log 데이터 불러오기 (dev_logs 테이블 명칭 정확히 반영)
+  // 공지사항 및 Dev-log 데이터 불러오기
   useEffect(() => {
     async function fetchMainData() {
       try {
@@ -251,7 +199,6 @@ export default function Home() {
           if (noticesData.length > 0) setLatestNotice(noticesData[0]);
         }
         
-        // dev_logs 테이블에서 데이터를 안전하게 가져오기
         const { data: devLogsData, error: devLogError } = await supabase.from('dev_logs').select('*').order('created_at', { ascending: false });
         if (devLogsData && !devLogError) {
           setDevLogs(devLogsData);
@@ -376,6 +323,14 @@ export default function Home() {
     alert(message);
   };
 
+  // 지난 커스텀 경기 결과 기록을 불러와 피어리스 룰(사용 불가 챔피언)에 일괄 적용하는 핸들러
+  const handleApplyFearlessFromHistory = (forbiddenChampionNamesOrIds: string[]) => {
+    // 챔피언 이름이나 ID를 기반으로 대량 등록 로직 수행
+    const joinedNames = forbiddenChampionNamesOrIds.join(', ');
+    const { message } = handleRegisterUsedChampions(joinedNames);
+    alert(`⚡ [피어리스 연동 완료]\n${message}`);
+  };
+
   const handleStartDraft = () => {
     setIsConfigured(true);
     setIsConfigOpen(false);
@@ -495,6 +450,11 @@ export default function Home() {
       <NoticeBanner />
 
       <main className="flex-grow flex flex-col space-y-4">
+        {/* 지난 커스텀 경기 결과 기록을 불러와 피어리스 룰에 적용하는 컴포넌트 추가 */}
+        <section className="w-full">
+          <FearlessMatchLoader onApplyFearless={handleApplyFearlessFromHistory} />
+        </section>
+
         <section className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 px-4 flex items-center justify-between shadow-lg backdrop-blur-md">
           <div className="flex items-center space-x-3">
             <span className="text-xs font-bold px-2.5 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 rounded-md">
@@ -741,9 +701,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
-  
             </div>
-           
           </div>
         </section>
       </main>
