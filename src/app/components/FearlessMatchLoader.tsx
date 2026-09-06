@@ -11,11 +11,10 @@ interface MatchSetResult {
 }
 
 interface FearlessMatchLoaderProps {
-  // 세트별 픽 데이터를 통째로 부모에게 전달하는 함수형태로 변경
-  onApplySetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
+  onApplyFearless: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
 }
 
-export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatchLoaderProps) {
+export default function FearlessMatchLoader({ onApplyFearless }: FearlessMatchLoaderProps) {
   const { champions } = useDraft();
 
   const [gameName, setGameName] = useState("");
@@ -25,6 +24,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [selectedSetToLoad, setSelectedSetToLoad] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // 라이엇 챔피언 이름을 사이트 시스템 키와 완벽하게 매칭하는 함수
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
     if (!champions || Object.keys(champions).length === 0) return riotChampName;
@@ -86,18 +86,16 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   };
 
   const handleApplyFearlessRule = () => {
-    // 선택한 범위까지의 세트 필터링
     const targetHistory = fetchedMatches.filter((item) => item.setNo <= selectedSetToLoad);
     
-    // 각 세트별로 Team 2(블루 가정)와 Team 1(레드 가정)의 픽 세팅 변환
+    // 세트별로 Team 2(블루)와 Team 1(레드) 픽 데이터 구조화
     const formattedHistory = targetHistory.map((item) => ({
       setNo: item.setNo,
       team2Picks: item.bluePicks,
       team1Picks: item.redPicks,
     }));
 
-    // 부모 컴포넌트로 세트별 구조 전달
-    onApplySetHistory(formattedHistory);
+    onApplyFearless(formattedHistory);
     alert(`⚡ [라이엇 연동 완료] 1세트부터 ${selectedSetToLoad}세트까지의 픽 기록이 각 세트별 이전 밴픽 칸에 누적 반영되었습니다!`);
   };
 
