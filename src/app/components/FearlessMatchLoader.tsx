@@ -20,32 +20,35 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
   const [selectedSetToLoad, setSelectedSetToLoad] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 유연한 챔피언 이름 매핑 함수
+  // 강력한 챔피언 이름 매핑 함수
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
     if (!champions || Object.keys(champions).length === 0) return riotChampName;
 
-    // 1. 정확히 일치하는 경우
-    if (champions[riotChampName]) return riotChampName;
+    // 0. 라이엇 고유 예외 케이스 처리 (Master Yi -> MasterYi 등)
+    const sanitizedRiotName = riotChampName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 2. 대소문자 및 특수문자(공백, 아포스트로피 등) 제거 후 비교
-    const normalizedRiotName = riotChampName.toLowerCase().replace(/[^a-z0-9]/g, "");
-
+    // 1. champions 객체의 키들과 직접 대조 (공백/특수문자 무시)
     for (const [key, data] of Object.entries(champions) as [string, any][]) {
-      const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const normalizedName = (data.name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const normalizedEnglishName = (data.englishName || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const sanitizedKey = key.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      const sanitizedName = (data.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      const sanitizedEnglishName = (data.englishName || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
       if (
-        normalizedKey === normalizedRiotName ||
-        normalizedName === normalizedRiotName ||
-        normalizedEnglishName === normalizedRiotName
+        sanitizedKey === sanitizedRiotName ||
+        sanitizedName === sanitizedRiotName ||
+        sanitizedEnglishName === sanitizedRiotName
       ) {
-        return key; // 사이트에서 사용하는 올바른 챔피언 키 반환
+        return key; // 시스템이 인식하는 정확한 키 반환
       }
     }
 
-    // 3. 매핑 실패 시 원본 이름 반환 (시스템에 따라 그대로 처리되도록 유도)
+    // 2. 만약 끝까지 못 찾았을 경우, 대소문자나 유사한 키가 있는지 한 번 더 탐색
+    const foundKey = Object.keys(champions).find(
+      (k) => k.toLowerCase() === riotChampName.toLowerCase()
+    );
+    if (foundKey) return foundKey;
+
     return riotChampName;
   };
 
@@ -89,11 +92,14 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
       allUsedChampions.push(...set.bluePicks, ...set.redPicks);
     });
 
-    const uniqueForbidden = Array.from(new Set(allUsedChampions));
-    
-    // 부모 컴포넌트로 데이터 전달
-    onApplyFearless(uniqueForbidden);
-    alert(`⚡ [라이엇 연동 완료] 총 ${uniqueForbidden.length}개의 챔피언이 피어리스 밴픽 목록에 반영되었습니다!`);
+    // 사이트의 champions 목록에 실제로 존재하는 키들만 필터링하여 에러 방지
+    const validChampions = Array.from(new Set(allUsedChampions)).filter((champKey) => {
+      if (!champions) return true;
+      return champions[champKey] !== undefined;
+    });
+
+    onApplyFearless(validChampions);
+    alert(`⚡ [라이엇 연동 완료] 총 ${validChampions.length}개의 챔피언이 피어리스 밴픽 목록에 정상 반영되었습니다!`);
   };
 
   const getDisplayName = (champKey: string) => {
