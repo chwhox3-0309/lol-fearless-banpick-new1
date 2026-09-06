@@ -323,7 +323,7 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 (수정본)
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 (타입 오류 수정본)
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
@@ -356,12 +356,10 @@ export default function Home() {
             const currentObj = champions[key];
             const keyLower = key.toLowerCase();
             const nameEnLower = (currentObj?.name || '').toLowerCase();
-            const nameKrLower = (currentObj?.krName || '').toLowerCase();
             
             return (
               keyLower === cleanInput ||
               nameEnLower === cleanInput ||
-              nameKrLower === cleanInput ||
               keyLower.replace(/['\s.]/g, '') === cleanInput
             );
           });
