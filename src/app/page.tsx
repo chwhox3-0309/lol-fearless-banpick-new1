@@ -327,6 +327,7 @@ export default function Home() {
 
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
+      // 컨텍스트의 함수를 호출하여 전적 데이터를 반영합니다.
       const result = handleApplyRiotSetHistory(historyData);
       
       if (!result.success) {
@@ -334,37 +335,7 @@ export default function Home() {
         return;
       }
 
-      if (historyData.length > 0 && typeof setDraftState === 'function') {
-        const firstSet = historyData[0];
-        
-        const mapNames = (names: string[]) => {
-          if (!names) return [];
-          return names.map((name) => {
-            const clean = name.trim().toLowerCase();
-            const foundKey = Object.keys(champions || {}).find(
-              (k) => k.toLowerCase() === clean || champions[k]?.name?.toLowerCase() === clean
-            );
-            return foundKey || name;
-          });
-        };
-
-        const bluePicksMapped = mapNames(firstSet.team2Picks);
-        const redPicksMapped = mapNames(firstSet.team1Picks);
-
-        setDraftState((prev: any) => ({
-          ...prev,
-          team1: {
-            ...prev.team1,
-            picks: teamSideMapping.team1 === 'blue' ? bluePicksMapped : redPicksMapped,
-          },
-          team2: {
-            ...prev.team2,
-            picks: teamSideMapping.team2 === 'blue' ? bluePicksMapped : redPicksMapped,
-          },
-        }));
-      }
-
-      alert('⚡ 선택한 세트의 픽 데이터가 하단 밴픽 칸과 완료된 기록에 성공적으로 채워졌습니다!');
+      alert('⚡ 선택한 세트의 픽 데이터가 완료된 기록에 성공적으로 반영되었습니다!');
     } catch (error) {
       console.error('전적 반영 중 오류 발생:', error);
       alert('전적을 반영하는 중 오류가 발생했습니다.');
