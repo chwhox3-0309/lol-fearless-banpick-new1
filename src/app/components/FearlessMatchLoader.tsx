@@ -10,7 +10,12 @@ interface MatchSetResult {
   redPicks: string[];
 }
 
-export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearless: (forbiddenChampions: string[]) => void }) {
+interface FearlessMatchLoaderProps {
+  // 세트별 픽 데이터를 통째로 부모에게 전달하는 함수형태로 변경
+  onApplySetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
+}
+
+export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatchLoaderProps) {
   const { champions } = useDraft();
 
   const [gameName, setGameName] = useState("");
@@ -20,15 +25,12 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
   const [selectedSetToLoad, setSelectedSetToLoad] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 강력한 챔피언 이름 매핑 함수
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
     if (!champions || Object.keys(champions).length === 0) return riotChampName;
 
-    // 0. 라이엇 고유 예외 케이스 처리 (Master Yi -> MasterYi 등)
     const sanitizedRiotName = riotChampName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 1. champions 객체의 키들과 직접 대조 (공백/특수문자 무시)
     for (const [key, data] of Object.entries(champions) as [string, any][]) {
       const sanitizedKey = key.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
       const sanitizedName = (data.name || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
@@ -39,11 +41,10 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
         sanitizedName === sanitizedRiotName ||
         sanitizedEnglishName === sanitizedRiotName
       ) {
-        return key; // 시스템이 인식하는 정확한 키 반환
+        return key;
       }
     }
 
-    // 2. 만약 끝까지 못 찾았을 경우, 대소문자나 유사한 키가 있는지 한 번 더 탐색
     const foundKey = Object.keys(champions).find(
       (k) => k.toLowerCase() === riotChampName.toLowerCase()
     );
@@ -85,21 +86,19 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
   };
 
   const handleApplyFearlessRule = () => {
+    // 선택한 범위까지의 세트 필터링
     const targetHistory = fetchedMatches.filter((item) => item.setNo <= selectedSetToLoad);
-    const allUsedChampions: string[] = [];
     
-    targetHistory.forEach((set) => {
-      allUsedChampions.push(...set.bluePicks, ...set.redPicks);
-    });
+    // 각 세트별로 Team 2(블루 가정)와 Team 1(레드 가정)의 픽 세팅 변환
+    const formattedHistory = targetHistory.map((item) => ({
+      setNo: item.setNo,
+      team2Picks: item.bluePicks,
+      team1Picks: item.redPicks,
+    }));
 
-    // 사이트의 champions 목록에 실제로 존재하는 키들만 필터링하여 에러 방지
-    const validChampions = Array.from(new Set(allUsedChampions)).filter((champKey) => {
-      if (!champions) return true;
-      return champions[champKey] !== undefined;
-    });
-
-    onApplyFearless(validChampions);
-    alert(`⚡ [라이엇 연동 완료] 총 ${validChampions.length}개의 챔피언이 피어리스 밴픽 목록에 정상 반영되었습니다!`);
+    // 부모 컴포넌트로 세트별 구조 전달
+    onApplySetHistory(formattedHistory);
+    alert(`⚡ [라이엇 연동 완료] 1세트부터 ${selectedSetToLoad}세트까지의 픽 기록이 각 세트별 이전 밴픽 칸에 누적 반영되었습니다!`);
   };
 
   const getDisplayName = (champKey: string) => {
@@ -119,7 +118,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
           실제 클라이언트 게임 전적 자동 불러오기
         </h3>
         <p className="text-xs text-gray-400">
-          라이엇 계정의 최근 경기 기록을 가져와 밴픽 시스템과 자동으로 동기화합니다.
+          라이엇 계정의 최근 경기 기록을 가져와 세트별 이전 밴픽 영역에 자동으로 누적합니다.
         </p>
       </div>
 
@@ -161,7 +160,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded-lg bg-gray-900 border border-blue-500/20 flex flex-col gap-1">
-                  <span className="font-bold text-blue-400 text-[11px]">내 팀 플레이 픽</span>
+                  <span className="font-bold text-blue-400 text-[11px]">Team 2 (블루) 픽</span>
                   <div className="flex flex-wrap gap-1">
                     {history.bluePicks.map((champ, idx) => (
                       <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 text-[10px] font-medium border border-blue-500/20">
@@ -172,7 +171,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
                 </div>
 
                 <div className="p-2 rounded-lg bg-gray-900 border border-red-500/20 flex flex-col gap-1">
-                  <span className="font-bold text-red-400 text-[11px]">상대 팀 플레이 픽</span>
+                  <span className="font-bold text-red-400 text-[11px]">Team 1 (레드) 픽</span>
                   <div className="flex flex-wrap gap-1">
                     {history.redPicks.map((champ, idx) => (
                       <span key={idx} className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-300 text-[10px] font-medium border border-red-500/20">
@@ -196,9 +195,10 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
               onChange={(e) => setSelectedSetToLoad(Number(e.target.value))}
               className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-teal-500"
             >
-              <option value={1}>1세트 픽까지 금지 (2세트용)</option>
-              <option value={2}>1~2세트 픽까지 금지 (3세트용)</option>
-              <option value={3}>1~3세트 픽까지 금지 (4세트용)</option>
+              <option value={1}>1세트만 반영 (2세트용)</option>
+              <option value={2}>1~2세트 반영 (3세트용)</option>
+              <option value={3}>1~3세트 반영 (4세트용)</option>
+              <option value={4}>1~4세트 반영 (5세트용)</option>
             </select>
           </div>
 
@@ -206,7 +206,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
             onClick={handleApplyFearlessRule}
             className="w-full sm:w-auto px-4 py-2 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs rounded-xl transition-all shadow-lg cursor-pointer"
           >
-            ⚡ 라이엇 전적 피어리스 룰에 반영하기
+            ⚡ 세트별 픽 칸에 누적 반영하기
           </button>
         </div>
       )}
