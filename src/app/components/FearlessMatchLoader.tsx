@@ -87,8 +87,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
   const handleApplyFearlessRule = () => {
     const targetHistory = fetchedMatches.filter((item) => item.setNo <= selectedSetToLoad);
-    
-    // 세트별로 Team 2(블루)와 Team 1(레드) 픽 데이터 구조화
     const formattedHistory = targetHistory.map((item) => ({
       setNo: item.setNo,
       team2Picks: item.bluePicks,
@@ -96,7 +94,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }));
 
     onApplySetHistory(formattedHistory);
-    alert(`⚡ [라이엇 연동 완료] 1세트부터 ${selectedSetToLoad}세트까지의 픽 기록이 각 세트별 이전 밴픽 칸에 누적 반영되었습니다!`);
   };
 
   const getDisplayName = (champKey: string) => {
