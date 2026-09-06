@@ -323,22 +323,39 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 추가
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
-    // 모든 세트의 픽된 챔피언들을 모아서 피어리스(사용 불가) 목록에 일괄 등록 처리
-    const allPickedChampions: string[] = [];
-    historyData.forEach((item) => {
-      if (item.team2Picks) allPickedChampions.push(...item.team2Picks);
-      if (item.team1Picks) allPickedChampions.push(...item.team1Picks);
-    });
+    try {
+      if (!historyData || historyData.length === 0) {
+        alert('연동할 픽 데이터가 없습니다.');
+        return;
+      }
 
-    const uniqueChampions = Array.from(new Set(allPickedChampions));
-    if (uniqueChampions.length > 0) {
-      const joinedNames = uniqueChampions.join(', ');
-      const { message } = handleRegisterUsedChampions(joinedNames);
-      alert(`⚡ [라이엇 세트별 전적 연동 완료]\n${message}`);
-    } else {
-      alert('연동할 픽 데이터가 없습니다.');
+      // 1. 모든 세트에서 선택된 챔피언 이름을 단일 배열로 추출
+      const allPickedChampions: string[] = [];
+      historyData.forEach((item) => {
+        if (item.team2Picks && Array.isArray(item.team2Picks)) {
+          allPickedChampions.push(...item.team2Picks);
+        }
+        if (item.team1Picks && Array.isArray(item.team1Picks)) {
+          allPickedChampions.push(...item.team1Picks);
+        }
+      });
+
+      const uniqueChampions = Array.from(new Set(allPickedChampions));
+
+      if (uniqueChampions.length > 0) {
+        // 2. 쉼표로 구분된 문자열로 변환하여 Context의 대량 밴/사용 처리 함수 호출
+        const joinedNames = uniqueChampions.join(', ');
+        const result = handleRegisterUsedChampions(joinedNames);
+        
+        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 이전 밴픽 칸(피어리스 룰)에 누적 반영되었습니다!\n(${result.message || ''})`);
+      } else {
+        alert('반영할 챔피언 데이터가 존재하지 않습니다.');
+      }
+    } catch (error) {
+      console.error('세트 전적 연동 중 오류 발생:', error);
+      alert('전적을 반영하는 중 오류가 발생했습니다.');
     }
   };
 
