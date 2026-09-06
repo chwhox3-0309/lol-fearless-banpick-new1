@@ -14,7 +14,7 @@ interface FearlessMatchLoaderProps {
   onApplySetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
 }
 
-export default function FearlessMatchLoader({ onApplyFearless }: FearlessMatchLoaderProps) {
+export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatchLoaderProps) {
   const { champions } = useDraft();
 
   const [gameName, setGameName] = useState("");
@@ -95,7 +95,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: FearlessMatchLo
       team1Picks: item.redPicks,
     }));
 
-    onApplyFearless(formattedHistory);
+    onApplySetHistory(formattedHistory);
     alert(`⚡ [라이엇 연동 완료] 1세트부터 ${selectedSetToLoad}세트까지의 픽 기록이 각 세트별 이전 밴픽 칸에 누적 반영되었습니다!`);
   };
 
