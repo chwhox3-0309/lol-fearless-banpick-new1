@@ -11,7 +11,7 @@ interface MatchSetResult {
 }
 
 export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearless: (forbiddenChampions: string[]) => void }) {
-  const { champions } = useDraft();
+  const { champions } = useDraft(); // 사이트에서 관리하는 챔피언 데이터
 
   const [gameName, setGameName] = useState("");
   const [tagLine, setTagLine] = useState("");
@@ -20,7 +20,27 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
   const [selectedSetToLoad, setSelectedSetToLoad] = useState<number>(1);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 라이엇 API를 통해 실제 경기 기록 가져오기
+  // 영어 챔피언 이름을 사이트의 시스템 키(ID 또는 일치하는 값)로 변환하는 함수
+  const mapChampionId = (riotChampName: string) => {
+    if (!champions) return riotChampName;
+
+    // 1. champions 객체에서 key나 id가 영어 이름과 정확히 일치하는지 확인
+    if (champions[riotChampName]) {
+      return riotChampName;
+    }
+
+    // 2. 대소문자 무시 혹은 name(한글/영문) 매칭을 통해 올바른 시스템 ID 찾기
+    const foundEntry = Object.entries(champions).find(([id, data]: [string, any]) => {
+      return (
+        id.toLowerCase() === riotChampName.toLowerCase() ||
+        data.name?.toLowerCase() === riotChampName.toLowerCase() ||
+        data.englishName?.toLowerCase() === riotChampName.toLowerCase()
+      );
+    });
+
+    return foundEntry ? foundEntry[0] : riotChampName;
+  };
+
   const handleFetchRiotMatches = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!gameName || !tagLine) {
@@ -39,7 +59,14 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
         throw new Error(data.error || "데이터를 불러오지 못했습니다.");
       }
 
-      setFetchedMatches(data.matchHistories);
+      // 가져온 챔피언 이름을 사이트 규격에 맞게 매핑
+      const mappedMatches = data.matchHistories.map((match: any) => ({
+        ...match,
+        bluePicks: match.bluePicks.map((c: string) => mapChampionId(c)),
+        redPicks: match.redPicks.map((c: string) => mapChampionId(c)),
+      }));
+
+      setFetchedMatches(mappedMatches);
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -47,7 +74,6 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
     }
   };
 
-  // 피어리스 룰 적용
   const handleApplyFearlessRule = () => {
     const targetHistory = fetchedMatches.filter((item) => item.setNo <= selectedSetToLoad);
     const allUsedChampions: string[] = [];
@@ -58,7 +84,15 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
 
     const uniqueForbidden = Array.from(new Set(allUsedChampions));
     onApplyFearless(uniqueForbidden);
-    alert(`⚡ [라이엇 연동 완료] 최근 ${selectedSetToLoad}개 세트의 픽이 피어리스 밴픽에 반영되었습니다!`);
+    alert(`⚡ [라이엇 연동 완료] 선택한 세트의 픽들이 피어리스 밴픽 목록에 정상 반영되었습니다!`);
+  };
+
+  // 화면에 챔피언 이름을 보기 편하게 한글로 보여주기 위한 헬퍼
+  const getDisplayName = (champKey: string) => {
+    if (champions && champions[champKey]) {
+      return champions[champKey].name || champKey;
+    }
+    return champKey;
   };
 
   return (
@@ -71,15 +105,14 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
           실제 클라이언트 게임 전적 자동 불러오기
         </h3>
         <p className="text-xs text-gray-400">
-          라이엇 계정 정보를 입력하면 실제 플레이한 최근 매치 기록을 가져와 다음 세트 밴픽의 사용 불가(Fearless) 목록에 자동 반영합니다.
+          라이엇 계정의 최근 경기 기록을 가져와 밴픽 시스템과 자동으로 동기화합니다.
         </p>
       </div>
 
-      {/* 소환사 검색 폼 */}
       <form onSubmit={handleFetchRiotMatches} className="flex flex-col sm:flex-row gap-2 items-center bg-gray-950 p-3 rounded-xl border border-gray-800">
         <input
           type="text"
-          placeholder="소환사명 (예: Hide on bush)"
+          placeholder="소환사명 (예: 전 설)"
           value={gameName}
           onChange={(e) => setGameName(e.target.value)}
           className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-teal-500"
@@ -87,7 +120,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
         <span className="text-gray-500 hidden sm:inline">#</span>
         <input
           type="text"
-          placeholder="태그 (예: KR1)"
+          placeholder="태그 (예: kr1)"
           value={tagLine}
           onChange={(e) => setTagLine(e.target.value)}
           className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full sm:w-28 focus:outline-none focus:border-teal-500"
@@ -103,7 +136,6 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
 
       {errorMessage && <p className="text-xs text-red-400 font-medium">{errorMessage}</p>}
 
-      {/* 조회된 전적 리스트 표시 */}
       {fetchedMatches.length > 0 && (
         <div className="flex flex-col gap-2.5 max-h-[220px] overflow-y-auto pr-1">
           {fetchedMatches.map((history) => (
@@ -119,7 +151,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
                   <div className="flex flex-wrap gap-1">
                     {history.bluePicks.map((champ, idx) => (
                       <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 text-[10px] font-medium border border-blue-500/20">
-                        {champ}
+                        {getDisplayName(champ)}
                       </span>
                     ))}
                   </div>
@@ -130,7 +162,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
                   <div className="flex flex-wrap gap-1">
                     {history.redPicks.map((champ, idx) => (
                       <span key={idx} className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-300 text-[10px] font-medium border border-red-500/20">
-                        {champ}
+                        {getDisplayName(champ)}
                       </span>
                     ))}
                   </div>
@@ -141,7 +173,6 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
         </div>
       )}
 
-      {/* 피어리스 연동 적용 바 */}
       {fetchedMatches.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-800">
           <div className="flex items-center gap-2 w-full sm:w-auto">
