@@ -323,51 +323,65 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 전적 데이터를 받아 실제 하단 밴픽 칸과 세트 기록(completedDrafts)에 완벽히 반영하는 핸들러
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 피어리스 룰과 밴픽 화면에 반영하는 핸들러
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
-        alert('반영할 전적 데이터가 없습니다.');
+        alert('연동할 픽 데이터가 없습니다.');
         return;
       }
 
-      // 1. 기존 completedDrafts 배열을 세트 번호(setNo)에 맞게 채워 넣습니다.
-      // 보통 세트는 1세트부터 시작하므로 인덱스(setNo - 1)에 매핑합니다.
-      const updatedDrafts = [...completedDrafts]; // 만약 이름이 다를 경우 사용하는 밴픽 완료 스토어 상태 변수명으로 맞춰주세요.
-
+      // 1. 모든 세트에서 선택된 챔피언 이름/아이디 추출
+      const allPickedChampions: string[] = [];
       historyData.forEach((item) => {
-        const setIndex = item.setNo - 1;
+        if (item.team2Picks && Array.isArray(item.team2Picks)) {
+          allPickedChampions.push(...item.team2Picks);
+        }
+        if (item.team1Picks && Array.isArray(item.team1Picks)) {
+          allPickedChampions.push(...item.team1Picks);
+        }
+      });
+
+      const uniqueChampions = Array.from(new Set(allPickedChampions));
+
+      if (uniqueChampions.length > 0) {
+        // 2. 내부 챔피언 데이터베이스와 매칭하여 정확한 ID 변환 시도
+        const validChampionIds: string[] = [];
         
-        // 해당 세트 슬롯에 블루 픽과 레드 픽 정보를 꽂아넣습니다.
-        updatedDrafts[setIndex] = {
-          blueTeamPicks: item.team2Picks || [],
-          redTeamPicks: item.team1Picks || [],
-          blueTeamBans: [], // 밴 정보가 있다면 함께 매핑 가능
-          redTeamBans: [],
-        };
-      });
+        uniqueChampions.forEach((champName) => {
+          if (!champName) return;
+          const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
+          
+          const matchedKey = Object.keys(champions || {}).find((key) => {
+            const currentObj = champions[key];
+            const keyLower = key.toLowerCase();
+            const nameEnLower = (currentObj?.name || '').toLowerCase();
+            
+            return (
+              keyLower === cleanInput ||
+              nameEnLower === cleanInput ||
+              keyLower.replace(/['\s.]/g, '') === cleanInput
+            );
+          });
 
-      // 2. 밴픽 상태 관리 스토어(예: setCompletedDrafts 등)에 업데이트된 배열을 반영합니다.
-      // (만약 Context 메서드 이름이 다르다면 프로젝트 내 스토어 setter 이름으로 변경해주세요)
-      if (typeof setCompletedDrafts === 'function') {
-        setCompletedDrafts(updatedDrafts);
+          if (matchedKey) {
+            validChampionIds.push(matchedKey);
+          } else {
+            validChampionIds.push(champName);
+          }
+        });
+
+        // 3. 기존 대량 등록 함수를 호출하여 피어리스 룰(중복 방지)에 반영
+        const joinedNames = validChampionIds.join(', ');
+        handleRegisterUsedChampions(joinedNames);
+        
+        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length}개)`);
+      } else {
+        alert('반영할 챔피언 데이터가 존재하지 않습니다.');
       }
-
-      // 3. 피어리스 룰(중복 밴/픽 체크)에 걸리도록 사용된 챔피언 목록에도 누적 반영
-      const allUsedChamps: string[] = [];
-      historyData.forEach((item) => {
-        if (item.team2Picks) allUsedChamps.push(...item.team2Picks);
-        if (item.team1Picks) allUsedChamps.push(...item.team1Picks);
-      });
-
-      if (allUsedChamps.length > 0 && typeof handleRegisterUsedChampions === 'function') {
-        handleRegisterUsedChampions(allUsedChamps.join(', '));
-      }
-
-      alert(`⚡ [완료] 선택한 세트들의 픽 데이터가 하단 밴픽 칸과 피어리스 룰에 성공적으로 반영되었습니다!`);
     } catch (error) {
-      console.error('세트 데이터 적용 중 오류 발생:', error);
-      alert('세트 데이터를 반영하는 도중 문제가 발생했습니다.');
+      console.error('세트 전적 연동 중 오류 발생:', error);
+      alert('전적을 반영하는 중 오류가 발생했습니다.');
     }
   };
 
