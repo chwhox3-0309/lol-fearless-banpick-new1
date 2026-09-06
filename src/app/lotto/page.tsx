@@ -16,7 +16,9 @@ export default function LottoArchivePage() {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1); // 1개월(4회), 3개월(13회), 5개월(22회)
   const [recentDraws, setRecentDraws] = useState<LottoResult[]>([]);
   const [generatedNumbers, setGeneratedNumbers] = useState<number[]>([]);
-  const [weightedNumbers, setWeightedNumbers] = useState<number[]>([]); // 🌟 확률 가중치 기반 생성 픽
+  
+  // 🌟 [변경] 가중치 픽을 5줄(2차원 배열)로 관리
+  const [weightedNumbersList, setWeightedNumbersList] = useState<number[][]>([]);
 
   const [hotNumbersStats, setHotNumbersStats] = useState<{ number: number; count: number }[]>([]);
 
@@ -48,10 +50,11 @@ export default function LottoArchivePage() {
     calculateStats(slicedData);
   }, [selectedPeriod]);
 
-  // 초기에 1, 3, 5개월 추천 픽 일괄 생성
+  // 초기에 1, 3, 5개월 추천 픽 일괄 생성 및 5줄 가중치 픽 초기 생성
   useEffect(() => {
     generateAllPeriodPicks();
-  }, []);
+    generateWeightedLotto5Lines();
+  }, [hotNumbersStats]); // 통계가 준비되면 가중치 픽 자동 생성
 
   // 빈도수 통계 계산
   const calculateStats = (draws: LottoResult[]) => {
@@ -138,40 +141,51 @@ export default function LottoArchivePage() {
     setGeneratedNumbers(results.sort((a, b) => a - b));
   };
 
-  // 🌟 [NEW] 등장 확률 비례 가중치(Weighted) 번호 생성기
-  const generateWeightedLotto = () => {
+  // 🌟 [NEW] 등장 확률 비례 가중치(Weighted) 5줄 번호 생성기
+  const generateWeightedLotto5Lines = () => {
     if (hotNumbersStats.length === 0) return;
 
-    const results: number[] = [];
+    const lines: number[][] = [];
 
-    while (results.length < 6) {
-      // 출현 횟수(count)를 가중치로 활용 (출현 횟수가 적어도 기본 가중치 1을 부여하여 최소한의 기회 보장)
-      const poolWithWeights: number[] = [];
-      hotNumbersStats.forEach((stat) => {
-        const weight = Math.max(stat.count * 2 + 1, 1); 
-        for (let w = 0; w < weight; w++) {
-          poolWithWeights.push(stat.number);
+    for (let l = 0; l < 5; l++) {
+      const results: number[] = [];
+      while (results.length < 6) {
+        const poolWithWeights: number[] = [];
+        hotNumbersStats.forEach((stat) => {
+          const weight = Math.max(stat.count * 2 + 1, 1); 
+          for (let w = 0; w < weight; w++) {
+            poolWithWeights.push(stat.number);
+          }
+        });
+
+        const randomIndex = Math.floor(Math.random() * poolWithWeights.length);
+        const chosen = poolWithWeights[randomIndex];
+
+        if (!results.includes(chosen)) {
+          results.push(chosen);
         }
-      });
-
-      const randomIndex = Math.floor(Math.random() * poolWithWeights.length);
-      const chosen = poolWithWeights[randomIndex];
-
-      if (!results.includes(chosen)) {
-        results.push(chosen);
       }
+      lines.push(results.sort((a, b) => a - b));
     }
 
-    setWeightedNumbers(results.sort((a, b) => a - b));
+    setWeightedNumbersList(lines);
   };
 
-  // 번호 복사 함수
-  const copyToClipboard = (numbers: number[], key: string) => {
-    if (numbers.length === 0) return;
-    const text = numbers.join(", ");
+  // 번호 복사 함수 (단일 또는 5줄 전체)
+  const copyToClipboard = (numbers: number[] | string, key: string) => {
+    const text = Array.isArray(numbers) ? numbers.join(", ") : numbers;
+    if (!text) return;
+    
     navigator.clipboard.writeText(text);
     setCopiedPeriod(key);
     setTimeout(() => setCopiedPeriod(null), 1500);
+  };
+
+  // 5줄 전체 클립보드 복사
+  const copyAllWeightedLines = () => {
+    if (weightedNumbersList.length === 0) return;
+    const allText = weightedNumbersList.map((line) => line.join(", ")).join("\n");
+    copyToClipboard(allText, "weighted_all");
   };
 
   return (
@@ -259,51 +273,76 @@ export default function LottoArchivePage() {
               </div>
             </div>
 
-            {/* 🌟 2) [NEW] 등장 확률 비례 가중치 픽 카드 */}
+            {/* 🌟 2) [NEW] 확률 비례 가중치 5줄 픽 카드 */}
             <div className="w-full p-6 sm:p-8 rounded-3xl bg-[#1B1F28] border border-amber-500/30 shadow-2xl flex flex-col items-center gap-5 relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-amber-500 text-stone-950 text-[9px] font-black px-3 py-1 rounded-bl-2xl tracking-widest uppercase">
-                Probability Weighted
+                Probability Weighted 5 Lines
               </div>
 
-              <div className="text-center">
+              <div className="text-center w-full">
                 <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-full">
-                  최근 {selectedPeriod}개월 확률 가중치 픽
+                  최근 {selectedPeriod}개월 확률 가중치 5줄 픽
                 </span>
                 <h2 className="text-sm sm:text-base font-bold text-stone-100 mt-2.5">
-                  출현 빈도에 비례해 당첨 확률이 높은 가중치 조합
+                  출현 빈도 가중치가 반영된 5줄(5세트) 추천 조합
                 </h2>
               </div>
 
-              <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap my-1">
-                {weightedNumbers.length > 0 ? (
-                  weightedNumbers.map((num, idx) => (
-                    <div
-                      key={idx}
-                      className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-stone-950 font-black text-base sm:text-lg flex items-center justify-center shadow-lg shadow-orange-500/20 border border-orange-300/30"
-                    >
-                      {num}
-                    </div>
-                  ))
+              {/* 5줄 번호 리스트 출력 영역 */}
+              <div className="flex flex-col gap-3 w-full my-1">
+                {weightedNumbersList.length > 0 ? (
+                  weightedNumbersList.map((line, lineIdx) => {
+                    const lineKey = `weighted_${lineIdx}`;
+                    return (
+                      <div
+                        key={lineIdx}
+                        className="flex flex-col sm:flex-row items-center justify-between p-3.5 rounded-2xl bg-[#161922] border border-stone-800/80 gap-3"
+                      >
+                        <span className="text-xs font-black text-orange-400 shrink-0">
+                          {lineIdx + 1}세트
+                        </span>
+
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+                          {line.map((num, idx) => (
+                            <div
+                              key={idx}
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center shadow-sm border border-orange-300/30"
+                            >
+                              {num}
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => copyToClipboard(line, lineKey)}
+                          className="px-3 py-1.5 bg-[#222733] hover:bg-[#2A303F] text-stone-300 border border-stone-700/60 rounded-xl text-[11px] font-bold transition-all active:scale-95 cursor-pointer shrink-0"
+                        >
+                          {copiedPeriod === lineKey ? "✅ 복사됨" : "📋 복사"}
+                        </button>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div className="text-xs text-stone-500 py-4">
-                    버튼을 눌러 확률 비례 가중치 번호를 생성해 보세요!
+                  <div className="text-xs text-stone-500 py-4 text-center">
+                    버튼을 눌러 가중치 5줄 번호를 생성해 보세요!
                   </div>
                 )}
               </div>
 
+              {/* 전체 생성 및 전체 복사 버튼 */}
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
-                  onClick={generateWeightedLotto}
+                  onClick={generateWeightedLotto5Lines}
                   className="flex-1 sm:flex-none px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-stone-950 rounded-2xl text-xs sm:text-sm font-black tracking-wider transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
                 >
-                  🔥 확률 비례 가중치 픽 생성
+                  🔥 확률 비례 가중치 5줄 생성
                 </button>
-                {weightedNumbers.length > 0 && (
+                {weightedNumbersList.length > 0 && (
                   <button
-                    onClick={() => copyToClipboard(weightedNumbers, "weighted")}
-                    className="px-4 py-3 bg-[#222733] hover:bg-[#2A303F] text-stone-300 border border-stone-700 rounded-2xl text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                    onClick={copyAllWeightedLines}
+                    className="px-4 py-3 bg-[#222733] hover:bg-[#2A303F] text-stone-300 border border-stone-700 rounded-2xl text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
                   >
-                    {copiedPeriod === "weighted" ? "✅ 복사됨!" : "📋 복사"}
+                    {copiedPeriod === "weighted_all" ? "✅ 전체 복사됨!" : "📋 5줄 전체 복사"}
                   </button>
                 )}
               </div>
