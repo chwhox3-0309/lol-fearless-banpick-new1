@@ -62,6 +62,8 @@ export default function Home() {
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
+    handleApplyRiotSetHistory, // 추가됨
+    setDraftState,            // 추가됨
     teamSideMapping,
     BAN_PICK_SEQUENCE,
     getAllSelectedChampions,
@@ -325,7 +327,6 @@ export default function Home() {
 
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
-      // 1. Context에 정의된 함수로 완료된 세트 목록에 반영
       const result = handleApplyRiotSetHistory(historyData);
       
       if (!result.success) {
@@ -333,12 +334,9 @@ export default function Home() {
         return;
       }
 
-      // 2. [추가] 육안으로 바로 확인할 수 있도록, 첫 번째로 가져온 세트의 픽을 
-      // 현재 진행 중인 하단 밴픽 창(Team 1 / Team 2 픽 칸)에도 즉시 반영해 줍니다.
       if (historyData.length > 0 && typeof setDraftState === 'function') {
-        const firstSet = historyData[0]; // 가장 첫 번째 세트 데이터
+        const firstSet = historyData[0];
         
-        // 챔피언 이름/ID 매핑 처리
         const mapNames = (names: string[]) => {
           if (!names) return [];
           return names.map((name) => {
@@ -353,8 +351,7 @@ export default function Home() {
         const bluePicksMapped = mapNames(firstSet.team2Picks);
         const redPicksMapped = mapNames(firstSet.team1Picks);
 
-        // 현재 진행 중인 밴픽 상태 업데이트 (진영 매핑 고려)
-        setDraftState((prev) => ({
+        setDraftState((prev: any) => ({
           ...prev,
           team1: {
             ...prev.team1,
