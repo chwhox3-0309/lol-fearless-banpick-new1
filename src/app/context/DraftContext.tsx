@@ -59,9 +59,6 @@ interface DraftState {
   currentTurnIndex: number;
 }
 
-// -------------------------------------------------------------
-// [수정위치 1] maxSets 및 totalSets 속성 추가
-// -------------------------------------------------------------
 interface DraftConfig {
   team1Name: string;
   team2Name: string;
@@ -69,8 +66,8 @@ interface DraftConfig {
   pickChoice: 'first' | 'second' | null;
   sideChoice: 'blue' | 'red' | null;
   isProMode: boolean;
-  maxSets?: number;   // 👈 추가
-  totalSets?: number; // 👈 추가
+  maxSets?: number;
+  totalSets?: number;
 }
 
 const initialTeamState: TeamState = {
@@ -160,9 +157,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [draftState, setDraftState, draftStateHydrated] = useLocalStorage<DraftState>('currentDraftState', initialDraftState);
   const [completedDrafts, setCompletedDrafts, completedDraftsHydrated] = useLocalStorage<CompletedDraft[]>('completedDrafts', []);
   
-  // -------------------------------------------------------------
-  // [수정위치 2] config 초기 상태 값에 maxSets / totalSets 지정
-  // -------------------------------------------------------------
   const [config, setConfig, configHydrated] = useLocalStorage<DraftConfig>('draftConfig', {
     team1Name: 'Team 1',
     team2Name: 'Team 2',
@@ -170,8 +164,8 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     pickChoice: null,
     sideChoice: null,
     isProMode: false,
-    maxSets: 3,   // 👈 기본값 3 추가
-    totalSets: 3, // 👈 기본값 3 추가
+    maxSets: 3,
+    totalSets: 3,
   });
 
   const { currentTurnIndex } = draftState;
@@ -375,6 +369,23 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return { success: false, message: `정확히 10명의 고유한 챔피언을 입력해야 합니다. (현재 ${championIdsToRegister.length}명)` };
     }
 
+    // 진영 매핑에 따라 블루/레드 팀 판별하여 현재 draftState 픽 칸에 반영
+    const blueTeamId = teamSideMapping.team1 === 'blue' ? 'team1' : 'team2';
+    const redTeamId = teamSideMapping.team1 === 'red' ? 'team1' : 'team2';
+
+    setDraftState(prev => ({
+      ...prev,
+      [blueTeamId]: {
+        ...prev[blueTeamId],
+        picks: [...prev[blueTeamId].picks, ...championIdsToRegister.slice(0, 5)],
+      },
+      [redTeamId]: {
+        ...prev[redTeamId],
+        picks: [...prev[redTeamId].picks, ...championIdsToRegister.slice(5, 10)],
+      },
+      currentTurnIndex: Math.max(prev.currentTurnIndex, dynamicBanPickSequence.length),
+    }));
+
     const newFakeDraft: CompletedDraft = {
       blueTeamPicks: championIdsToRegister.slice(0, 5),
       redTeamPicks: championIdsToRegister.slice(5, 10),
@@ -383,9 +394,9 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     setCompletedDrafts(prev => [...prev, newFakeDraft]);
 
-    return { success: true, message: '10명의 챔피언이 성공적으로 등록되었습니다.' };
+    return { success: true, message: '10명의 챔피언이 성공적으로 등록 및 밴픽 칸에 반영되었습니다.' };
 
-  }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
+  }, [allChampions, getAllSelectedChampions, setCompletedDrafts, setDraftState, teamSideMapping, dynamicBanPickSequence.length]);
 
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
@@ -423,9 +434,6 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setDraftState(initialDraftState);
   }, [draftState, currentTurnIndex, setCompletedDrafts, setDraftState, dynamicBanPickSequence.length, teamSideMapping]);
 
-  // -------------------------------------------------------------
-  // [수정위치 3] handleResetAll 시 maxSets / totalSets 도 초기화
-  // -------------------------------------------------------------
   const handleResetAll = useCallback(() => {
     if (window.confirm('정말 초기화 하시겠습니까?')) {
       setDraftState(initialDraftState);
