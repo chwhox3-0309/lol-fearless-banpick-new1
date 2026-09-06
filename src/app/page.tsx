@@ -350,7 +350,6 @@ export default function Home() {
         
         uniqueChampions.forEach((champName) => {
           if (!champName) return;
-          // 공백 제거 및 대소문자 무시 매칭
           const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
           
           const matchedKey = Object.keys(champions || {}).find((key) => {
@@ -370,7 +369,6 @@ export default function Home() {
           if (matchedKey) {
             validChampionIds.push(matchedKey);
           } else {
-            // 매칭되는 키를 못 찾았더라도 원본 이름이 영문이면 그대로 투입 시도
             validChampionIds.push(champName);
           }
         });
@@ -379,7 +377,7 @@ export default function Home() {
         const joinedNames = validChampionIds.join(', ');
         const result = handleRegisterUsedChampions(joinedNames);
         
-        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length개})`);
+        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length}개)`);
       } else {
         alert('반영할 챔피언 데이터가 존재하지 않습니다.');
       }
@@ -388,9 +386,6 @@ export default function Home() {
       alert('전적을 반영하는 중 오류가 발생했습니다.');
     }
   };
-```[cite: 2]
-
-
 
   const handleStartDraft = () => {
     setIsConfigured(true);
@@ -408,7 +403,7 @@ export default function Home() {
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative[cite: 1]">
+    <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative">
       {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
       {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
 
@@ -511,7 +506,6 @@ export default function Home() {
       <NoticeBanner />
 
       <main className="flex-grow flex flex-col space-y-4">
-        {/* 지난 커스텀 경기 결과 기록을 불러와 피어리스 룰에 적용하는 컴포넌트 추가 */}
         <section className="w-full">
           <FearlessMatchLoader onApplySetHistory={handleApplySetHistoryFromRiot} />
         </section>
@@ -688,7 +682,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 사이트 이용 데이터 기반 실시간 픽률 & 밴률 Top 5 그래프 섹션 */}
           <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
               <div>
@@ -699,7 +692,6 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 픽률 TOP 5 */}
               <div className="bg-gray-900/85 p-4 rounded-xl border border-indigo-500/30 shadow-inner">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-bold text-indigo-300 flex items-center gap-1.5">
@@ -731,7 +723,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 밴률 TOP 5 */}
               <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
