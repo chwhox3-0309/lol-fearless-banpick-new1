@@ -21,7 +21,9 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [tagLine, setTagLine] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedMatches, setFetchedMatches] = useState<MatchSetResult[]>([]);
-  const [selectedSetToLoad, setSelectedSetToLoad] = useState<number>(1);
+  
+  // 기존 일괄 선택 범위 대신 개별 세트 체크박스 상태 관리 (matchId 혹은 setNo 기준)
+  const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
 
   // 라이엇 챔피언 이름을 사이트 시스템 키와 완벽하게 매칭하는 함수
@@ -78,6 +80,9 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
       }));
 
       setFetchedMatches(mappedMatches);
+      
+      // 조회 성공 시 기본적으로 모든 세트가 체크되도록 초기화 (원하는 경우 빈 배열로 두어도 무방)
+      setSelectedMatchIds(mappedMatches.map((m: MatchSetResult) => m.matchId));
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -85,14 +90,37 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }
   };
 
-  const handleApplyFearlessRule = () => {
-    const targetHistory = fetchedMatches.filter((item) => item.setNo <= selectedSetToLoad);
+  // 개별 체크박스 토글 핸들러
+  const handleToggleCheckbox = (matchId: string) => {
+    setSelectedMatchIds((prev) =>
+      prev.includes(matchId) ? prev.filter((id) => id !== matchId) : [...prev, matchId]
+    );
+  };
+
+  // 전체 선택 / 해제 토글
+  const handleToggleAll = () => {
+    if (selectedMatchIds.length === fetchedMatches.length) {
+      setSelectedMatchIds([]);
+    } else {
+      setSelectedMatchIds(fetchedMatches.map((m) => m.matchId));
+    }
+  };
+
+  // 선택된 경기 정보만 필터링하여 대량 등록 형식으로 반영
+  const handleApplySelectedMatches = () => {
+    if (selectedMatchIds.length === 0) {
+      setErrorMessage("반영할 세트(게임 정보)를 하나 이상 체크해주세요.");
+      return;
+    }
+
+    const targetHistory = fetchedMatches.filter((item) => selectedMatchIds.includes(item.matchId));
     const formattedHistory = targetHistory.map((item) => ({
       setNo: item.setNo,
       team2Picks: item.bluePicks,
       team1Picks: item.redPicks,
     }));
 
+    setErrorMessage("");
     onApplySetHistory(formattedHistory);
   };
 
@@ -113,7 +141,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
           실제 클라이언트 게임 전적 자동 불러오기
         </h3>
         <p className="text-xs text-gray-400">
-          라이엇 계정의 최근 경기 기록을 가져와 세트별 이전 밴픽 영역에 자동으로 누적합니다.
+          라이엇 계정의 최근 경기 기록을 가져와 원하는 세트만 체크하여 픽 구간에 누적 반영합니다.
         </p>
       </div>
 
@@ -145,63 +173,87 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
       {errorMessage && <p className="text-xs text-red-400 font-medium">{errorMessage}</p>}
 
       {fetchedMatches.length > 0 && (
-        <div className="flex flex-col gap-2.5 max-h-[220px] overflow-y-auto pr-1">
-          {fetchedMatches.map((history) => (
-            <div key={history.matchId} className="p-3 rounded-xl bg-gray-950/80 border border-gray-800 flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-teal-400">SET {history.setNo} 연동 경기 기록</span>
-                <span className="text-[10px] text-gray-500 font-mono">Match ID: {history.matchId}</span>
-              </div>
+        <div className="flex flex-col gap-2.5">
+          {/* 전체 선택 제어 헤더 */}
+          <div className="flex justify-between items-center px-1">
+            <span className="text-xs text-gray-400">
+              조회된 경기 목록 ({fetchedMatches.keys ? fetchedMatches.length : 0}개) 중 반영할 세트를 선택하세요.
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleAll}
+              className="text-[11px] text-teal-400 hover:underline font-medium"
+            >
+              {selectedMatchIds.length === fetchedMatches.length ? "전체 해제" : "전체 선택"}
+            </button>
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="p-2 rounded-lg bg-gray-900 border border-blue-500/20 flex flex-col gap-1">
-                  <span className="font-bold text-blue-400 text-[11px]">Team 2 (블루) 픽</span>
-                  <div className="flex flex-wrap gap-1">
-                    {history.bluePicks.map((champ, idx) => (
-                      <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 text-[10px] font-medium border border-blue-500/20">
-                        {getDisplayName(champ)}
-                      </span>
-                    ))}
+          <div className="flex flex-col gap-2.5 max-h-[240px] overflow-y-auto pr-1">
+            {fetchedMatches.map((history) => {
+              const isChecked = selectedMatchIds.includes(history.matchId);
+              return (
+                <div
+                  key={history.matchId}
+                  onClick={() => handleToggleCheckbox(history.matchId)}
+                  className={`p-3 rounded-xl border transition-all flex items-start gap-3 cursor-pointer ${
+                    isChecked
+                      ? "bg-teal-950/20 border-teal-500/50 shadow-inner"
+                      : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  {/* 체크박스 */}
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleToggleCheckbox(history.matchId)}
+                    className="mt-1.5 w-4 h-4 text-teal-600 rounded bg-gray-900 border-gray-700 focus:ring-teal-500 cursor-pointer"
+                  />
+
+                  <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-teal-300">SET {history.setNo} 연동 경기 기록</span>
+                      <span className="text-[10px] text-gray-500 font-mono">Match ID: {history.matchId}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                      <div className="p-2 rounded-lg bg-gray-900 border border-blue-500/20 flex flex-col gap-1">
+                        <span className="font-bold text-blue-400 text-[11px]">Team 2 (블루) 픽</span>
+                        <div className="flex flex-wrap gap-1">
+                          {history.bluePicks.map((champ, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 text-[10px] font-medium border border-blue-500/20">
+                              {getDisplayName(champ)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded-lg bg-gray-900 border border-red-500/20 flex flex-col gap-1">
+                        <span className="font-bold text-red-400 text-[11px]">Team 1 (레드) 픽</span>
+                        <div className="flex flex-wrap gap-1">
+                          {history.redPicks.map((champ, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-300 text-[10px] font-medium border border-red-500/20">
+                              {getDisplayName(champ)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="p-2 rounded-lg bg-gray-900 border border-red-500/20 flex flex-col gap-1">
-                  <span className="font-bold text-red-400 text-[11px]">Team 1 (레드) 픽</span>
-                  <div className="flex flex-wrap gap-1">
-                    {history.redPicks.map((champ, idx) => (
-                      <span key={idx} className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-300 text-[10px] font-medium border border-red-500/20">
-                        {getDisplayName(champ)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
 
       {fetchedMatches.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-800">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs text-gray-400 shrink-0">적용 범위:</span>
-            <select
-              value={selectedSetToLoad}
-              onChange={(e) => setSelectedSetToLoad(Number(e.target.value))}
-              className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-teal-500"
-            >
-              <option value={1}>1세트만 반영 (2세트용)</option>
-              <option value={2}>1~2세트 반영 (3세트용)</option>
-              <option value={3}>1~3세트 반영 (4세트용)</option>
-              <option value={4}>1~4세트 반영 (5세트용)</option>
-            </select>
-          </div>
-
+        <div className="flex items-center justify-end pt-3 border-t border-gray-800">
           <button
-            onClick={handleApplyFearlessRule}
-            className="w-full sm:w-auto px-4 py-2 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs rounded-xl transition-all shadow-lg cursor-pointer"
+            type="button"
+            onClick={handleApplySelectedMatches}
+            className="w-full sm:w-auto px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs rounded-xl transition-all shadow-lg cursor-pointer flex items-center justify-center gap-1.5"
           >
-            ⚡ 세트별 픽 칸에 누적 반영하기
+            <span>⚡ 선택한 세트만 대량 누적 반영하기</span>
           </button>
         </div>
       )}
