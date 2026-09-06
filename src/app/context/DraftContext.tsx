@@ -42,6 +42,8 @@ interface ChampionData {
 }
 
 interface CompletedDraft {
+  matchId?: string;
+  setNo?: number;
   blueTeamPicks: string[];
   redTeamPicks: string[];
   blueTeamBans: string[];
@@ -137,7 +139,7 @@ interface DraftContextType {
   handleResetAll: () => void;
   handleUndoLastAction: () => void;
   handleRegisterUsedChampions: (championNames: string) => { success: boolean, message: string };
-  handleApplyRiotSetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => { success: boolean; message: string };
+  handleApplyRiotSetHistory: (historyData: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => { success: boolean; message: string };
   getAllSelectedChampions: string[];
   allChampions: Champion[];
   filteredChampions: Champion[];
@@ -179,8 +181,12 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!config.isProMode) return [];
     
     const banCounts: { [id: string]: number } = {};
-    completedDrafts.forEach(draft => {
-      [...draft.blueTeamBans, ...draft.redTeamBans].forEach(id => {
+    const safeCompletedDrafts = Array.isArray(completedDrafts) ? completedDrafts : [];
+    
+    safeCompletedDrafts.forEach(draft => {
+      const blueBans = Array.isArray(draft?.blueTeamBans) ? draft.blueTeamBans : [];
+      const redBans = Array.isArray(draft?.redTeamBans) ? draft.redTeamBans : [];
+      [...blueBans, ...redBans].forEach(id => {
         banCounts[id] = (banCounts[id] || 0) + 1;
       });
     });
@@ -283,9 +289,12 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     team1Bans.forEach((id) => selected.add(id));
     team2Bans.forEach((id) => selected.add(id));
     
-    completedDrafts.forEach((draft) => {
-      draft.blueTeamPicks.forEach((id) => selected.add(id));
-      draft.redTeamPicks.forEach((id) => selected.add(id));
+    const safeCompletedDrafts = Array.isArray(completedDrafts) ? completedDrafts : [];
+    safeCompletedDrafts.forEach((draft) => {
+      const bluePicks = Array.isArray(draft?.blueTeamPicks) ? draft.blueTeamPicks : [];
+      const redPicks = Array.isArray(draft?.redTeamPicks) ? draft.redTeamPicks : [];
+      bluePicks.forEach((id) => selected.add(id));
+      redPicks.forEach((id) => selected.add(id));
     });
     
     return Array.from(selected);
@@ -376,15 +385,15 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       blueTeamBans: [],
       redTeamBans: [],
     };
-    setCompletedDrafts(prev => [...prev, newFakeDraft]);
+    setCompletedDrafts(prev => [...(Array.isArray(prev) ? prev : []), newFakeDraft]);
 
     return { success: true, message: '10명의 챔피언이 연동 경기 기록에 성공적으로 등록되었습니다.' };
 
   }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
-  // 라이엇 세트 기록 대량/누적 반영 함수
+  // 라이엇 세트 기록 대량/누적 반영 함수 (에러 방어 및 타입 안정성 강화)
   const handleApplyRiotSetHistory = (newHistories: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => {
-    const existingHistory = completedDrafts || []; // 현재 완료된 밴픽/세트 기록 배열
+    const existingHistory = Array.isArray(completedDrafts) ? completedDrafts : []; 
 
     // 1. 중복 검사 (Match ID 또는 세트 번호 기준)
     for (const newSet of newHistories) {
@@ -401,9 +410,17 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    // 2. 중복이 없다면 기존 기록에 안전하게 누적 병합
-    // (프로젝트 내 상태 관리 구조에 맞춰 setCompletedDrafts 혹은 setDraft를 사용하세요)
-    setCompletedDrafts((prev: any[]) => [...prev, ...newHistories]);
+    // 2. 전달받은 데이터를 CompletedDraft 구조에 맞게 매핑 후 누적 병합
+    const formattedNewHistories: CompletedDraft[] = newHistories.map(item => ({
+      matchId: item.matchId,
+      setNo: item.setNo,
+      blueTeamPicks: item.team2Picks || [], // 블루팀 픽 매핑
+      redTeamPicks: item.team1Picks || [],  // 레드팀 픽 매핑
+      blueTeamBans: [],
+      redTeamBans: [],
+    }));
+
+    setCompletedDrafts((prev: CompletedDraft[]) => [...(Array.isArray(prev) ? prev : []), ...formattedNewHistories]);
 
     return {
       success: true,
@@ -435,7 +452,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const redTeamData = draftState[redTeamId];
 
     setCompletedDrafts((prev) => [
-      ...prev,
+      ...(Array.isArray(prev) ? prev : []),
       {
         blueTeamPicks: blueTeamData.picks,
         redTeamPicks: redTeamData.picks,
@@ -513,7 +530,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
-    handleApplyRiotSetHistory, // 새로 추가된 함수 노출
+    handleApplyRiotSetHistory,
     getAllSelectedChampions,
     allChampions,
     filteredChampions,
