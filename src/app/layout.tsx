@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <meta name="google-site-verification" content="UZIYILxWNJsn2WsWqAnwmXU7___vcONlDefeZc9EDUw" />
         {/* Google AdSense Script - next/script 대신 일반 HTML script 사용으로 data-nscript 충돌 해결 */}
         <script
           async
