@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY || '';
 const REGION_ROUTING = 'asia'; // 한국 서버는 asia 라우팅 사용
-const PLATFORM_ROUTING = 'kr';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -54,19 +53,16 @@ export async function GET(request: Request) {
         const matchData = await detailRes.json();
         const participants = matchData.info.participants;
         
-        // 해당 유저 찾기
         const userParticipant = participants.find((p: any) => p.puuid === puuid);
         
         if (userParticipant) {
-          // 블루팀(100) 또는 레드팀(200) 구분 및 팀원 전체 챔피언 추출 구조화
-          const teamId = userParticipant.teamId; // 100 or 200
+          const teamId = userParticipant.teamId;
           const teamParticipants = participants.filter((p: any) => p.teamId === teamId);
           const enemyParticipants = participants.filter((p: any) => p.teamId !== teamId);
 
           matchHistories.push({
             setNo: i + 1,
             matchId,
-            // 블루/레드 팀 매핑 (임의로 내 팀을 블루, 상대 팀을 레드 또는 실제 진영 배분에 맞춤)
             bluePicks: teamParticipants.map((p: any) => p.championName),
             redPicks: enemyParticipants.map((p: any) => p.championName),
           });
