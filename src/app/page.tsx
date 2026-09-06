@@ -323,7 +323,7 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 (수정본)
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
@@ -331,7 +331,7 @@ export default function Home() {
         return;
       }
 
-      // 1. 모든 세트에서 선택된 챔피언 이름을 단일 배열로 추출
+      // 1. 모든 세트에서 선택된 챔피언 이름 추출
       const allPickedChampions: string[] = [];
       historyData.forEach((item) => {
         if (item.team2Picks && Array.isArray(item.team2Picks)) {
@@ -345,11 +345,41 @@ export default function Home() {
       const uniqueChampions = Array.from(new Set(allPickedChampions));
 
       if (uniqueChampions.length > 0) {
-        // 2. 쉼표로 구분된 문자열로 변환하여 Context의 대량 밴/사용 처리 함수 호출
-        const joinedNames = uniqueChampions.join(', ');
+        // 2. 내부 챔피언 데이터베이스(champions 객체)의 키 값과 대소문자/영문명을 비교하여 정확한 ID 매칭 시도
+        const validChampionIds: string[] = [];
+        
+        uniqueChampions.forEach((champName) => {
+          if (!champName) return;
+          // 공백 제거 및 대소문자 무시 매칭
+          const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
+          
+          const matchedKey = Object.keys(champions || {}).find((key) => {
+            const currentObj = champions[key];
+            const keyLower = key.toLowerCase();
+            const nameEnLower = (currentObj?.name || '').toLowerCase();
+            const nameKrLower = (currentObj?.krName || '').toLowerCase();
+            
+            return (
+              keyLower === cleanInput ||
+              nameEnLower === cleanInput ||
+              nameKrLower === cleanInput ||
+              keyLower.replace(/['\s.]/g, '') === cleanInput
+            );
+          });
+
+          if (matchedKey) {
+            validChampionIds.push(matchedKey);
+          } else {
+            // 매칭되는 키를 못 찾았더라도 원본 이름이 영문이면 그대로 투입 시도
+            validChampionIds.push(champName);
+          }
+        });
+
+        // 3. 쉼표로 묶어서 등록 함수 호출
+        const joinedNames = validChampionIds.join(', ');
         const result = handleRegisterUsedChampions(joinedNames);
         
-        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 이전 밴픽 칸(피어리스 룰)에 누적 반영되었습니다!\n(${result.message || ''})`);
+        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length개})`);
       } else {
         alert('반영할 챔피언 데이터가 존재하지 않습니다.');
       }
@@ -358,6 +388,9 @@ export default function Home() {
       alert('전적을 반영하는 중 오류가 발생했습니다.');
     }
   };
+```[cite: 2]
+
+
 
   const handleStartDraft = () => {
     setIsConfigured(true);
