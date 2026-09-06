@@ -394,13 +394,21 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           item.setNo === newSet.setNo
       );
       if (isDuplicate) {
-        throw new Error(`이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`);
+        return {
+          success: false,
+          message: `이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`
+        };
       }
     }
 
     // 2. 중복이 없다면 기존 기록에 안전하게 누적 병합
     // (프로젝트 내 상태 관리 구조에 맞춰 setCompletedDrafts 혹은 setDraft를 사용하세요)
     setCompletedDrafts((prev: any[]) => [...prev, ...newHistories]);
+
+    return {
+      success: true,
+      message: "성공적으로 누적 반영되었습니다."
+    };
   };
 
   const filteredChampions = useMemo(() => {
