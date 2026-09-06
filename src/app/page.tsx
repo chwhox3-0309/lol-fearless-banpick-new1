@@ -323,20 +323,54 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 전적 중 선택한 세트의 픽을 하단 녹색 칸(현재 밴픽 창)에 곧바로 주입
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
-      if (!historyData || historyData.length === 0) {
-        alert('연동할 픽 데이터가 없습니다.');
+      // 1. Context에 정의된 함수로 완료된 세트 목록에 반영
+      const result = handleApplyRiotSetHistory(historyData);
+      
+      if (!result.success) {
+        alert(result.message);
         return;
       }
 
-      // 예시: 사용자가 선택한 세트 번호(또는 첫 번째 세트)의 픽을 하단 밴픽 창에 강제 세팅
-      // (DraftContext에 챔피언 ID 변환 및 픽 강제 주입 로직 연동)
-      
-      alert('⚡ 선택한 세트의 픽 데이터가 하단 밴픽 칸에 성공적으로 채워졌습니다!');
+      // 2. [추가] 육안으로 바로 확인할 수 있도록, 첫 번째로 가져온 세트의 픽을 
+      // 현재 진행 중인 하단 밴픽 창(Team 1 / Team 2 픽 칸)에도 즉시 반영해 줍니다.
+      if (historyData.length > 0 && typeof setDraftState === 'function') {
+        const firstSet = historyData[0]; // 가장 첫 번째 세트 데이터
+        
+        // 챔피언 이름/ID 매핑 처리
+        const mapNames = (names: string[]) => {
+          if (!names) return [];
+          return names.map((name) => {
+            const clean = name.trim().toLowerCase();
+            const foundKey = Object.keys(champions || {}).find(
+              (k) => k.toLowerCase() === clean || champions[k]?.name?.toLowerCase() === clean
+            );
+            return foundKey || name;
+          });
+        };
+
+        const bluePicksMapped = mapNames(firstSet.team2Picks);
+        const redPicksMapped = mapNames(firstSet.team1Picks);
+
+        // 현재 진행 중인 밴픽 상태 업데이트 (진영 매핑 고려)
+        setDraftState((prev) => ({
+          ...prev,
+          team1: {
+            ...prev.team1,
+            picks: teamSideMapping.team1 === 'blue' ? bluePicksMapped : redPicksMapped,
+          },
+          team2: {
+            ...prev.team2,
+            picks: teamSideMapping.team2 === 'blue' ? bluePicksMapped : redPicksMapped,
+          },
+        }));
+      }
+
+      alert('⚡ 선택한 세트의 픽 데이터가 하단 밴픽 칸과 완료된 기록에 성공적으로 채워졌습니다!');
     } catch (error) {
-      console.error('전적 주입 중 오류 발생:', error);
+      console.error('전적 반영 중 오류 발생:', error);
+      alert('전적을 반영하는 중 오류가 발생했습니다.');
     }
   };
 
