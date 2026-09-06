@@ -382,57 +382,27 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
-  // 새로 추가된 라이엇 세트 기록 일괄 반영 핸들러 (1번 방식 구현)
-  const handleApplyRiotSetHistory = useCallback((historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]): { success: boolean; message: string } => {
-    try {
-      if (!historyData || historyData.length === 0) {
-        return { success: false, message: '반영할 전적 데이터가 없습니다.' };
-      }
+  // 예시: DraftContext.tsx 내부의 handleApplyRiotSetHistory 함수 수정
+const handleApplyRiotSetHistory = (newHistories) => {
+  // 예: 이미 저장된 완료 세트 기록들을 확인 (상태명은 프로젝트에 맞게 조절)
+  const existingHistory = draft.completedDrafts || []; // 혹은 관련 세트 히스토리 상태
 
-      // 한글 이름이나 영어 이름을 시스템 내부 ID로 변환하기 위한 맵 생성
-      const championMap = new Map<string, string>();
-      allChampions.forEach(c => {
-        championMap.set(c.name.toLowerCase(), c.id);
-        championMap.set(c.id.toLowerCase(), c.id);
-      });
-
-      const newCompletedDrafts: CompletedDraft[] = [];
-
-      for (const item of historyData) {
-        // 블루팀 픽 변환
-        const bluePicksResolved = (item.team2Picks || []).map(name => {
-          if (!name) return '';
-          const cleaned = name.trim().toLowerCase();
-          return championMap.get(cleaned) || name; // 매칭 안되면 원래 이름 유지
-        }).filter(Boolean);
-
-        // 레드팀 픽 변환
-        const redPicksResolved = (item.team1Picks || []).map(name => {
-          if (!name) return '';
-          const cleaned = name.trim().toLowerCase();
-          return championMap.get(cleaned) || name;
-        }).filter(Boolean);
-
-        newCompletedDrafts.push({
-          blueTeamPicks: bluePicksResolved,
-          redTeamPicks: redPicksResolved,
-          blueTeamBans: [],
-          redTeamBans: [],
-        });
-      }
-
-      // 완료된 세트 목록에 통째로 덮어쓰거나 누적 반영
-      setCompletedDrafts(newCompletedDrafts);
-
-      return { 
-        success: true, 
-        message: `⚡ 총 ${newCompletedDrafts.length}개 세트의 전적 정보가 하단 완료된 밴픽 기록 칸에 성공적으로 반영되었습니다!` 
-      };
-    } catch (error) {
-      console.error('라이엇 세트 전적 반영 오류:', error);
-      return { success: false, message: '전적을 반영하는 중 오류가 발생했습니다.' };
+  // 1. 중복 검사 (Match ID 기준 또는 setNo 기준)
+  for (const newSet of newHistories) {
+    const isDuplicate = existingHistory.some(
+      (item) => item.matchId === newSet.matchId || item.setNo === newSet.setNo
+    );
+    if (isDuplicate) {
+      throw new Error(`이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`);
     }
-  }, [allChampions, setCompletedDrafts]);
+  }
+
+  // 2. 중복이 없다면 기존 기록에 누적 병합
+  setDraft((prev) => ({
+    ...prev,
+    completedDrafts: [...prev.completedDrafts, ...newHistories]
+  }));
+};
 
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
