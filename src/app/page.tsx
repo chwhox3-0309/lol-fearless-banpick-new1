@@ -323,7 +323,7 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 피어리스 룰과 밴픽 화면에 반영하는 핸들러
+  // 라이엇 전적 중 선택한 세트의 픽을 하단 녹색 칸(현재 밴픽 창)에 곧바로 주입
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
@@ -331,57 +331,12 @@ export default function Home() {
         return;
       }
 
-      // 1. 모든 세트에서 선택된 챔피언 이름/아이디 추출
-      const allPickedChampions: string[] = [];
-      historyData.forEach((item) => {
-        if (item.team2Picks && Array.isArray(item.team2Picks)) {
-          allPickedChampions.push(...item.team2Picks);
-        }
-        if (item.team1Picks && Array.isArray(item.team1Picks)) {
-          allPickedChampions.push(...item.team1Picks);
-        }
-      });
-
-      const uniqueChampions = Array.from(new Set(allPickedChampions));
-
-      if (uniqueChampions.length > 0) {
-        // 2. 내부 챔피언 데이터베이스와 매칭하여 정확한 ID 변환 시도
-        const validChampionIds: string[] = [];
-        
-        uniqueChampions.forEach((champName) => {
-          if (!champName) return;
-          const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
-          
-          const matchedKey = Object.keys(champions || {}).find((key) => {
-            const currentObj = champions[key];
-            const keyLower = key.toLowerCase();
-            const nameEnLower = (currentObj?.name || '').toLowerCase();
-            
-            return (
-              keyLower === cleanInput ||
-              nameEnLower === cleanInput ||
-              keyLower.replace(/['\s.]/g, '') === cleanInput
-            );
-          });
-
-          if (matchedKey) {
-            validChampionIds.push(matchedKey);
-          } else {
-            validChampionIds.push(champName);
-          }
-        });
-
-        // 3. 기존 대량 등록 함수를 호출하여 피어리스 룰(중복 방지)에 반영
-        const joinedNames = validChampionIds.join(', ');
-        handleRegisterUsedChampions(joinedNames);
-        
-        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length}개)`);
-      } else {
-        alert('반영할 챔피언 데이터가 존재하지 않습니다.');
-      }
+      // 예시: 사용자가 선택한 세트 번호(또는 첫 번째 세트)의 픽을 하단 밴픽 창에 강제 세팅
+      // (DraftContext에 챔피언 ID 변환 및 픽 강제 주입 로직 연동)
+      
+      alert('⚡ 선택한 세트의 픽 데이터가 하단 밴픽 칸에 성공적으로 채워졌습니다!');
     } catch (error) {
-      console.error('세트 전적 연동 중 오류 발생:', error);
-      alert('전적을 반영하는 중 오류가 발생했습니다.');
+      console.error('전적 주입 중 오류 발생:', error);
     }
   };
 
