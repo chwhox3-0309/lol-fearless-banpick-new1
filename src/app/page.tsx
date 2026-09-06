@@ -62,8 +62,7 @@ export default function Home() {
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
-    handleApplyRiotSetHistory, // 추가됨
-    setDraftState,            // 추가됨
+    handleApplyRiotSetHistory, // ✅ 이것만 남김
     teamSideMapping,
     BAN_PICK_SEQUENCE,
     getAllSelectedChampions,
