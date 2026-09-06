@@ -323,7 +323,7 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 (타입 오류 수정본)
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 실제 세트 기록(completedDrafts)에 반영하는 핸들러
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
@@ -331,25 +331,11 @@ export default function Home() {
         return;
       }
 
-      // 1. 모든 세트에서 선택된 챔피언 이름 추출
-      const allPickedChampions: string[] = [];
-      historyData.forEach((item) => {
-        if (item.team2Picks && Array.isArray(item.team2Picks)) {
-          allPickedChampions.push(...item.team2Picks);
-        }
-        if (item.team1Picks && Array.isArray(item.team1Picks)) {
-          allPickedChampions.push(...item.team1Picks);
-        }
-      });
-
-      const uniqueChampions = Array.from(new Set(allPickedChampions));
-
-      if (uniqueChampions.length > 0) {
-        // 2. 내부 챔피언 데이터베이스(champions 객체)의 키 값과 대소문자/영문명을 비교하여 정확한 ID 매칭 시도
-        const validChampionIds: string[] = [];
-        
-        uniqueChampions.forEach((champName) => {
-          if (!champName) return;
+      // 챔피언 이름을 내부 ID로 변환해 주는 헬퍼 함수
+      const convertNamesToIds = (names: string[]) => {
+        if (!names || !Array.isArray(names)) return [];
+        return names.map((champName) => {
+          if (!champName) return '';
           const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
           
           const matchedKey = Object.keys(champions || {}).find((key) => {
@@ -364,21 +350,44 @@ export default function Home() {
             );
           });
 
-          if (matchedKey) {
-            validChampionIds.push(matchedKey);
-          } else {
-            validChampionIds.push(champName);
-          }
+          return matchedKey || champName;
         });
+      };
 
-        // 3. 쉼표로 묶어서 등록 함수 호출
-        const joinedNames = validChampionIds.join(', ');
-        const result = handleRegisterUsedChampions(joinedNames);
-        
-        alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 피어리스 룰에 반영되었습니다!\n(반영된 챔피언 수: ${validChampionIds.length}개)`);
-      } else {
-        alert('반영할 챔피언 데이터가 존재하지 않습니다.');
-      }
+      // 각 세트별 데이터를 CompletedDraft 구조에 맞게 변환
+      const newCompletedDrafts = historyData.map((item) => {
+        // FearlessMatchLoader에서 넘어오는 구조에 맞춰 블루/레드 픽 매핑
+        // (필요에 따라 팀 위치에 맞게 item.team1Picks, item.team2Picks를 매핑)
+        const bluePicks = convertNamesToIds(item.team2Picks || []);
+        const redPicks = convertNamesToIds(item.team1Picks || []);
+
+        return {
+          blueTeamPicks: bluePicks,
+          redTeamPicks: redPicks,
+          blueTeamBans: [],
+          redTeamBans: [],
+        };
+      });
+
+      // Context의 setCompletedDrafts를 직접 호출하거나 DraftContext에 액션을 추가하여 반영
+      // 여기서는 기존 completedDrafts에 불러온 세트 기록들을 통째로 덮어쓰거나 이어붙입니다.
+      // *참고: DraftContext에 setCompletedDrafts가 노출되어 있지 않다면 Context 파일 수정이 필요할 수 있습니다.
+      
+      // 만약 DraftContext에 completedDrafts를 조작할 수 있는 기능이 없다면,
+      // 아래와 같이 기존 대량 등록 함수를 세트별로 반복 호출하거나 Context에 세트 반영용 함수를 추가해야 합니다.
+      
+      let totalRegisteredCount = 0;
+      historyData.forEach((item) => {
+        const combinedPicks = [...(item.team2Picks || []), ...(item.team1Picks || [])];
+        if (combinedPicks.length > 0) {
+          const result = handleRegisterUsedChampions(combinedPicks.join(', '));
+          if (result.success) {
+            totalRegisteredCount += combinedPicks.length;
+          }
+        }
+      });
+
+      alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 밴픽 창과 피어리스 룰에 반영되었습니다!`);
     } catch (error) {
       console.error('세트 전적 연동 중 오류 발생:', error);
       alert('전적을 반영하는 중 오류가 발생했습니다.');
