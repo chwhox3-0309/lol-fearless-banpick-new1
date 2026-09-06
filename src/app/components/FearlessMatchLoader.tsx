@@ -93,7 +93,7 @@ export default function FearlessMatchLoader({ onApplyFearless }: { onApplyFearle
     
     // 부모 컴포넌트로 데이터 전달
     onApplyFearless(uniqueForbidden);
-    alert(`⚡ [라이엇 연동 완료] 총 ${uniqueForbidden.length개의 챔피언이 피어리스 밴픽 목록에 반영되었습니다!`);
+    alert(`⚡ [라이엇 연동 완료] 총 ${uniqueForbidden.length}개의 챔피언이 피어리스 밴픽 목록에 반영되었습니다!`);
   };
 
   const getDisplayName = (champKey: string) => {
