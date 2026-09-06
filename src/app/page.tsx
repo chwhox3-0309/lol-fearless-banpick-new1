@@ -323,12 +323,23 @@ export default function Home() {
     alert(message);
   };
 
-  // 지난 커스텀 경기 결과 기록을 불러와 피어리스 룰(사용 불가 챔피언)에 일괄 적용하는 핸들러
-  const handleApplyFearlessFromHistory = (forbiddenChampionNamesOrIds: string[]) => {
-    // 챔피언 이름이나 ID를 기반으로 대량 등록 로직 수행
-    const joinedNames = forbiddenChampionNamesOrIds.join(', ');
-    const { message } = handleRegisterUsedChampions(joinedNames);
-    alert(`⚡ [피어리스 연동 완료]\n${message}`);
+  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 처리하는 핸들러 추가
+  const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
+    // 모든 세트의 픽된 챔피언들을 모아서 피어리스(사용 불가) 목록에 일괄 등록 처리
+    const allPickedChampions: string[] = [];
+    historyData.forEach((item) => {
+      if (item.team2Picks) allPickedChampions.push(...item.team2Picks);
+      if (item.team1Picks) allPickedChampions.push(...item.team1Picks);
+    });
+
+    const uniqueChampions = Array.from(new Set(allPickedChampions));
+    if (uniqueChampions.length > 0) {
+      const joinedNames = uniqueChampions.join(', ');
+      const { message } = handleRegisterUsedChampions(joinedNames);
+      alert(`⚡ [라이엇 세트별 전적 연동 완료]\n${message}`);
+    } else {
+      alert('연동할 픽 데이터가 없습니다.');
+    }
   };
 
   const handleStartDraft = () => {
@@ -347,7 +358,7 @@ export default function Home() {
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
 
   return (
-    <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative">
+    <div className="w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative[cite: 1]">
       {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
       {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
 
