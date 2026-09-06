@@ -452,7 +452,7 @@ export default function Home() {
       <main className="flex-grow flex flex-col space-y-4">
         {/* 지난 커스텀 경기 결과 기록을 불러와 피어리스 룰에 적용하는 컴포넌트 추가 */}
         <section className="w-full">
-          <FearlessMatchLoader onApplyFearless={handleApplyFearlessFromHistory} />
+          <FearlessMatchLoader onApplySetHistory={handleApplySetHistoryFromRiot} />
         </section>
 
         <section className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 px-4 flex items-center justify-between shadow-lg backdrop-blur-md">
