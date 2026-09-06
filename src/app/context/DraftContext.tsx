@@ -382,27 +382,26 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
-  // 예시: DraftContext.tsx 내부의 handleApplyRiotSetHistory 함수 수정
-const handleApplyRiotSetHistory = (newHistories) => {
-  // 예: 이미 저장된 완료 세트 기록들을 확인 (상태명은 프로젝트에 맞게 조절)
-  const existingHistory = draft.completedDrafts || []; // 혹은 관련 세트 히스토리 상태
+  // 라이엇 세트 기록 대량/누적 반영 함수
+  const handleApplyRiotSetHistory = (newHistories: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => {
+    const existingHistory = completedDrafts || []; // 현재 완료된 밴픽/세트 기록 배열
 
-  // 1. 중복 검사 (Match ID 기준 또는 setNo 기준)
-  for (const newSet of newHistories) {
-    const isDuplicate = existingHistory.some(
-      (item) => item.matchId === newSet.matchId || item.setNo === newSet.setNo
-    );
-    if (isDuplicate) {
-      throw new Error(`이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`);
+    // 1. 중복 검사 (Match ID 또는 세트 번호 기준)
+    for (const newSet of newHistories) {
+      const isDuplicate = existingHistory.some(
+        (item: any) => 
+          (newSet.matchId && item.matchId === newSet.matchId) || 
+          item.setNo === newSet.setNo
+      );
+      if (isDuplicate) {
+        throw new Error(`이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`);
+      }
     }
-  }
 
-  // 2. 중복이 없다면 기존 기록에 누적 병합
-  setDraft((prev) => ({
-    ...prev,
-    completedDrafts: [...prev.completedDrafts, ...newHistories]
-  }));
-};
+    // 2. 중복이 없다면 기존 기록에 안전하게 누적 병합
+    // (프로젝트 내 상태 관리 구조에 맞춰 setCompletedDrafts 혹은 setDraft를 사용하세요)
+    setCompletedDrafts((prev: any[]) => [...prev, ...newHistories]);
+  };
 
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
