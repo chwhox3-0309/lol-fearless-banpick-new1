@@ -137,6 +137,7 @@ interface DraftContextType {
   handleResetAll: () => void;
   handleUndoLastAction: () => void;
   handleRegisterUsedChampions: (championNames: string) => { success: boolean, message: string };
+  handleApplyRiotSetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => { success: boolean; message: string };
   getAllSelectedChampions: string[];
   allChampions: Champion[];
   filteredChampions: Champion[];
@@ -381,6 +382,58 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
+  // 새로 추가된 라이엇 세트 기록 일괄 반영 핸들러 (1번 방식 구현)
+  const handleApplyRiotSetHistory = useCallback((historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]): { success: boolean; message: string } => {
+    try {
+      if (!historyData || historyData.length === 0) {
+        return { success: false, message: '반영할 전적 데이터가 없습니다.' };
+      }
+
+      // 한글 이름이나 영어 이름을 시스템 내부 ID로 변환하기 위한 맵 생성
+      const championMap = new Map<string, string>();
+      allChampions.forEach(c => {
+        championMap.set(c.name.toLowerCase(), c.id);
+        championMap.set(c.id.toLowerCase(), c.id);
+      });
+
+      const newCompletedDrafts: CompletedDraft[] = [];
+
+      for (const item of historyData) {
+        // 블루팀 픽 변환
+        const bluePicksResolved = (item.team2Picks || []).map(name => {
+          if (!name) return '';
+          const cleaned = name.trim().toLowerCase();
+          return championMap.get(cleaned) || name; // 매칭 안되면 원래 이름 유지
+        }).filter(Boolean);
+
+        // 레드팀 픽 변환
+        const redPicksResolved = (item.team1Picks || []).map(name => {
+          if (!name) return '';
+          const cleaned = name.trim().toLowerCase();
+          return championMap.get(cleaned) || name;
+        }).filter(Boolean);
+
+        newCompletedDrafts.push({
+          blueTeamPicks: bluePicksResolved,
+          redTeamPicks: redPicksResolved,
+          blueTeamBans: [],
+          redTeamBans: [],
+        });
+      }
+
+      // 완료된 세트 목록에 통째로 덮어쓰거나 누적 반영
+      setCompletedDrafts(newCompletedDrafts);
+
+      return { 
+        success: true, 
+        message: `⚡ 총 ${newCompletedDrafts.length}개 세트의 전적 정보가 하단 완료된 밴픽 기록 칸에 성공적으로 반영되었습니다!` 
+      };
+    } catch (error) {
+      console.error('라이엇 세트 전적 반영 오류:', error);
+      return { success: false, message: '전적을 반영하는 중 오류가 발생했습니다.' };
+    }
+  }, [allChampions, setCompletedDrafts]);
+
   const filteredChampions = useMemo(() => {
     if (!searchTerm) {
       return allChampions;
@@ -483,6 +536,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
+    handleApplyRiotSetHistory, // 새로 추가된 함수 노출
     getAllSelectedChampions,
     allChampions,
     filteredChampions,
@@ -513,6 +567,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
+    handleApplyRiotSetHistory,
     getAllSelectedChampions,
     allChampions,
     filteredChampions,
