@@ -177,7 +177,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
           {/* 전체 선택 제어 헤더 */}
           <div className="flex justify-between items-center px-1">
             <span className="text-xs text-gray-400">
-              조회된 경기 목록 ({fetchedMatches.keys ? fetchedMatches.length : 0}개) 중 반영할 세트를 선택하세요.
+              조회된 경기 목록 ({fetchedMatches.length}개) 중 반영할 세트를 선택하세요.
             </span>
             <button
               type="button"
