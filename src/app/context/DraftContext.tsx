@@ -369,23 +369,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return { success: false, message: `정확히 10명의 고유한 챔피언을 입력해야 합니다. (현재 ${championIdsToRegister.length}명)` };
     }
 
-    // 진영 매핑에 따라 블루/레드 팀 판별하여 현재 draftState 픽 칸에 반영
-    const blueTeamId = teamSideMapping.team1 === 'blue' ? 'team1' : 'team2';
-    const redTeamId = teamSideMapping.team1 === 'red' ? 'team1' : 'team2';
-
-    setDraftState(prev => ({
-      ...prev,
-      [blueTeamId]: {
-        ...prev[blueTeamId],
-        picks: [...prev[blueTeamId].picks, ...championIdsToRegister.slice(0, 5)],
-      },
-      [redTeamId]: {
-        ...prev[redTeamId],
-        picks: [...prev[redTeamId].picks, ...championIdsToRegister.slice(5, 10)],
-      },
-      currentTurnIndex: Math.max(prev.currentTurnIndex, dynamicBanPickSequence.length),
-    }));
-
+    // 완료된 세트 기록(completedDrafts)에만 정확히 추가하여 상단 연동 경기 기록에 나타나도록 함
     const newFakeDraft: CompletedDraft = {
       blueTeamPicks: championIdsToRegister.slice(0, 5),
       redTeamPicks: championIdsToRegister.slice(5, 10),
@@ -394,45 +378,9 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     setCompletedDrafts(prev => [...prev, newFakeDraft]);
 
-    return { success: true, message: '10명의 챔피언이 성공적으로 등록 및 밴픽 칸에 반영되었습니다.' };
+    return { success: true, message: '10명의 챔피언이 연동 경기 기록에 성공적으로 등록되었습니다.' };
 
-  }, [allChampions, getAllSelectedChampions, setCompletedDrafts, setDraftState, teamSideMapping, dynamicBanPickSequence.length]);
-
-  const filteredChampions = useMemo(() => {
-    if (!searchTerm) {
-      return allChampions;
-    }
-    return allChampions.filter((champion) =>
-      champion.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [allChampions, searchTerm]);
-
-  const currentTurnInfo = dynamicBanPickSequence[currentTurnIndex];
-
-  const handleNextSet = useCallback(() => {
-    if (currentTurnIndex < dynamicBanPickSequence.length) {
-      alert('밴 또는 픽을 모두 진행해야 합니다.');
-      return;
-    }
-
-    const blueTeamId = teamSideMapping.team1 === 'blue' ? 'team1' : 'team2';
-    const redTeamId = teamSideMapping.team1 === 'red' ? 'team1' : 'team2';
-
-    const blueTeamData = draftState[blueTeamId];
-    const redTeamData = draftState[redTeamId];
-
-    setCompletedDrafts((prev) => [
-      ...prev,
-      {
-        blueTeamPicks: blueTeamData.picks,
-        redTeamPicks: redTeamData.picks,
-        blueTeamBans: blueTeamData.bans,
-        redTeamBans: redTeamData.bans,
-      },
-    ]);
-    
-    setDraftState(initialDraftState);
-  }, [draftState, currentTurnIndex, setCompletedDrafts, setDraftState, dynamicBanPickSequence.length, teamSideMapping]);
+  }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
   const handleResetAll = useCallback(() => {
     if (window.confirm('정말 초기화 하시겠습니까?')) {
