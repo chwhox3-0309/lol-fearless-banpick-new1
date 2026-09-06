@@ -11,7 +11,7 @@ interface MatchSetResult {
 }
 
 interface FearlessMatchLoaderProps {
-  onApplyFearless: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
+  onApplySetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
 }
 
 export default function FearlessMatchLoader({ onApplyFearless }: FearlessMatchLoaderProps) {
