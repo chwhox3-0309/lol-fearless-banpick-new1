@@ -106,7 +106,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }
   };
 
-  // 선택된 경기 정보만 필터링하여 대량 등록 형식으로 반영
+  // 선택된 경기 정보만 필터링하여 중복 체크 후 누적 반영
   const handleApplySelectedMatches = () => {
     if (selectedMatchIds.length === 0) {
       setErrorMessage("반영할 세트(게임 정보)를 하나 이상 체크해주세요.");
@@ -116,12 +116,19 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     const targetHistory = fetchedMatches.filter((item) => selectedMatchIds.includes(item.matchId));
     const formattedHistory = targetHistory.map((item) => ({
       setNo: item.setNo,
+      matchId: item.matchId, // Match ID가 비교에 쓰이므로 포함되어 있어야 합니다
       team2Picks: item.bluePicks,
       team1Picks: item.redPicks,
     }));
 
-    setErrorMessage("");
-    onApplySetHistory(formattedHistory);
+    try {
+      setErrorMessage("");
+      // onApplySetHistory가 컨텍스트 함수와 연결되어 에러를 던질 수 있도록 처리
+      onApplySetHistory(formattedHistory);
+    } catch (err: any) {
+      // 컨텍스트에서 중복 등으로 throw한 에러 메시지를 화면에 출력
+      setErrorMessage(err.message || "중복된 경기 정보가 존재하여 추가할 수 없습니다.");
+    }
   };
 
   const getDisplayName = (champKey: string) => {
