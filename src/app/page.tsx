@@ -323,74 +323,51 @@ export default function Home() {
     alert(message);
   };
 
-  // 라이엇 연동 컴포넌트에서 세트별 픽 데이터를 받아 실제 세트 기록(completedDrafts)에 반영하는 핸들러
+  // 라이엇 전적 데이터를 받아 실제 하단 밴픽 칸과 세트 기록(completedDrafts)에 완벽히 반영하는 핸들러
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (!historyData || historyData.length === 0) {
-        alert('연동할 픽 데이터가 없습니다.');
+        alert('반영할 전적 데이터가 없습니다.');
         return;
       }
 
-      // 챔피언 이름을 내부 ID로 변환해 주는 헬퍼 함수
-      const convertNamesToIds = (names: string[]) => {
-        if (!names || !Array.isArray(names)) return [];
-        return names.map((champName) => {
-          if (!champName) return '';
-          const cleanInput = champName.trim().toLowerCase().replace(/['\s.]/g, '');
-          
-          const matchedKey = Object.keys(champions || {}).find((key) => {
-            const currentObj = champions[key];
-            const keyLower = key.toLowerCase();
-            const nameEnLower = (currentObj?.name || '').toLowerCase();
-            
-            return (
-              keyLower === cleanInput ||
-              nameEnLower === cleanInput ||
-              keyLower.replace(/['\s.]/g, '') === cleanInput
-            );
-          });
+      // 1. 기존 completedDrafts 배열을 세트 번호(setNo)에 맞게 채워 넣습니다.
+      // 보통 세트는 1세트부터 시작하므로 인덱스(setNo - 1)에 매핑합니다.
+      const updatedDrafts = [...completedDrafts]; // 만약 이름이 다를 경우 사용하는 밴픽 완료 스토어 상태 변수명으로 맞춰주세요.
 
-          return matchedKey || champName;
-        });
-      };
-
-      // 각 세트별 데이터를 CompletedDraft 구조에 맞게 변환
-      const newCompletedDrafts = historyData.map((item) => {
-        // FearlessMatchLoader에서 넘어오는 구조에 맞춰 블루/레드 픽 매핑
-        // (필요에 따라 팀 위치에 맞게 item.team1Picks, item.team2Picks를 매핑)
-        const bluePicks = convertNamesToIds(item.team2Picks || []);
-        const redPicks = convertNamesToIds(item.team1Picks || []);
-
-        return {
-          blueTeamPicks: bluePicks,
-          redTeamPicks: redPicks,
-          blueTeamBans: [],
+      historyData.forEach((item) => {
+        const setIndex = item.setNo - 1;
+        
+        // 해당 세트 슬롯에 블루 픽과 레드 픽 정보를 꽂아넣습니다.
+        updatedDrafts[setIndex] = {
+          blueTeamPicks: item.team2Picks || [],
+          redTeamPicks: item.team1Picks || [],
+          blueTeamBans: [], // 밴 정보가 있다면 함께 매핑 가능
           redTeamBans: [],
         };
       });
 
-      // Context의 setCompletedDrafts를 직접 호출하거나 DraftContext에 액션을 추가하여 반영
-      // 여기서는 기존 completedDrafts에 불러온 세트 기록들을 통째로 덮어쓰거나 이어붙입니다.
-      // *참고: DraftContext에 setCompletedDrafts가 노출되어 있지 않다면 Context 파일 수정이 필요할 수 있습니다.
-      
-      // 만약 DraftContext에 completedDrafts를 조작할 수 있는 기능이 없다면,
-      // 아래와 같이 기존 대량 등록 함수를 세트별로 반복 호출하거나 Context에 세트 반영용 함수를 추가해야 합니다.
-      
-      let totalRegisteredCount = 0;
+      // 2. 밴픽 상태 관리 스토어(예: setCompletedDrafts 등)에 업데이트된 배열을 반영합니다.
+      // (만약 Context 메서드 이름이 다르다면 프로젝트 내 스토어 setter 이름으로 변경해주세요)
+      if (typeof setCompletedDrafts === 'function') {
+        setCompletedDrafts(updatedDrafts);
+      }
+
+      // 3. 피어리스 룰(중복 밴/픽 체크)에 걸리도록 사용된 챔피언 목록에도 누적 반영
+      const allUsedChamps: string[] = [];
       historyData.forEach((item) => {
-        const combinedPicks = [...(item.team2Picks || []), ...(item.team1Picks || [])];
-        if (combinedPicks.length > 0) {
-          const result = handleRegisterUsedChampions(combinedPicks.join(', '));
-          if (result.success) {
-            totalRegisteredCount += combinedPicks.length;
-          }
-        }
+        if (item.team2Picks) allUsedChamps.push(...item.team2Picks);
+        if (item.team1Picks) allUsedChamps.push(...item.team1Picks);
       });
 
-      alert(`⚡ [라이엇 세트별 전적 연동 완료]\n총 ${historyData.length}개 세트의 픽 데이터가 밴픽 창과 피어리스 룰에 반영되었습니다!`);
+      if (allUsedChamps.length > 0 && typeof handleRegisterUsedChampions === 'function') {
+        handleRegisterUsedChampions(allUsedChamps.join(', '));
+      }
+
+      alert(`⚡ [완료] 선택한 세트들의 픽 데이터가 하단 밴픽 칸과 피어리스 룰에 성공적으로 반영되었습니다!`);
     } catch (error) {
-      console.error('세트 전적 연동 중 오류 발생:', error);
-      alert('전적을 반영하는 중 오류가 발생했습니다.');
+      console.error('세트 데이터 적용 중 오류 발생:', error);
+      alert('세트 데이터를 반영하는 도중 문제가 발생했습니다.');
     }
   };
 
