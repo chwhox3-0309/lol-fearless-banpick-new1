@@ -11,20 +11,20 @@ interface MatchSetResult {
 }
 
 interface FearlessMatchLoaderProps {
-  onApplySetHistory: (historyData: { setNo: number; team2Picks: string[]; team1Picks: string[] }[]) => void;
+  onApplySetHistory: (historyData: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => { success: boolean; message: string };
 }
 
 export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatchLoaderProps) {
-  const { champions } = useDraft();
+  const { champions, completedDrafts } = useDraft();
 
   const [gameName, setGameName] = useState("");
   const [tagLine, setTagLine] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedMatches, setFetchedMatches] = useState<MatchSetResult[]>([]);
   
-  // 기존 일괄 선택 범위 대신 개별 세트 체크박스 상태 관리 (matchId 혹은 setNo 기준)
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   // 라이엇 챔피언 이름을 사이트 시스템 키와 완벽하게 매칭하는 함수
   const mapChampionId = (riotChampName: string) => {
@@ -64,6 +64,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
     setIsLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       const res = await fetch(`/api/riot-matches?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}`);
@@ -81,8 +82,15 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
       setFetchedMatches(mappedMatches);
       
-      // 조회 성공 시 기본적으로 모든 세트가 체크되도록 초기화 (원하는 경우 빈 배열로 두어도 무방)
-      setSelectedMatchIds(mappedMatches.map((m: MatchSetResult) => m.matchId));
+      // 이미 등록되지 않은 경기들만 기본적으로 자동 선택되도록 처리
+      const safeCompleted = Array.isArray(completedDrafts) ? completedDrafts : [];
+      const unregisteredMatchIds = mappedMatches
+        .filter((match: MatchSetResult) => 
+          !safeCompleted.some(item => item.matchId === match.matchId || item.setNo === match.setNo)
+        )
+        .map((m: MatchSetResult) => m.matchId);
+
+      setSelectedMatchIds(unregisteredMatchIds);
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -90,23 +98,34 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }
   };
 
-  // 개별 체크박스 토글 핸들러
-  const handleToggleCheckbox = (matchId: string) => {
+  // 개별 체크박스 토글 핸들러 (이미 등록된 경기는 토글 불가)
+  const handleToggleCheckbox = (matchId: string, isAlreadyRegistered: boolean) => {
+    if (isAlreadyRegistered) return;
     setSelectedMatchIds((prev) =>
       prev.includes(matchId) ? prev.filter((id) => id !== matchId) : [...prev, matchId]
     );
   };
 
-  // 전체 선택 / 해제 토글
+  // 전체 선택 / 해제 토글 (이미 등록된 경기는 제외하고 토글)
   const handleToggleAll = () => {
-    if (selectedMatchIds.length === fetchedMatches.length) {
-      setSelectedMatchIds([]);
+    const safeCompleted = Array.isArray(completedDrafts) ? completedDrafts : [];
+    const availableMatches = fetchedMatches.filter(
+      (match) => !safeCompleted.some(item => item.matchId === match.matchId || item.setNo === match.setNo)
+    );
+
+    const availableIds = availableMatches.map((m) => m.matchId);
+    const isAllSelected = availableIds.every((id) => selectedMatchIds.includes(id));
+
+    if (isAllSelected) {
+      // 현재 선택된 것 중 가용한 ID들만 제거
+      setSelectedMatchIds((prev) => prev.filter((id) => !availableIds.includes(id)));
     } else {
-      setSelectedMatchIds(fetchedMatches.map((m) => m.matchId));
+      // 가용한 모든 ID 추가 (중복 방지)
+      setSelectedMatchIds((prev) => Array.from(new Set([...prev, ...availableIds])));
     }
   };
 
-  // 선택된 경기 정보만 필터링하여 중복 체크 후 누적 반영
+  // 선택된 경기 정보만 필터링하여 누적 반영 및 체크박스 자동 해제
   const handleApplySelectedMatches = () => {
     if (selectedMatchIds.length === 0) {
       setErrorMessage("반영할 세트(게임 정보)를 하나 이상 체크해주세요.");
@@ -116,17 +135,25 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     const targetHistory = fetchedMatches.filter((item) => selectedMatchIds.includes(item.matchId));
     const formattedHistory = targetHistory.map((item) => ({
       setNo: item.setNo,
-      matchId: item.matchId, // Match ID가 비교에 쓰이므로 포함되어 있어야 합니다
+      matchId: item.matchId,
       team2Picks: item.bluePicks,
       team1Picks: item.redPicks,
     }));
 
     try {
       setErrorMessage("");
-      // onApplySetHistory가 컨텍스트 함수와 연결되어 에러를 던질 수 있도록 처리
-      onApplySetHistory(formattedHistory);
+      setSuccessMessage("");
+      
+      const result = onApplySetHistory(formattedHistory);
+
+      if (result && !result.success) {
+        setErrorMessage(result.message);
+      } else {
+        setSuccessMessage(result.message || "성공적으로 누적 반영되었습니다.");
+        // 등록 성공 시 선택된 체크박스 자동 해제
+        setSelectedMatchIds([]);
+      }
     } catch (err: any) {
-      // 컨텍스트에서 중복 등으로 throw한 에러 메시지를 화면에 출력
       setErrorMessage(err.message || "중복된 경기 정보가 존재하여 추가할 수 없습니다.");
     }
   };
@@ -137,6 +164,8 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }
     return champKey;
   };
+
+  const safeCompletedDrafts = Array.isArray(completedDrafts) ? completedDrafts : [];
 
   return (
     <div className="w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col gap-4 text-gray-200 shadow-xl">
@@ -178,10 +207,10 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
       </form>
 
       {errorMessage && <p className="text-xs text-red-400 font-medium">{errorMessage}</p>}
+      {successMessage && <p className="text-xs text-teal-400 font-medium">{successMessage}</p>}
 
       {fetchedMatches.length > 0 && (
         <div className="flex flex-col gap-2.5">
-          {/* 전체 선택 제어 헤더 */}
           <div className="flex justify-between items-center px-1">
             <span className="text-xs text-gray-400">
               조회된 경기 목록 ({fetchedMatches.length}개) 중 반영할 세트를 선택하세요.
@@ -191,34 +220,49 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
               onClick={handleToggleAll}
               className="text-[11px] text-teal-400 hover:underline font-medium"
             >
-              {selectedMatchIds.length === fetchedMatches.length ? "전체 해제" : "전체 선택"}
+              전체 선택/해제
             </button>
           </div>
 
           <div className="flex flex-col gap-2.5 max-h-[240px] overflow-y-auto pr-1">
             {fetchedMatches.map((history) => {
+              // 이미 등록된 경기인지 여부 검사
+              const isAlreadyRegistered = safeCompletedDrafts.some(
+                (item) => item.matchId === history.matchId || item.setNo === history.setNo
+              );
               const isChecked = selectedMatchIds.includes(history.matchId);
+
               return (
                 <div
                   key={history.matchId}
-                  onClick={() => handleToggleCheckbox(history.matchId)}
-                  className={`p-3 rounded-xl border transition-all flex items-start gap-3 cursor-pointer ${
-                    isChecked
-                      ? "bg-teal-950/20 border-teal-500/50 shadow-inner"
-                      : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100"
+                  onClick={() => handleToggleCheckbox(history.matchId, isAlreadyRegistered)}
+                  className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${
+                    isAlreadyRegistered
+                      ? "bg-gray-950/40 border-gray-800 opacity-40 cursor-not-allowed"
+                      : isChecked
+                      ? "bg-teal-950/20 border-teal-500/50 shadow-inner cursor-pointer"
+                      : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100 cursor-pointer"
                   }`}
                 >
                   {/* 체크박스 */}
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => handleToggleCheckbox(history.matchId)}
-                    className="mt-1.5 w-4 h-4 text-teal-600 rounded bg-gray-900 border-gray-700 focus:ring-teal-500 cursor-pointer"
+                    disabled={isAlreadyRegistered}
+                    onChange={() => handleToggleCheckbox(history.matchId, isAlreadyRegistered)}
+                    className="mt-1.5 w-4 h-4 text-teal-600 rounded bg-gray-900 border-gray-700 focus:ring-teal-500 disabled:cursor-not-allowed cursor-pointer"
                   />
 
                   <div className="flex flex-col gap-2 flex-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-teal-300">SET {history.setNo} 연동 경기 기록</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-teal-300">SET {history.setNo} 연동 경기 기록</span>
+                        {isAlreadyRegistered && (
+                          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">
+                            ✓ 이미 등록됨
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[10px] text-gray-500 font-mono">Match ID: {history.matchId}</span>
                     </div>
 
