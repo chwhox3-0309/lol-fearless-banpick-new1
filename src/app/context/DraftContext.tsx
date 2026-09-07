@@ -391,26 +391,69 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   }, [allChampions, getAllSelectedChampions, setCompletedDrafts]);
 
-  // 라이엇 세트 기록 대량/누적 반영 함수 (에러 방어 및 타입 안정성 강화)
+  // 라이엇 세트 기록 대량/누적 반영 함수 (피어리스 중복 픽 검증 강화)
   const handleApplyRiotSetHistory = (newHistories: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => {
     const existingHistory = Array.isArray(completedDrafts) ? completedDrafts : []; 
 
-    // 1. 중복 검사 (Match ID 또는 세트 번호 기준)
+    // 0. 이미 등록된 세트 ID/번호 중복 검사
     for (const newSet of newHistories) {
-      const isDuplicate = existingHistory.some(
+      const isDuplicateSet = existingHistory.some(
         (item: any) => 
           (newSet.matchId && item.matchId === newSet.matchId) || 
           item.setNo === newSet.setNo
       );
-      if (isDuplicate) {
+      if (isDuplicateSet) {
         return {
           success: false,
-          message: `이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있어 추가할 수 없습니다.`
+          message: `이미 등록된 경기 정보(SET ${newSet.setNo} 또는 Match ID)가 포함되어 있습니다.`
         };
       }
     }
 
-    // 2. 전달받은 데이터를 CompletedDraft 구조에 맞게 매핑 후 누적 병합
+    // 1. [피어리스 규칙 검증] 이미 기존 완료된 세트들에서 사용된 모든 챔피언 ID 수집
+    const alreadyUsedChampions = new Set<string>();
+    existingHistory.forEach(draft => {
+      const bluePicks = Array.isArray(draft?.blueTeamPicks) ? draft.blueTeamPicks : [];
+      const redPicks = Array.isArray(draft?.redTeamPicks) ? draft.redTeamPicks : [];
+      bluePicks.forEach(id => alreadyUsedChampions.add(id));
+      redPicks.forEach(id => alreadyUsedChampions.add(id));
+    });
+
+    // 2. 새로 반영하려는 세트들 내부 및 기존 기록과의 챔피언 중복 검사
+    const sessionUsedChampions = new Set<string>();
+
+    for (const newSet of newHistories) {
+      const currentSetPicks = [
+        ...(Array.isArray(newSet.team2Picks) ? newSet.team2Picks : []),
+        ...(Array.isArray(newSet.team1Picks) ? newSet.team1Picks : [])
+      ];
+
+      for (const championId of currentSetPicks) {
+        // 영문 ID나 한글 이름 중 매칭될 수 있으므로, 챔피언 이름으로 변환해서 보여주면 친절합니다.
+        const championObj = allChampions.find(c => c.id === championId);
+        const champDisplayName = championObj ? championObj.name : championId;
+
+        // A. 이미 기존 세트에서 사용된 챔피언인 경우
+        if (alreadyUsedChampions.has(championId)) {
+          return {
+            success: false,
+            message: `[피어리스 위반] '${champDisplayName}' 챔피언은 이미 이전 세트(기존 기록)에서 사용되었습니다.`
+          };
+        }
+
+        // B. 이번에 대량으로 반영하려는 세트들끼리 서로 겹치는 경우
+        if (sessionUsedChampions.has(championId)) {
+          return {
+            success: false,
+            message: `[피어리스 위반] '${champDisplayName}' 챔피언이 선택하려는 다른 세트와 중복됩니다.`
+          };
+        }
+
+        sessionUsedChampions.add(championId);
+      }
+    }
+
+    // 3. 모든 검증을 통과한 경우, CompletedDraft 구조에 맞게 매핑 후 누적 병합
     const formattedNewHistories: CompletedDraft[] = newHistories.map(item => ({
       matchId: item.matchId,
       setNo: item.setNo,
@@ -424,7 +467,7 @@ export const DraftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     return {
       success: true,
-      message: "성공적으로 누적 반영되었습니다."
+      message: "피어리스 규칙 검증 완료! 선택한 세트가 성공적으로 누적 반영되었습니다."
     };
   };
 
