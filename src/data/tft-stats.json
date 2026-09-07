@@ -1,13 +1,13 @@
 {
   "patchVersion": "16.17",
-  "lastUpdated": "2026-09-06T22:58:25.054Z",
+  "lastUpdated": "2026-09-07T00:37:10.255Z",
   "decks": [
     {
       "id": "da_18_executioner",
       "name": "DA_18_Executioner",
       "tier": "S",
       "winRate": 50,
-      "pickRate": 3.5,
+      "pickRate": 3.6,
       "avgPlacement": 2,
       "traits": [
         "DA_18_Executioner"
@@ -188,7 +188,7 @@
       "name": "DA_18_Brawler DA_18_Sprykin DA_FloraFatalis18",
       "tier": "S",
       "winRate": 50,
-      "pickRate": 3.5,
+      "pickRate": 3.6,
       "avgPlacement": 2,
       "traits": [
         "DA_18_Brawler",
@@ -326,163 +326,11 @@
       ]
     },
     {
-      "id": "da_18_rapidfire-da_18_vanguard",
-      "name": "DA_18_Rapidfire DA_18_Vanguard",
-      "tier": "S",
-      "winRate": 0,
-      "pickRate": 3.5,
-      "avgPlacement": 2,
-      "traits": [
-        "DA_18_Rapidfire",
-        "DA_18_Vanguard"
-      ],
-      "units": [
-        {
-          "name": "헤카림",
-          "id": "DA_18_Hecarim",
-          "image": "TFT18_Hecarim_splash_centered_5.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_SpiritVisage",
-              "name": "정령의 형상",
-              "image": "DA_SpiritVisage.png"
-            },
-            {
-              "id": "DA_DragonsClaw",
-              "name": "용의 발톱",
-              "image": "DA_DragonsClaw.png"
-            },
-            {
-              "id": "DA_SteadfastHeart",
-              "name": "굳건한 심장",
-              "image": "DA_SteadfastHeart.png"
-            }
-          ]
-        },
-        {
-          "name": "자야",
-          "id": "DA_18_Xayah",
-          "image": "TFT18_Xayah_splash_centered_8.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "바루스",
-          "id": "DA_18_Varus",
-          "image": "TFT18_Varus_splash_centered_9.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "DA_CrimsonRaptor18",
-          "id": "DA_CrimsonRaptor18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_18_EmblemSlayer",
-              "name": "약탈자 상징",
-              "image": "DA_18_EmblemSlayer.png"
-            },
-            {
-              "id": "DA_Deathblade",
-              "name": "죽음의 검",
-              "image": "DA_Deathblade.png"
-            },
-            {
-              "id": "DA_EdgeOfNight",
-              "name": "밤의 끝자락",
-              "image": "DA_EdgeOfNight.png"
-            }
-          ]
-        },
-        {
-          "name": "다이애나",
-          "id": "DA_18_Diana",
-          "image": "TFT18_Diana_splash_centered_0.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "DA_Sentinel18",
-          "id": "DA_Sentinel18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_BlueBuff",
-              "name": "푸른 파수꾼",
-              "image": "DA_BlueBuff.png"
-            },
-            {
-              "id": "DA_GargoyleStoneplate",
-              "name": "가고일 돌갑옷",
-              "image": "DA_GargoyleStoneplate.png"
-            }
-          ]
-        },
-        {
-          "name": "DA_Brambleback18",
-          "id": "DA_Brambleback18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_Artifact_RapidFireCannon",
-              "name": "고속 연사포",
-              "image": "DA_Artifact_RapidFireCannon.png"
-            },
-            {
-              "id": "DA_Artifact_TitanicHydra",
-              "name": "거대한 히드라",
-              "image": "DA_Artifact_TitanicHydra.png"
-            },
-            {
-              "id": "DA_18_EmblemRapidfire",
-              "name": "속사포 상징",
-              "image": "DA_18_EmblemRapidfire.png"
-            }
-          ]
-        },
-        {
-          "name": "아펠리오스",
-          "id": "DA_18_Aphelios",
-          "image": "TFT18_Aphelios_splash_centered_0.TFT_Set18.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "DA_InfinityEdge",
-              "name": "무한의 대검",
-              "image": "DA_InfinityEdge.png"
-            },
-            {
-              "id": "DA_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "DA_LastWhisper.png"
-            },
-            {
-              "id": "DA_RedBuff",
-              "name": "붉은 덩굴정령",
-              "image": "DA_RedBuff.png"
-            }
-          ]
-        },
-        {
-          "name": "타릭",
-          "id": "DA_Taric18",
-          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
-          "tier": 1,
-          "items": []
-        }
-      ]
-    },
-    {
       "id": "da_18_lunar-da_18_rapidfire-da_18_vanguard",
       "name": "DA_18_Lunar DA_18_Rapidfire DA_18_Vanguard",
       "tier": "S",
       "winRate": 0,
-      "pickRate": 3.5,
+      "pickRate": 3.6,
       "avgPlacement": 2.5,
       "traits": [
         "DA_18_Lunar",
@@ -628,11 +476,150 @@
       ]
     },
     {
+      "id": "da_florafatalis18",
+      "name": "DA_FloraFatalis18",
+      "tier": "S",
+      "winRate": 0,
+      "pickRate": 3.6,
+      "avgPlacement": 2.5,
+      "traits": [
+        "DA_FloraFatalis18"
+      ],
+      "units": [
+        {
+          "name": "요릭",
+          "id": "DA_18_Yorick",
+          "image": "TFT18_Yorick_splash_centered_30.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "바이",
+          "id": "DA_Vi18",
+          "image": "TFT18_Vi_splash_centered_39.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "자이라",
+          "id": "DA_18_Zyra",
+          "image": "TFT18_Zyra_splash_centered_0.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "DA_JeweledGauntlet.png"
+            },
+            {
+              "id": "DA_VoidStaff",
+              "name": "공허의 지팡이",
+              "image": "DA_VoidStaff.png"
+            },
+            {
+              "id": "DA_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "DA_SpearOfShojin.png"
+            }
+          ]
+        },
+        {
+          "name": "쉔",
+          "id": "DA_18_Shen",
+          "image": "TFT18_Shen_splash_centered_16.TFT_Set18.png",
+          "tier": 1,
+          "items": []
+        },
+        {
+          "name": "피들스틱",
+          "id": "DA_Fiddlesticks18",
+          "image": "TFT18_Fiddlesticks_splash_centered_46.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_18_EmblemPrimal",
+              "name": "원시 상징",
+              "image": "DA_18_EmblemPrimal.png"
+            }
+          ]
+        },
+        {
+          "name": "아무무",
+          "id": "DA_Amumu18",
+          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "DA_WarmogsArmor.png"
+            },
+            {
+              "id": "DA_Crownguard",
+              "name": "크라운가드",
+              "image": "DA_Crownguard.png"
+            },
+            {
+              "id": "DA_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "DA_GargoyleStoneplate.png"
+            }
+          ]
+        },
+        {
+          "name": "아리",
+          "id": "DA_18_Ahri",
+          "image": "TFT18_Ahri_splash_centered_27.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_18_EmblemFloraFatalis",
+              "name": "치명적인 꽃 상징",
+              "image": "DA_18_EmblemFloraFatalis.png"
+            },
+            {
+              "id": "DA_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "DA_JeweledGauntlet.png"
+            },
+            {
+              "id": "DA_StrikersFlail",
+              "name": "타격대의 철퇴",
+              "image": "DA_StrikersFlail.png"
+            }
+          ]
+        },
+        {
+          "name": "애쉬",
+          "id": "DA_18_Ashe",
+          "image": "TFT18_Ashe_splash_centered_76.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_RedBuff",
+              "name": "붉은 덩굴정령",
+              "image": "DA_RedBuff.png"
+            },
+            {
+              "id": "DA_SteraksGage",
+              "name": "스테락의 도전",
+              "image": "DA_SteraksGage.png"
+            },
+            {
+              "id": "DA_Deathblade",
+              "name": "죽음의 검",
+              "image": "DA_Deathblade.png"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "da_18_lunar-da_18_vanguard",
       "name": "DA_18_Lunar DA_18_Vanguard",
       "tier": "S",
       "winRate": 33.3,
-      "pickRate": 5.3,
+      "pickRate": 5.5,
       "avgPlacement": 2.67,
       "traits": [
         "DA_18_Lunar",
@@ -780,7 +767,7 @@
       "name": "DA_Juggernaut18",
       "tier": "S",
       "winRate": 0,
-      "pickRate": 3.5,
+      "pickRate": 3.6,
       "avgPlacement": 3,
       "traits": [
         "DA_Juggernaut18"
@@ -953,7 +940,7 @@
       "name": "DA_18_Sprykin",
       "tier": "S",
       "winRate": 0,
-      "pickRate": 3.5,
+      "pickRate": 3.6,
       "avgPlacement": 3,
       "traits": [
         "DA_18_Sprykin"
@@ -1100,12 +1087,300 @@
       ]
     },
     {
+      "id": "da_18_invoker",
+      "name": "DA_18_Invoker",
+      "tier": "A",
+      "winRate": 0,
+      "pickRate": 3.6,
+      "avgPlacement": 3.5,
+      "traits": [
+        "DA_18_Invoker"
+      ],
+      "units": [
+        {
+          "name": "코그모",
+          "id": "DA_KogMaw18_AD",
+          "image": "TFT18_KogMaw_splash_centered_3.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_Component_RecurveBow",
+              "name": "곡궁",
+              "image": "DA_Component_RecurveBow.png"
+            }
+          ]
+        },
+        {
+          "name": "DA_18_Sentry",
+          "id": "DA_18_Sentry",
+          "image": null,
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "세트",
+          "id": "DA_18_Sett",
+          "image": "TFT18_Sett_splash_centered_38.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "DA_WarmogsArmor.png"
+            },
+            {
+              "id": "DA_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "DA_WarmogsArmor.png"
+            },
+            {
+              "id": "DA_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "DA_AdaptiveHelm.png"
+            }
+          ]
+        },
+        {
+          "name": "아리",
+          "id": "DA_18_Ahri",
+          "image": "TFT18_Ahri_splash_centered_27.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "DA_SpearOfShojin.png"
+            },
+            {
+              "id": "DA_StrikersFlail",
+              "name": "타격대의 철퇴",
+              "image": "DA_StrikersFlail.png"
+            },
+            {
+              "id": "DA_RabadonsDeathcap",
+              "name": "라바돈의 죽음모자",
+              "image": "DA_RabadonsDeathcap.png"
+            }
+          ]
+        },
+        {
+          "name": "DA_Krug18",
+          "id": "DA_Krug18",
+          "image": null,
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "모르가나",
+          "id": "DA_18_Morgana",
+          "image": "TFT18_Morgana_splash_centered_26.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_ArchangelsStaff",
+              "name": "대천사의 지팡이",
+              "image": "DA_ArchangelsStaff.png"
+            },
+            {
+              "id": "DA_Morellonomicon",
+              "name": "모렐로노미콘",
+              "image": "DA_Morellonomicon.png"
+            },
+            {
+              "id": "DA_Bloodthirster",
+              "name": "피바라기",
+              "image": "DA_Bloodthirster.png"
+            }
+          ]
+        },
+        {
+          "name": "카르마",
+          "id": "DA_Karma18",
+          "image": "TFT18_Karma_splash_centered_70.TFT_Set18.png",
+          "tier": 1,
+          "items": []
+        },
+        {
+          "name": "DA_Sentinel18",
+          "id": "DA_Sentinel18",
+          "image": null,
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "DA_AdaptiveHelm.png"
+            },
+            {
+              "id": "DA_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "DA_AdaptiveHelm.png"
+            }
+          ]
+        },
+        {
+          "name": "타릭",
+          "id": "DA_Taric18",
+          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
+          "tier": 1,
+          "items": []
+        }
+      ]
+    },
+    {
+      "id": "da_18_executioner-da_florafatalis18",
+      "name": "DA_18_Executioner DA_FloraFatalis18",
+      "tier": "A",
+      "winRate": 33.3,
+      "pickRate": 5.5,
+      "avgPlacement": 3.67,
+      "traits": [
+        "DA_18_Executioner",
+        "DA_FloraFatalis18"
+      ],
+      "units": [
+        {
+          "name": "다이애나",
+          "id": "DA_18_Diana",
+          "image": "TFT18_Diana_splash_centered_0.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "아이번",
+          "id": "DA_18_Ivern",
+          "image": "TFT18_Ivern_splash_centered_0.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "소라카",
+          "id": "DA_18_Soraka",
+          "image": "TFT18_Soraka_splash_centered_53.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_Artifact_LudensTempest",
+              "name": "루덴의 폭풍",
+              "image": "DA_Artifact_LudensTempest.png"
+            },
+            {
+              "id": "DA_BlueBuff",
+              "name": "푸른 파수꾼",
+              "image": "DA_BlueBuff.png"
+            },
+            {
+              "id": "DA_StrikersFlail",
+              "name": "타격대의 철퇴",
+              "image": "DA_StrikersFlail.png"
+            }
+          ]
+        },
+        {
+          "name": "아무무",
+          "id": "DA_Amumu18",
+          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "타릭",
+          "id": "DA_Taric18",
+          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "DA_WarmogsArmor.png"
+            }
+          ]
+        },
+        {
+          "name": "알룬",
+          "id": "DA_18_Alune",
+          "image": "TFT18_Alune_splash_centered_15.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "DA_SpearOfShojin.png"
+            },
+            {
+              "id": "DA_RedBuff",
+              "name": "붉은 덩굴정령",
+              "image": "DA_RedBuff.png"
+            },
+            {
+              "id": "DA_VoidStaff",
+              "name": "공허의 지팡이",
+              "image": "DA_VoidStaff.png"
+            }
+          ]
+        },
+        {
+          "name": "마오카이",
+          "id": "DA_18_Maokai",
+          "image": "TFT18_Maokai_splash_centered_0.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "DA_GargoyleStoneplate.png"
+            },
+            {
+              "id": "DA_Crownguard",
+              "name": "크라운가드",
+              "image": "DA_Crownguard.png"
+            },
+            {
+              "id": "DA_IonicSpark",
+              "name": "이온 충격기",
+              "image": "DA_IonicSpark.png"
+            }
+          ]
+        },
+        {
+          "name": "케넨",
+          "id": "DA_18_Kennen",
+          "image": "TFT18_Kennen_splash_centered_8.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_HextechGunblade",
+              "name": "마법공학 총검",
+              "image": "DA_HextechGunblade.png"
+            },
+            {
+              "id": "DA_18_EmblemFloraFatalis",
+              "name": "치명적인 꽃 상징",
+              "image": "DA_18_EmblemFloraFatalis.png"
+            },
+            {
+              "id": "DA_HextechGunblade",
+              "name": "마법공학 총검",
+              "image": "DA_HextechGunblade.png"
+            }
+          ]
+        },
+        {
+          "name": "카직스",
+          "id": "DA_18_KhaZix",
+          "image": "TFT18_KhaZix_splash_centered_0.TFT_Set18.png",
+          "tier": 1,
+          "items": []
+        }
+      ]
+    },
+    {
       "id": "da_18_adaptor",
       "name": "DA_18_Adaptor",
       "tier": "A",
-      "winRate": 14.3,
-      "pickRate": 12.3,
-      "avgPlacement": 3.29,
+      "winRate": 25,
+      "pickRate": 7.3,
+      "avgPlacement": 3.75,
       "traits": [
         "DA_18_Adaptor"
       ],
@@ -1236,309 +1511,6 @@
           "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
           "tier": 1,
           "items": []
-        }
-      ]
-    },
-    {
-      "id": "da_18_elderwood",
-      "name": "DA_18_Elderwood",
-      "tier": "A",
-      "winRate": 0,
-      "pickRate": 3.5,
-      "avgPlacement": 4,
-      "traits": [
-        "DA_18_Elderwood"
-      ],
-      "units": [
-        {
-          "name": "알리스타",
-          "id": "DA_18_Alistar",
-          "image": "TFT18_Alistar_splash_centered_40.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "DA_18_ElderDragon",
-          "id": "DA_18_ElderDragon",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_Deathblade",
-              "name": "죽음의 검",
-              "image": "DA_Deathblade.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            }
-          ]
-        },
-        {
-          "name": "DA_Sentinel18",
-          "id": "DA_Sentinel18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_WarmogsArmor",
-              "name": "워모그의 갑옷",
-              "image": "DA_WarmogsArmor.png"
-            },
-            {
-              "id": "DA_AdaptiveHelm",
-              "name": "적응형 투구",
-              "image": "DA_AdaptiveHelm.png"
-            }
-          ]
-        },
-        {
-          "name": "이즈리얼",
-          "id": "DA_18_Ezreal",
-          "image": "TFT18_Ezreal_splash_centered_1.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_KrakensFury",
-              "name": "크라켄의 분노",
-              "image": "DA_KrakensFury.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            },
-            {
-              "id": "DA_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "DA_SpearOfShojin.png"
-            }
-          ]
-        },
-        {
-          "name": "아무무",
-          "id": "DA_Amumu18",
-          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
-          "tier": 1,
-          "items": []
-        },
-        {
-          "name": "케넨",
-          "id": "DA_18_Kennen",
-          "image": "TFT18_Kennen_splash_centered_8.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_Quicksilver",
-              "name": "수은",
-              "image": "DA_Quicksilver.png"
-            },
-            {
-              "id": "DA_SteadfastHeart",
-              "name": "굳건한 심장",
-              "image": "DA_SteadfastHeart.png"
-            }
-          ]
-        },
-        {
-          "name": "헤카림",
-          "id": "DA_18_Hecarim",
-          "image": "TFT18_Hecarim_splash_centered_5.TFT_Set18.png",
-          "tier": 1,
-          "items": []
-        },
-        {
-          "name": "럭스",
-          "id": "DA_Lux18_Base",
-          "image": "TFT18_Lux_splash_centered_7.TFT_Set18.png",
-          "tier": 1,
-          "items": []
-        }
-      ]
-    },
-    {
-      "id": "da_18_hunter-da_juggernaut18",
-      "name": "DA_18_Hunter DA_Juggernaut18",
-      "tier": "A",
-      "winRate": 33.3,
-      "pickRate": 5.3,
-      "avgPlacement": 4,
-      "traits": [
-        "DA_18_Hunter",
-        "DA_Juggernaut18"
-      ],
-      "units": [
-        {
-          "name": "DA_Scuttlecrab18",
-          "id": "DA_Scuttlecrab18",
-          "image": null,
-          "tier": 3,
-          "items": [
-            {
-              "id": "DA_ProtectorsVow",
-              "name": "수호자의 맹세",
-              "image": "DA_ProtectorsVow.png"
-            },
-            {
-              "id": "DA_Crownguard",
-              "name": "크라운가드",
-              "image": "DA_Crownguard.png"
-            },
-            {
-              "id": "DA_SpiritVisage_Radiant",
-              "name": "찬란한 정령의 형상",
-              "image": "DA_SpiritVisage_Radiant.png"
-            }
-          ]
-        },
-        {
-          "name": "DA_Cinderling18",
-          "id": "DA_Cinderling18",
-          "image": null,
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "케이틀린",
-          "id": "DA_18_Caitlyn",
-          "image": "TFT18_Caitlyn_splash_centered_30.TFT_Set18.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "DA_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "DA_HextechGunblade.png"
-            },
-            {
-              "id": "DA_KrakensFury",
-              "name": "크라켄의 분노",
-              "image": "DA_KrakensFury.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            }
-          ]
-        },
-        {
-          "name": "바이",
-          "id": "DA_Vi18",
-          "image": "TFT18_Vi_splash_centered_39.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "DA_Sentinel18",
-          "id": "DA_Sentinel18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_RedBuff",
-              "name": "붉은 덩굴정령",
-              "image": "DA_RedBuff.png"
-            },
-            {
-              "id": "DA_Bloodthirster",
-              "name": "피바라기",
-              "image": "DA_Bloodthirster.png"
-            }
-          ]
-        },
-        {
-          "name": "라칸",
-          "id": "DA_18_Rakan",
-          "image": "TFT18_Rakan_splash_centered_9.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "아무무",
-          "id": "DA_Amumu18",
-          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_GiantSlayer",
-              "name": "거인 학살자",
-              "image": "DA_GiantSlayer.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            }
-          ]
-        },
-        {
-          "name": "타릭",
-          "id": "DA_Taric18",
-          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "애쉬",
-          "id": "DA_18_Ashe",
-          "image": "TFT18_Ashe_splash_centered_76.TFT_Set18.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "DA_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "DA_SpearOfShojin.png"
-            },
-            {
-              "id": "DA_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "DA_LastWhisper.png"
-            },
-            {
-              "id": "DA_Morellonomicon",
-              "name": "모렐로노미콘",
-              "image": "DA_Morellonomicon.png"
-            }
-          ]
-        },
-        {
-          "name": "시비르",
-          "id": "DA_18_Sivir",
-          "image": "TFT18_Sivir_splash_centered_61.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_KrakensFury",
-              "name": "크라켄의 분노",
-              "image": "DA_KrakensFury.png"
-            },
-            {
-              "id": "DA_Component_TearOfTheGoddess",
-              "name": "여신의 눈물",
-              "image": "DA_Component_TearOfTheGoddess.png"
-            },
-            {
-              "id": "DA_HandOfJustice",
-              "name": "정의의 손길",
-              "image": "DA_HandOfJustice.png"
-            }
-          ]
         }
       ]
     }
@@ -1975,323 +1947,6 @@
       "time": "2026. 9. 6. AM 9:35:19"
     },
     {
-      "matchId": "KR_8371975724",
-      "units": [
-        {
-          "name": "DA_Sentinel18",
-          "id": "DA_Sentinel18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_Evenshroud",
-              "name": "저녁갑주",
-              "image": "DA_Evenshroud.png"
-            }
-          ]
-        },
-        {
-          "name": "아무무",
-          "id": "DA_Amumu18",
-          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "애쉬",
-          "id": "DA_18_Ashe",
-          "image": "TFT18_Ashe_splash_centered_76.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_RedBuff",
-              "name": "붉은 덩굴정령",
-              "image": "DA_RedBuff.png"
-            },
-            {
-              "id": "DA_Deathblade",
-              "name": "죽음의 검",
-              "image": "DA_Deathblade.png"
-            },
-            {
-              "id": "DA_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "DA_SpearOfShojin.png"
-            }
-          ]
-        },
-        {
-          "name": "시비르",
-          "id": "DA_18_Sivir",
-          "image": "TFT18_Sivir_splash_centered_61.TFT_Set18.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "DA_BlueBuff",
-              "name": "푸른 파수꾼",
-              "image": "DA_BlueBuff.png"
-            }
-          ]
-        },
-        {
-          "name": "바이",
-          "id": "DA_Vi18",
-          "image": "TFT18_Vi_splash_centered_39.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "럭스",
-          "id": "DA_Lux18_Base",
-          "image": "TFT18_Lux_splash_centered_7.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_JeweledGauntlet",
-              "name": "보석 건틀릿",
-              "image": "DA_JeweledGauntlet.png"
-            },
-            {
-              "id": "DA_RabadonsDeathcap",
-              "name": "라바돈의 죽음모자",
-              "image": "DA_RabadonsDeathcap.png"
-            }
-          ]
-        },
-        {
-          "name": "타릭",
-          "id": "DA_Taric18",
-          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_18_EmblemJuggernaut",
-              "name": "전쟁기계 상징",
-              "image": "DA_18_EmblemJuggernaut.png"
-            },
-            {
-              "id": "DA_WarmogsArmor",
-              "name": "워모그의 갑옷",
-              "image": "DA_WarmogsArmor.png"
-            },
-            {
-              "id": "DA_GargoyleStoneplate",
-              "name": "가고일 돌갑옷",
-              "image": "DA_GargoyleStoneplate.png"
-            }
-          ]
-        },
-        {
-          "name": "DA_18_ElderDragon",
-          "id": "DA_18_ElderDragon",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_Deathblade",
-              "name": "죽음의 검",
-              "image": "DA_Deathblade.png"
-            },
-            {
-              "id": "DA_GiantSlayer",
-              "name": "거인 학살자",
-              "image": "DA_GiantSlayer.png"
-            },
-            {
-              "id": "DA_StrikersFlail",
-              "name": "타격대의 철퇴",
-              "image": "DA_StrikersFlail.png"
-            }
-          ]
-        }
-      ],
-      "traits": [],
-      "augments": [],
-      "time": "2026. 9. 6. PM 10:06:23"
-    },
-    {
-      "matchId": "KR_8370436954",
-      "units": [
-        {
-          "name": "DA_Scuttlecrab18",
-          "id": "DA_Scuttlecrab18",
-          "image": null,
-          "tier": 3,
-          "items": [
-            {
-              "id": "DA_ProtectorsVow",
-              "name": "수호자의 맹세",
-              "image": "DA_ProtectorsVow.png"
-            },
-            {
-              "id": "DA_Crownguard",
-              "name": "크라운가드",
-              "image": "DA_Crownguard.png"
-            },
-            {
-              "id": "DA_SpiritVisage_Radiant",
-              "name": "찬란한 정령의 형상",
-              "image": "DA_SpiritVisage_Radiant.png"
-            }
-          ]
-        },
-        {
-          "name": "DA_Cinderling18",
-          "id": "DA_Cinderling18",
-          "image": null,
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "케이틀린",
-          "id": "DA_18_Caitlyn",
-          "image": "TFT18_Caitlyn_splash_centered_30.TFT_Set18.png",
-          "tier": 3,
-          "items": [
-            {
-              "id": "DA_HextechGunblade",
-              "name": "마법공학 총검",
-              "image": "DA_HextechGunblade.png"
-            },
-            {
-              "id": "DA_KrakensFury",
-              "name": "크라켄의 분노",
-              "image": "DA_KrakensFury.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            }
-          ]
-        },
-        {
-          "name": "바이",
-          "id": "DA_Vi18",
-          "image": "TFT18_Vi_splash_centered_39.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "DA_Sentinel18",
-          "id": "DA_Sentinel18",
-          "image": null,
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_RedBuff",
-              "name": "붉은 덩굴정령",
-              "image": "DA_RedBuff.png"
-            },
-            {
-              "id": "DA_Bloodthirster",
-              "name": "피바라기",
-              "image": "DA_Bloodthirster.png"
-            }
-          ]
-        },
-        {
-          "name": "라칸",
-          "id": "DA_18_Rakan",
-          "image": "TFT18_Rakan_splash_centered_9.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "아무무",
-          "id": "DA_Amumu18",
-          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_ThiefsGloves",
-              "name": "도적의 장갑",
-              "image": "DA_ThiefsGloves.png"
-            },
-            {
-              "id": "DA_GiantSlayer",
-              "name": "거인 학살자",
-              "image": "DA_GiantSlayer.png"
-            },
-            {
-              "id": "DA_GuinsoosRageblade",
-              "name": "구인수의 격노검",
-              "image": "DA_GuinsoosRageblade.png"
-            }
-          ]
-        },
-        {
-          "name": "타릭",
-          "id": "DA_Taric18",
-          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
-          "tier": 2,
-          "items": []
-        },
-        {
-          "name": "애쉬",
-          "id": "DA_18_Ashe",
-          "image": "TFT18_Ashe_splash_centered_76.TFT_Set18.png",
-          "tier": 1,
-          "items": [
-            {
-              "id": "DA_SpearOfShojin",
-              "name": "쇼진의 창",
-              "image": "DA_SpearOfShojin.png"
-            },
-            {
-              "id": "DA_LastWhisper",
-              "name": "최후의 속삭임",
-              "image": "DA_LastWhisper.png"
-            },
-            {
-              "id": "DA_Morellonomicon",
-              "name": "모렐로노미콘",
-              "image": "DA_Morellonomicon.png"
-            }
-          ]
-        },
-        {
-          "name": "시비르",
-          "id": "DA_18_Sivir",
-          "image": "TFT18_Sivir_splash_centered_61.TFT_Set18.png",
-          "tier": 2,
-          "items": [
-            {
-              "id": "DA_KrakensFury",
-              "name": "크라켄의 분노",
-              "image": "DA_KrakensFury.png"
-            },
-            {
-              "id": "DA_Component_TearOfTheGoddess",
-              "name": "여신의 눈물",
-              "image": "DA_Component_TearOfTheGoddess.png"
-            },
-            {
-              "id": "DA_HandOfJustice",
-              "name": "정의의 손길",
-              "image": "DA_HandOfJustice.png"
-            }
-          ]
-        }
-      ],
-      "traits": [
-        "DA_18_Hunter",
-        "DA_Juggernaut18"
-      ],
-      "augments": [],
-      "time": "2026. 9. 5. PM 10:34:46"
-    },
-    {
       "matchId": "KR_8371829079",
       "units": [
         {
@@ -2599,6 +2254,146 @@
       ],
       "augments": [],
       "time": "2026. 9. 6. PM 2:48:23"
+    },
+    {
+      "matchId": "KR_8371975724",
+      "units": [
+        {
+          "name": "DA_Sentinel18",
+          "id": "DA_Sentinel18",
+          "image": null,
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_Evenshroud",
+              "name": "저녁갑주",
+              "image": "DA_Evenshroud.png"
+            }
+          ]
+        },
+        {
+          "name": "아무무",
+          "id": "DA_Amumu18",
+          "image": "TFT18_Amumu_splash_centered_17.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "애쉬",
+          "id": "DA_18_Ashe",
+          "image": "TFT18_Ashe_splash_centered_76.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_RedBuff",
+              "name": "붉은 덩굴정령",
+              "image": "DA_RedBuff.png"
+            },
+            {
+              "id": "DA_Deathblade",
+              "name": "죽음의 검",
+              "image": "DA_Deathblade.png"
+            },
+            {
+              "id": "DA_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "DA_SpearOfShojin.png"
+            }
+          ]
+        },
+        {
+          "name": "시비르",
+          "id": "DA_18_Sivir",
+          "image": "TFT18_Sivir_splash_centered_61.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_BlueBuff",
+              "name": "푸른 파수꾼",
+              "image": "DA_BlueBuff.png"
+            }
+          ]
+        },
+        {
+          "name": "바이",
+          "id": "DA_Vi18",
+          "image": "TFT18_Vi_splash_centered_39.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "럭스",
+          "id": "DA_Lux18_Base",
+          "image": "TFT18_Lux_splash_centered_7.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_ThiefsGloves",
+              "name": "도적의 장갑",
+              "image": "DA_ThiefsGloves.png"
+            },
+            {
+              "id": "DA_JeweledGauntlet",
+              "name": "보석 건틀릿",
+              "image": "DA_JeweledGauntlet.png"
+            },
+            {
+              "id": "DA_RabadonsDeathcap",
+              "name": "라바돈의 죽음모자",
+              "image": "DA_RabadonsDeathcap.png"
+            }
+          ]
+        },
+        {
+          "name": "타릭",
+          "id": "DA_Taric18",
+          "image": "TFT18_Taric_splash_centered_1.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_18_EmblemJuggernaut",
+              "name": "전쟁기계 상징",
+              "image": "DA_18_EmblemJuggernaut.png"
+            },
+            {
+              "id": "DA_WarmogsArmor",
+              "name": "워모그의 갑옷",
+              "image": "DA_WarmogsArmor.png"
+            },
+            {
+              "id": "DA_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "DA_GargoyleStoneplate.png"
+            }
+          ]
+        },
+        {
+          "name": "DA_18_ElderDragon",
+          "id": "DA_18_ElderDragon",
+          "image": null,
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_Deathblade",
+              "name": "죽음의 검",
+              "image": "DA_Deathblade.png"
+            },
+            {
+              "id": "DA_GiantSlayer",
+              "name": "거인 학살자",
+              "image": "DA_GiantSlayer.png"
+            },
+            {
+              "id": "DA_StrikersFlail",
+              "name": "타격대의 철퇴",
+              "image": "DA_StrikersFlail.png"
+            }
+          ]
+        }
+      ],
+      "traits": [],
+      "augments": [],
+      "time": "2026. 9. 6. PM 10:06:23"
     },
     {
       "matchId": "KR_8371556393",
@@ -2997,6 +2792,145 @@
       "traits": [],
       "augments": [],
       "time": "2026. 9. 6. PM 5:46:08"
+    },
+    {
+      "matchId": "KR_8370675724",
+      "units": [
+        {
+          "name": "DA_Cinderling18",
+          "id": "DA_Cinderling18",
+          "image": null,
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "DA_Krug18",
+          "id": "DA_Krug18",
+          "image": null,
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "시비르",
+          "id": "DA_18_Sivir",
+          "image": "TFT18_Sivir_splash_centered_61.TFT_Set18.png",
+          "tier": 3,
+          "items": [
+            {
+              "id": "DA_SpearOfShojin",
+              "name": "쇼진의 창",
+              "image": "DA_SpearOfShojin.png"
+            },
+            {
+              "id": "DA_InfinityEdge",
+              "name": "무한의 대검",
+              "image": "DA_InfinityEdge.png"
+            },
+            {
+              "id": "DA_RedBuff",
+              "name": "붉은 덩굴정령",
+              "image": "DA_RedBuff.png"
+            }
+          ]
+        },
+        {
+          "name": "DA_Sentinel18",
+          "id": "DA_Sentinel18",
+          "image": null,
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_ProtectorsVow",
+              "name": "수호자의 맹세",
+              "image": "DA_ProtectorsVow.png"
+            },
+            {
+              "id": "DA_AdaptiveHelm",
+              "name": "적응형 투구",
+              "image": "DA_AdaptiveHelm.png"
+            },
+            {
+              "id": "DA_GargoyleStoneplate",
+              "name": "가고일 돌갑옷",
+              "image": "DA_GargoyleStoneplate.png"
+            }
+          ]
+        },
+        {
+          "name": "코그모",
+          "id": "DA_KogMaw18_AD",
+          "image": "TFT18_KogMaw_splash_centered_3.TFT_Set18.png",
+          "tier": 2,
+          "items": []
+        },
+        {
+          "name": "니달리",
+          "id": "DA_Nidalee18_AP",
+          "image": "TFT18_Nidalee_splash_centered_0.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_HandOfJustice",
+              "name": "정의의 손길",
+              "image": "DA_HandOfJustice.png"
+            },
+            {
+              "id": "DA_InfinityEdge",
+              "name": "무한의 대검",
+              "image": "DA_InfinityEdge.png"
+            },
+            {
+              "id": "DA_NashorsTooth",
+              "name": "내셔의 이빨",
+              "image": "DA_NashorsTooth.png"
+            }
+          ]
+        },
+        {
+          "name": "말파이트",
+          "id": "DA_18_Malphite",
+          "image": "TFT18_Malphite_splash_centered_27.TFT_Set18.png",
+          "tier": 2,
+          "items": [
+            {
+              "id": "DA_Crownguard",
+              "name": "크라운가드",
+              "image": "DA_Crownguard.png"
+            },
+            {
+              "id": "DA_Crownguard",
+              "name": "크라운가드",
+              "image": "DA_Crownguard.png"
+            },
+            {
+              "id": "DA_SteadfastHeart",
+              "name": "굳건한 심장",
+              "image": "DA_SteadfastHeart.png"
+            }
+          ]
+        },
+        {
+          "name": "렉사이",
+          "id": "DA_18_RekSai",
+          "image": "TFT18_RekSai_splash_centered_17.TFT_Set18.png",
+          "tier": 1,
+          "items": [
+            {
+              "id": "DA_SpiritVisage",
+              "name": "정령의 형상",
+              "image": "DA_SpiritVisage.png"
+            },
+            {
+              "id": "DA_Evenshroud",
+              "name": "저녁갑주",
+              "image": "DA_Evenshroud.png"
+            }
+          ]
+        }
+      ],
+      "traits": [],
+      "augments": [],
+      "time": "2026. 9. 6. AM 5:09:04"
     }
   ]
 }
