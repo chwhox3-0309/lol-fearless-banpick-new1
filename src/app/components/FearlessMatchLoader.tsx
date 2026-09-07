@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDraft } from "../context/DraftContext";
 
 interface MatchSetResult {
@@ -25,6 +25,20 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // 💡 스크롤 감지 이벤트 추가 (두 번째 스크린샷 형태의 리모컨 바 전환 효과)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 120) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
@@ -162,43 +176,53 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const safeCompletedDrafts = Array.isArray(completedDrafts) ? completedDrafts : [];
 
   return (
-    <div className="w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col gap-4 text-gray-200 shadow-xl">
-      <div className="flex flex-col gap-1">
-        <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-full w-fit">
-          Riot 계정 연동 피어리스 시스템
-        </span>
-        <h3 className="text-sm font-bold text-gray-100 mt-1">
-          실제 클라이언트 게임 전적 자동 불러오기
-        </h3>
-        <p className="text-xs text-gray-400">
-          라이엇 계정의 최근 경기 기록을 가져와 원하는 세트만 체크하여 픽 구간에 누적 반영합니다.
-        </p>
-      </div>
+    <div className="w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col gap-4 text-gray-200 shadow-xl relative">
+      
+      {/* 💡 스크롤 시 컴팩트한 '플로팅 리모컨 바' 형태로 변신하는 상단 컨트롤 영역 */}
+      <div 
+        className={`transition-all duration-300 z-30 flex flex-col gap-4 ${
+          isScrolled 
+            ? "sticky top-4 bg-gray-900/95 backdrop-blur-md p-3.5 rounded-xl border border-teal-500/30 shadow-2xl" 
+            : ""
+        }`}
+      >
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-full w-fit">
+            Riot 계정 연동 피어리스 시스템
+          </span>
+          <h3 className="text-sm font-bold text-gray-100 mt-1">
+            실제 클라이언트 게임 전적 자동 불러오기
+          </h3>
+          <p className="text-xs text-gray-400">
+            라이엇 계정의 최근 경기 기록을 가져와 원하는 세트만 체크하여 픽 구간에 누적 반영합니다.
+          </p>
+        </div>
 
-      <form onSubmit={handleFetchRiotMatches} className="flex flex-col sm:flex-row gap-2 items-center bg-gray-950 p-3 rounded-xl border border-gray-800">
-        <input
-          type="text"
-          placeholder="소환사명 (예: 전 설)"
-          value={gameName}
-          onChange={(e) => setGameName(e.target.value)}
-          className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-teal-500"
-        />
-        <span className="text-gray-500 hidden sm:inline">#</span>
-        <input
-          type="text"
-          placeholder="태그 (예: kr1)"
-          value={tagLine}
-          onChange={(e) => setTagLine(e.target.value)}
-          className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full sm:w-28 focus:outline-none focus:border-teal-500"
-        />
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50 cursor-pointer"
-        >
-          {isLoading ? "조회 중..." : "전적 조회"}
-        </button>
-      </form>
+        <form onSubmit={handleFetchRiotMatches} className="flex flex-col sm:flex-row gap-2 items-center bg-gray-950 p-3 rounded-xl border border-gray-800">
+          <input
+            type="text"
+            placeholder="소환사명 (예: 전 설)"
+            value={gameName}
+            onChange={(e) => setGameName(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-teal-500"
+          />
+          <span className="text-gray-500 hidden sm:inline">#</span>
+          <input
+            type="text"
+            placeholder="태그 (예: kr1)"
+            value={tagLine}
+            onChange={(e) => setTagLine(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full sm:w-28 focus:outline-none focus:border-teal-500"
+          />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+          >
+            {isLoading ? "조회 중..." : "전적 조회"}
+          </button>
+        </form>
+      </div>
 
       {errorMessage && (
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
@@ -248,7 +272,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
                       : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100 cursor-pointer"
                   }`}
                 >
-                  {/* 💡 체크박스 영역 클릭 시 이벤트 중복 발생 방지 및 정상 작동 처리 */}
                   <div className="mt-1.5 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
