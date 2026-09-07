@@ -200,7 +200,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
         </button>
       </form>
 
-      {/* 🔥 시각적으로 눈에 띄게 개선된 성공 / 에러 알림 박스 */}
       {errorMessage && (
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
           <span className="text-base">⚠️</span>
@@ -241,7 +240,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
                 <div
                   key={history.matchId}
                   onClick={() => handleToggleCheckbox(history.matchId, isAlreadyRegistered)}
-                  className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${
+                  className={`p-3 rounded-xl border transition-all flex items-start gap-3 select-none ${
                     isAlreadyRegistered
                       ? "bg-gray-950/40 border-gray-800 opacity-40 cursor-not-allowed"
                       : isChecked
@@ -249,13 +248,16 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
                       : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100 cursor-pointer"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    disabled={isAlreadyRegistered}
-                    onChange={() => handleToggleCheckbox(history.matchId, isAlreadyRegistered)}
-                    className="mt-1.5 w-4 h-4 text-teal-600 rounded bg-gray-900 border-gray-700 focus:ring-teal-500 disabled:cursor-not-allowed cursor-pointer"
-                  />
+                  {/* 💡 체크박스 영역 클릭 시 이벤트 중복 발생 방지 및 정상 작동 처리 */}
+                  <div className="mt-1.5 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      disabled={isAlreadyRegistered}
+                      onChange={() => handleToggleCheckbox(history.matchId, isAlreadyRegistered)}
+                      className="w-4 h-4 text-teal-600 rounded bg-gray-900 border-gray-700 focus:ring-teal-500 disabled:cursor-not-allowed cursor-pointer"
+                    />
+                  </div>
 
                   <div className="flex flex-col gap-2 flex-1">
                     <div className="flex justify-between items-center">
