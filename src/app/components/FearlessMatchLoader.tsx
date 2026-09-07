@@ -26,7 +26,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // 라이엇 챔피언 이름을 사이트 시스템 키와 완벽하게 매칭하는 함수
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
     if (!champions || Object.keys(champions).length === 0) return riotChampName;
@@ -59,6 +58,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     e.preventDefault();
     if (!gameName || !tagLine) {
       setErrorMessage("소환사 이름과 태그를 모두 입력해주세요.");
+      setSuccessMessage("");
       return;
     }
 
@@ -82,7 +82,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
       setFetchedMatches(mappedMatches);
       
-      // 이미 등록되지 않은 경기들만 기본적으로 자동 선택되도록 처리
       const safeCompleted = Array.isArray(completedDrafts) ? completedDrafts : [];
       const unregisteredMatchIds = mappedMatches
         .filter((match: MatchSetResult) => 
@@ -98,7 +97,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     }
   };
 
-  // 개별 체크박스 토글 핸들러 (이미 등록된 경기는 토글 불가)
   const handleToggleCheckbox = (matchId: string, isAlreadyRegistered: boolean) => {
     if (isAlreadyRegistered) return;
     setSelectedMatchIds((prev) =>
@@ -106,7 +104,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     );
   };
 
-  // 전체 선택 / 해제 토글 (이미 등록된 경기는 제외하고 토글)
   const handleToggleAll = () => {
     const safeCompleted = Array.isArray(completedDrafts) ? completedDrafts : [];
     const availableMatches = fetchedMatches.filter(
@@ -117,18 +114,16 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
     const isAllSelected = availableIds.every((id) => selectedMatchIds.includes(id));
 
     if (isAllSelected) {
-      // 현재 선택된 것 중 가용한 ID들만 제거
       setSelectedMatchIds((prev) => prev.filter((id) => !availableIds.includes(id)));
     } else {
-      // 가용한 모든 ID 추가 (중복 방지)
       setSelectedMatchIds((prev) => Array.from(new Set([...prev, ...availableIds])));
     }
   };
 
-  // 선택된 경기 정보만 필터링하여 누적 반영 및 체크박스 자동 해제
   const handleApplySelectedMatches = () => {
     if (selectedMatchIds.length === 0) {
       setErrorMessage("반영할 세트(게임 정보)를 하나 이상 체크해주세요.");
+      setSuccessMessage("");
       return;
     }
 
@@ -149,8 +144,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
       if (result && !result.success) {
         setErrorMessage(result.message);
       } else {
-        setSuccessMessage(result.message || "성공적으로 누적 반영되었습니다.");
-        // 등록 성공 시 선택된 체크박스 자동 해제
+        setSuccessMessage(result.message || "성공적으로 누적 반영되었습니다!");
         setSelectedMatchIds([]);
       }
     } catch (err: any) {
@@ -200,14 +194,26 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50"
+          className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50 cursor-pointer"
         >
           {isLoading ? "조회 중..." : "전적 조회"}
         </button>
       </form>
 
-      {errorMessage && <p className="text-xs text-red-400 font-medium">{errorMessage}</p>}
-      {successMessage && <p className="text-xs text-teal-400 font-medium">{successMessage}</p>}
+      {/* 🔥 시각적으로 눈에 띄게 개선된 성공 / 에러 알림 박스 */}
+      {errorMessage && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
+          <span className="text-base">⚠️</span>
+          <span className="font-semibold">{errorMessage}</span>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-teal-950/80 border border-teal-500/50 text-teal-200 text-xs shadow-lg">
+          <span className="text-base">✅</span>
+          <span className="font-bold">{successMessage}</span>
+        </div>
+      )}
 
       {fetchedMatches.length > 0 && (
         <div className="flex flex-col gap-2.5">
@@ -218,7 +224,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
             <button
               type="button"
               onClick={handleToggleAll}
-              className="text-[11px] text-teal-400 hover:underline font-medium"
+              className="text-[11px] text-teal-400 hover:underline font-medium cursor-pointer"
             >
               전체 선택/해제
             </button>
@@ -226,7 +232,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
           <div className="flex flex-col gap-2.5 max-h-[240px] overflow-y-auto pr-1">
             {fetchedMatches.map((history) => {
-              // 이미 등록된 경기인지 여부 검사
               const isAlreadyRegistered = safeCompletedDrafts.some(
                 (item) => item.matchId === history.matchId || item.setNo === history.setNo
               );
@@ -244,7 +249,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
                       : "bg-gray-950/80 border-gray-800 opacity-60 hover:opacity-100 cursor-pointer"
                   }`}
                 >
-                  {/* 체크박스 */}
                   <input
                     type="checkbox"
                     checked={isChecked}
