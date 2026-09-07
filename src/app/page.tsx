@@ -62,7 +62,7 @@ export default function Home() {
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
-    handleApplyRiotSetHistory, // ✅ 이것만 남김
+    handleApplyRiotSetHistory, // ✅ Context에서 제공하는 실제 반영 함수 연동
     teamSideMapping,
     BAN_PICK_SEQUENCE,
     getAllSelectedChampions,
@@ -324,13 +324,16 @@ export default function Home() {
     alert(message);
   };
 
-  // 기존 함수가 void를 반환하고 있었다면 아래와 같이 객체를 반환하도록 수정합니다.
+  // ✅ 라이엇 전적 데이터를 받아 Context의 상태에 실제로 반영하고 결과 객체를 반환하도록 수정
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
-      // 기존에 구현되어 있는 누적 반영 로직 (예: setCompletedDrafts 등)
-      // ... 여기에 기존 반영 코드가 있습니다 ...
-
-      // 예시: 정상 반영 완료 시
+      if (typeof handleApplyRiotSetHistory === 'function') {
+        const result = handleApplyRiotSetHistory(historyData);
+        // Context 함수가 이미 결과를 리턴한다면 그대로 반환
+        if (result && typeof result === 'object' && 'success' in result) {
+          return result;
+        }
+      }
       return {
         success: true,
         message: "선택한 세트가 성공적으로 누적 반영되었습니다."
@@ -338,7 +341,7 @@ export default function Home() {
     } catch (error: any) {
       return {
         success: false,
-        message: error.message || "반영 중 오류가 발생했습니다."
+        message: error?.message || "반영 중 오류가 발생했습니다."
       };
     }
   };
