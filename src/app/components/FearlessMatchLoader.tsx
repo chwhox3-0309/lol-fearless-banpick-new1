@@ -26,18 +26,22 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   
-  // 💡 플로팅 위치 제어를 위한 상태 및 Ref
+  // 💡 플로팅 ON/OFF 스위치 상태 (기본값 ON: true)
+  const [isFloatingEnabled, setIsFloatingEnabled] = useState(true);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
   const [placeholderHeight, setPlaceholderHeight] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!containerRef.current) return;
+      if (!isFloatingEnabled || !containerRef.current) {
+        setIsSticky(false);
+        return;
+      }
       const rect = containerRef.current.getBoundingClientRect();
       const parentTop = rect.top + window.scrollY;
       
-      // 스크롤이 해당 컴포넌트의 원래 위치를 지나치면 fixed 플로팅으로 전환
       if (window.scrollY > parentTop - 20) {
         if (!isSticky) {
           setPlaceholderHeight(containerRef.current.offsetHeight);
@@ -56,7 +60,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, [isSticky]);
+  }, [isSticky, isFloatingEnabled]);
 
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
@@ -193,21 +197,22 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
 
   const safeCompletedDrafts = Array.isArray(completedDrafts) ? completedDrafts : [];
 
+  const activeSticky = isFloatingEnabled && isSticky;
+
   return (
     <div ref={containerRef} className="w-full relative">
-      {/* 레이아웃 밀림 방지용 투명 공간 (플로팅 활성화 시 공간 유지) */}
-      {isSticky && <div style={{ height: `${placeholderHeight}px` }} />}
+      {activeSticky && <div style={{ height: `${placeholderHeight}px` }} />}
 
       <div 
-        className={`w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col gap-4 text-gray-200 shadow-2xl transition-all ${
-          isSticky 
-            ? "fixed top-4 left-0 right-0 max-w-4xl mx-auto z-50 bg-gray-900/95 backdrop-blur-xl border-teal-500/40 shadow-2xl" 
-            : "relative"
+        className={`transition-all duration-300 flex flex-col gap-4 text-gray-200 ${
+          activeSticky 
+            ? "fixed bottom-6 right-6 w-[440px] max-h-[85vh] overflow-y-auto p-4 rounded-2xl bg-gray-900/95 backdrop-blur-xl border border-teal-500/50 shadow-2xl z-50 animate-fade-in" 
+            : "w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 shadow-xl relative"
         }`}
       >
         
-        {/* 💡 소환사 검색창 영역 */}
-        <div className="flex flex-col gap-3">
+        {/* 상단 헤더 및 ON/OFF 토글 스위치 */}
+        <div className="flex justify-between items-start gap-2">
           <div className="flex flex-col gap-1">
             <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-full w-fit">
               Riot 계정 연동 피어리스 시스템
@@ -215,57 +220,78 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
             <h3 className="text-sm font-bold text-gray-100 mt-1">
               실제 클라이언트 게임 전적 자동 불러오기
             </h3>
-            <p className="text-xs text-gray-400">
-              라이엇 계정의 최근 경기 기록을 가져와 원하는 세트만 체크하여 픽 구간에 누적 반영합니다.
-            </p>
+            {!activeSticky && (
+              <p className="text-xs text-gray-400">
+                라이엇 계정의 최근 경기 기록을 가져와 원하는 세트만 체크하여 픽 구간에 누적 반영합니다.
+              </p>
+            )}
           </div>
 
-          <form onSubmit={handleFetchRiotMatches} className="flex flex-col sm:flex-row gap-2 items-center bg-gray-950 p-3 rounded-xl border border-gray-800">
-            <input
-              type="text"
-              placeholder="소환사명 (예: 전 설)"
-              value={gameName}
-              onChange={(e) => setGameName(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-teal-500"
-            />
-            <span className="text-gray-500 hidden sm:inline">#</span>
-            <input
-              type="text"
-              placeholder="태그 (예: kr1)"
-              value={tagLine}
-              onChange={(e) => setTagLine(e.target.value)}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full sm:w-28 focus:outline-none focus:border-teal-500"
-            />
+          {/* 💡 플로팅 ON/OFF 토글 버튼 */}
+          <div className="flex items-center gap-1.5 bg-gray-950 px-2.5 py-1.5 rounded-xl border border-gray-800 shrink-0">
+            <span className="text-[10px] text-gray-400 font-medium">플로팅</span>
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+              type="button"
+              onClick={() => setIsFloatingEnabled(!isFloatingEnabled)}
+              className={`w-9 h-5 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                isFloatingEnabled ? "bg-teal-500" : "bg-gray-700"
+              }`}
             >
-              {isLoading ? "조회 중..." : "전적 조회"}
+              <div
+                className={`bg-white w-3.5 h-3.5 rounded-full shadow-md transform transition-transform ${
+                  isFloatingEnabled ? "translate-x-4" : "translate-x-0"
+                }`}
+              />
             </button>
-          </form>
-
-          {errorMessage && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
-              <span className="text-base">⚠️</span>
-              <span className="font-semibold">{errorMessage}</span>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-teal-950/80 border border-teal-500/50 text-teal-200 text-xs shadow-lg">
-              <span className="text-base">✅</span>
-              <span className="font-bold">{successMessage}</span>
-            </div>
-          )}
+          </div>
         </div>
 
-        {/* 💡 전적 조회 결과 및 체크박스 리스트 영역 (검색창과 함께 완벽히 따라다님) */}
+        {/* 소환사 검색 폼 */}
+        <form onSubmit={handleFetchRiotMatches} className="flex flex-col sm:flex-row gap-2 items-center bg-gray-950 p-3 rounded-xl border border-gray-800">
+          <input
+            type="text"
+            placeholder="소환사명 (예: 전 설)"
+            value={gameName}
+            onChange={(e) => setGameName(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-teal-500"
+          />
+          <span className="text-gray-500 hidden sm:inline">#</span>
+          <input
+            type="text"
+            placeholder="태그 (예: kr1)"
+            value={tagLine}
+            onChange={(e) => setTagLine(e.target.value)}
+            className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white w-full sm:w-28 focus:outline-none focus:border-teal-500"
+          />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full sm:w-auto px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-lg transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+          >
+            {isLoading ? "조회 중..." : "전적 조회"}
+          </button>
+        </form>
+
+        {errorMessage && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs">
+            <span className="text-base">⚠️</span>
+            <span className="font-semibold">{errorMessage}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-teal-950/80 border border-teal-500/50 text-teal-200 text-xs shadow-lg">
+            <span className="text-base">✅</span>
+            <span className="font-bold">{successMessage}</span>
+          </div>
+        )}
+
+        {/* 전적 조회 결과 리스트 */}
         {fetchedMatches.length > 0 && (
           <div className="flex flex-col gap-2.5 pt-2 border-t border-gray-800">
             <div className="flex justify-between items-center px-1">
               <span className="text-xs text-gray-400">
-                조회된 경기 목록 ({fetchedMatches.length}개) 중 반영할 세트를 선택하세요.
+                조회된 경기 목록 ({fetchedMatches.length}개) 중 선택하세요.
               </span>
               <button
                 type="button"
@@ -276,7 +302,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
               </button>
             </div>
 
-            <div className="flex flex-col gap-2.5 max-h-[320px] overflow-y-auto pr-1">
+            <div className={`flex flex-col gap-2.5 overflow-y-auto pr-1 ${activeSticky ? "max-h-[260px]" : "max-h-[360px]"}`}>
               {fetchedMatches.map((history) => {
                 const isAlreadyRegistered = safeCompletedDrafts.some(
                   (item) => item.matchId === history.matchId || item.setNo === history.setNo
@@ -308,17 +334,17 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
                     <div className="flex flex-col gap-2 flex-1">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-teal-300">SET {history.setNo} 연동 경기 기록</span>
+                          <span className="text-xs font-bold text-teal-300">SET {history.setNo} 연동 기록</span>
                           {isAlreadyRegistered && (
                             <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold">
-                              ✓ 이미 등록됨
+                              등록됨
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-gray-500 font-mono">Match ID: {history.matchId}</span>
+                        <span className="text-[10px] text-gray-500 font-mono">{history.matchId}</span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" onClick={(e) => e.stopPropagation()}>
+                      <div className="grid grid-cols-1 gap-2 text-xs" onClick={(e) => e.stopPropagation()}>
                         <div className="p-2 rounded-lg bg-gray-900 border border-blue-500/20 flex flex-col gap-1">
                           <span className="font-bold text-blue-400 text-[11px]">Team 2 (블루) 픽</span>
                           <div className="flex flex-wrap gap-1">
@@ -354,7 +380,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
             <button
               type="button"
               onClick={handleApplySelectedMatches}
-              className="w-full sm:w-auto px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs rounded-xl transition-all shadow-lg cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-gray-950 font-black text-xs rounded-xl transition-all shadow-lg cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>⚡ 선택한 세트만 대량 누적 반영하기</span>
             </button>
