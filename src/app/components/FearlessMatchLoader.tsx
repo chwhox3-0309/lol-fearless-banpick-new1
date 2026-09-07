@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDraft } from "../context/DraftContext";
 
 interface MatchSetResult {
@@ -25,20 +25,6 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  // 💡 스크롤 감지 이벤트 추가 (두 번째 스크린샷 형태의 리모컨 바 전환 효과)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 120) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const mapChampionId = (riotChampName: string) => {
     if (!riotChampName) return "";
@@ -178,14 +164,8 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
   return (
     <div className="w-full p-5 rounded-2xl bg-gray-900 border border-gray-800 flex flex-col gap-4 text-gray-200 shadow-xl relative">
       
-      {/* 💡 스크롤 시 컴팩트한 '플로팅 리모컨 바' 형태로 변신하는 상단 컨트롤 영역 */}
-      <div 
-        className={`transition-all duration-300 z-30 flex flex-col gap-4 ${
-          isScrolled 
-            ? "sticky top-4 bg-gray-900/95 backdrop-blur-md p-3.5 rounded-xl border border-teal-500/30 shadow-2xl" 
-            : ""
-        }`}
-      >
+      {/* 💡 소환사 검색창과 안내 문구를 포함한 영역 전체를 sticky 리모컨 바로 고정 */}
+      <div className="sticky top-4 z-30 bg-gray-900/95 backdrop-blur-md p-4 rounded-2xl border border-teal-500/30 shadow-2xl flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-[10px] text-teal-400 font-bold uppercase tracking-widest bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-full w-fit">
             Riot 계정 연동 피어리스 시스템
@@ -222,24 +202,25 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
             {isLoading ? "조회 중..." : "전적 조회"}
           </button>
         </form>
+
+        {errorMessage && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
+            <span className="text-base">⚠️</span>
+            <span className="font-semibold">{errorMessage}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-teal-950/80 border border-teal-500/50 text-teal-200 text-xs shadow-lg">
+            <span className="text-base">✅</span>
+            <span className="font-bold">{successMessage}</span>
+          </div>
+        )}
       </div>
 
-      {errorMessage && (
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 text-xs animate-shake">
-          <span className="text-base">⚠️</span>
-          <span className="font-semibold">{errorMessage}</span>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-teal-950/80 border border-teal-500/50 text-teal-200 text-xs shadow-lg">
-          <span className="text-base">✅</span>
-          <span className="font-bold">{successMessage}</span>
-        </div>
-      )}
-
+      {/* 💡 전적 조회 결과 리스트 영역 */}
       {fetchedMatches.length > 0 && (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5 mt-2">
           <div className="flex justify-between items-center px-1">
             <span className="text-xs text-gray-400">
               조회된 경기 목록 ({fetchedMatches.length}개) 중 반영할 세트를 선택하세요.
@@ -253,7 +234,7 @@ export default function FearlessMatchLoader({ onApplySetHistory }: FearlessMatch
             </button>
           </div>
 
-          <div className="flex flex-col gap-2.5 max-h-[240px] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-2.5 max-h-[360px] overflow-y-auto pr-1">
             {fetchedMatches.map((history) => {
               const isAlreadyRegistered = safeCompletedDrafts.some(
                 (item) => item.matchId === history.matchId || item.setNo === history.setNo
