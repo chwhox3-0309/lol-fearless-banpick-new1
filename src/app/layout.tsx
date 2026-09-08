@@ -33,6 +33,10 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6831227862636699"
           crossOrigin="anonymous"
         ></script>
+
+
+        <meta name="naver-site-verification" content="de00eea3f80247e3989341df17f79d48111def10" />
+
       </head>
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-gray-900 text-white`}>
         <AuthSessionProvider>
