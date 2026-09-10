@@ -10,12 +10,19 @@ export default function Header() {
 
   const navItems = [
     { name: '리그 오브 레전드', href: '/' },
-    { name: 'WOS', href: '/wos' },
-    { name: 'J-Pop', href: '/j-pop' },
+    
     { name: 'TFT', href: '/tft' },
-    { name: '빵Zip', href: '/bakery' },
+    
   ];
 
+    {/* 메뉴 차단 ignore
+
+    { name: 'WOS', href: '/wos' },
+    { name: 'J-Pop', href: '/j-pop' },
+    { name: '빵Zip', href: '/bakery' },
+    
+    */}
+  
   return (
     <header className="w-full bg-gray-950/90 border-b border-gray-800/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-[1280px] mx-auto px-4 h-14 flex items-center justify-between">
