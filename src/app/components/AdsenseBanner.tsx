@@ -1,33 +1,37 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
-// 타입스크립트를 위해 window 객체에 adsbygoogle 속성 확장
-declare global {
-  interface Window {
-    adsbygoogle?: { [key: string]: unknown }[];
-  }
+interface AdsenseBannerProps {
+  dataAdSlot?: string;
+  dataAdFormat?: string;
+  dataFullWidthResponsive?: boolean;
 }
 
-const AdsenseBanner = () => {
+export default function AdsenseBanner({
+  dataAdSlot = "4789335747", // 기본 슬롯 ID (필요 시 수정)
+  dataAdFormat = "auto",
+  dataFullWidthResponsive = true,
+}: AdsenseBannerProps) {
   useEffect(() => {
     try {
+      // @ts-ignore
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch (err) {
-      console.error("Adsense error:", err);
+      console.error("AdSense Error:", err);
     }
   }, []);
 
   return (
-    <div className="w-full text-center my-4">
-      <ins className="adsbygoogle"
-        style={{ display: 'block' }}
-        data-ad-client="ca-pub-6831227862636699" // [중요] 본인의 애드센스 게시자 ID로 변경하세요
-        data-ad-slot="4789335747"       // [중요] 본인의 애드센스 광고 슬롯 ID로 변경하세요
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
+    <div className="w-full flex justify-center items-center overflow-hidden min-h-[90px]">
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block', width: '100%' }}
+        data-ad-client="ca-pub-6831227862636699"
+        data-ad-slot={dataAdSlot}
+        data-ad-format={dataAdFormat}
+        data-full-width-responsive={dataFullWidthResponsive ? "true" : "false"}
+      />
     </div>
   );
-};
-
-export default AdsenseBanner;
+}
