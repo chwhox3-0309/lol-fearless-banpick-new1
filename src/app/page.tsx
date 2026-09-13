@@ -576,7 +576,7 @@ export default function Home() {
                 <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
                   <span className="text-[10px] text-gray-500 mb-1">SPONSORED</span>
                   <div className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px] flex items-center justify-center">
-                    <AdsenseBanner dataAdSlot="YOUR_MODAL_AD_SLOT_ID" dataAdFormat="rectangle" />
+                    <AdsenseBanner dataAdSlot="3583519720" dataAdFormat="rectangle" />
                   </div>
                 </div>
 
@@ -609,7 +609,7 @@ export default function Home() {
         <section className="my-6 w-full flex flex-col items-center justify-center bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px]">
           <span className="text-[10px] text-gray-500 mb-1 tracking-wider uppercase">ADVERTISEMENT</span>
           <div className="w-full flex justify-center items-center overflow-hidden">
-            <AdsenseBanner dataAdSlot="YOUR_MAIN_INPAGE_AD_SLOT" dataAdFormat="auto" />
+            <AdsenseBanner dataAdSlot="4789335747" dataAdFormat="auto" />
           </div>
         </section>
 
