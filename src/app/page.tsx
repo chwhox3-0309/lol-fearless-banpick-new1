@@ -10,11 +10,12 @@ import TeamDisplay from './components/TeamDisplay';
 import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DraftConfigurator from './components/DraftConfigurator';
-import FearlessMatchLoader from './components/FearlessMatchLoader'; // 새로 추가된 피어리스 연동 모듈
+import FearlessMatchLoader from './components/FearlessMatchLoader';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
 import AdsenseBanner from "@/app/components/AdsenseBanner";
+import KakaoAdFitBanner from './components/KakaoAdFitBanner';
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
@@ -62,7 +63,7 @@ export default function Home() {
     handleResetAll,
     handleUndoLastAction,
     handleRegisterUsedChampions,
-    handleApplyRiotSetHistory, // ✅ Context에서 제공하는 실제 반영 함수 연동
+    handleApplyRiotSetHistory,
     teamSideMapping,
     BAN_PICK_SEQUENCE,
     getAllSelectedChampions,
@@ -78,14 +79,13 @@ export default function Home() {
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const [devLogs, setDevLogs] = useState<DevLog[]>([]);
 
-  // 사이트 이용 데이터 기반 Top 5 통계 상태
   const [topPickStats, setTopPickStats] = useState<TopStatItem[]>([]);
   const [topBanStats, setTopBanStats] = useState<TopStatItem[]>([]);
 
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const isFirstRender = useRef(true);
-  const hasSavedStatsRef = useRef(false); // 중복 저장 방지
+  const hasSavedStatsRef = useRef(false);
 
   const currentSetNumber = (completedDrafts?.length || 0) + 1;
   const baseSets = config?.totalSets || config?.maxSets || 3;
@@ -95,7 +95,6 @@ export default function Home() {
 
   const isDraftFinished = currentTurnIndex >= (BAN_PICK_SEQUENCE?.length || 20);
 
-  // 밴픽 완료 시 각 챔피언의 카운트를 DB 내부에서 1씩 증가시키는 함수
   const saveUserDraftStats = async () => {
     if (hasSavedStatsRef.current) return;
     try {
@@ -130,7 +129,6 @@ export default function Home() {
     }
   };
 
-  // Supabase에서 누적된 챔피언 통계를 가져와 Top 5 산출 (통합본)
   useEffect(() => {
     async function fetchOurSiteStats() {
       try {
@@ -181,7 +179,6 @@ export default function Home() {
     }
   }, [champions, isDraftFinished]);
 
-  // 밴픽 완료 감지 시 자동 저장 트리거
   useEffect(() => {
     if (isDraftFinished) {
       saveUserDraftStats();
@@ -190,7 +187,6 @@ export default function Home() {
     }
   }, [isDraftFinished]);
 
-  // 공지사항 및 Dev-log 데이터 불러오기
   useEffect(() => {
     async function fetchMainData() {
       try {
@@ -324,12 +320,10 @@ export default function Home() {
     alert(message);
   };
 
-  // ✅ 라이엇 전적 데이터를 받아 Context의 상태에 실제로 반영하고 결과 객체를 반환하도록 수정
   const handleApplySetHistoryFromRiot = (historyData: { setNo: number; matchId?: string; team2Picks: string[]; team1Picks: string[] }[]) => {
     try {
       if (typeof handleApplyRiotSetHistory === 'function') {
         const result = handleApplyRiotSetHistory(historyData);
-        // Context 함수가 이미 결과를 리턴한다면 그대로 반환
         if (result && typeof result === 'object' && 'success' in result) {
           return result;
         }
@@ -392,6 +386,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Navigation Z-Index를 40으로 설정하여 상단 오버레이가 적절히 레이어되도록 관리 */}
       <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
         isScrolled ? 'top-[60px] bg-gray-900/95 p-2 max-w-[1100px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
       }`}>
@@ -572,13 +567,27 @@ export default function Home() {
           </div>
           <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} lg:block lg:col-span-2 relative`}>
             {isDraftFinished ? (
-              <div className="absolute inset-0 z-20 bg-gray-950/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/30">
+              <div className="absolute inset-0 z-20 bg-gray-950/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/40 shadow-2xl">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
                 <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
                 <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
-                <button onClick={onNextSetWithTimerReset} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
-                  다음 세트 시작하기 ➔
-                </button>
+                
+                {/* 🟢 UX 최적화: 밴픽 완료 완료 모달 내부의 자연스러운 광고 및 액션 */}
+                <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
+                  <span className="text-[10px] text-gray-500 mb-1">SPONSORED</span>
+                  <div className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px] flex items-center justify-center">
+                    <AdsenseBanner dataAdSlot="YOUR_MODAL_AD_SLOT_ID" dataAdFormat="rectangle" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button onClick={() => setIsShareModalOpen(true)} className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
+                    결과 공유하기 🔗
+                  </button>
+                  <button onClick={onNextSetWithTimerReset} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
+                    다음 세트 시작하기 ➔
+                  </button>
+                </div>
               </div>
             ) : !isConfigured && currentTurnIndex === 0 ? (
               <div onClick={() => setIsConfigOpen(true)} className="absolute inset-0 z-20 bg-gray-950/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center cursor-pointer group hover:bg-gray-950/70 transition-all border border-indigo-500/20 hover:border-indigo-500/50">
@@ -596,7 +605,15 @@ export default function Home() {
           </div>
         </div>
 
-        <section className="space-y-6 text-gray-300 mt-8">
+        {/* 🟢 UX 최적화: 메인 밴픽판과 하단 통계 섹션 사이 반응형 광고 디스플레이 (오클릭 방지 Margin 부여) */}
+        <section className="my-6 w-full flex flex-col items-center justify-center bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px]">
+          <span className="text-[10px] text-gray-500 mb-1 tracking-wider uppercase">ADVERTISEMENT</span>
+          <div className="w-full flex justify-center items-center overflow-hidden">
+            <AdsenseBanner dataAdSlot="YOUR_MAIN_INPAGE_AD_SLOT" dataAdFormat="auto" />
+          </div>
+        </section>
+
+        <section className="space-y-6 text-gray-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
               <div>
