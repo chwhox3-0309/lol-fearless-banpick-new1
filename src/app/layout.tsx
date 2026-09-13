@@ -71,10 +71,11 @@ export default function RootLayout({
               <span className="text-[9px] text-gray-500 mb-0.5 tracking-wider uppercase font-semibold">ADVERTISEMENT</span>
               
               {/* 구글 애드센스 사용 시: 아래 AdsenseBanner 컴포넌트의 슬롯 ID를 입력해 사용하세요 */}
-              <AdsenseBanner dataAdSlot="4789335747" dataAdFormat="horizontal" />
+              
               
               {/* Kakao AdFit 사용 시 예시 (320x50 또는 728x90) */}
               <div className="w-full flex justify-center items-center overflow-hidden">
+                <AdsenseBanner dataAdSlot="4789335747" dataAdFormat="horizontal" />
                 <KakaoAdFitBanner adUnit="DAN-BKOeD7FOllmXhljU" width="728" height="90" />
               </div>
             </div>
