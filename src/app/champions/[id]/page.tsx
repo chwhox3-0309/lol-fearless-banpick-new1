@@ -1,15 +1,16 @@
-// app/champions/[id]/page.tsx
+// src/app/champions/[id]/page.tsx
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
+// Next.js App Router 전용 타입 정의
 interface PageProps {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // 1. 최신 라이엇 패치 버전 가져오기
 async function getLatestVersion() {
   const res = await fetch('https://ddragon.leagueoflegends.com/api/versions.json', {
-    next: { revalidate: 3600 }, // 1시간마다 버전 체크
+    next: { revalidate: 3600 },
   });
   const versions = await res.json();
   return versions[0];
@@ -20,7 +21,7 @@ async function getChampionData(version: string, id: string) {
   try {
     const res = await fetch(
       `https://ddragon.leagueoflegends.com/cdn/${version}/data/ko_KR/champion/${id}.json`,
-      { next: { revalidate: 86400 } } // 24시간 캐시
+      { next: { revalidate: 86400 } }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -41,11 +42,11 @@ export async function generateStaticParams() {
   return Object.keys(data.data).map((id) => ({ id }));
 }
 
-// 4. 구글 검색 엔진용 동적 메타태그 (SEO 메인 핵심)
+// 4. 구글 검색 엔진용 동적 메타태그 (SEO)
 export async function generateMetadata({ params }: PageProps) {
-  const resolvedParams = await params;
+  const { id } = await params;
   const version = await getLatestVersion();
-  const champion = await getChampionData(version, resolvedParams.id);
+  const champion = await getChampionData(version, id);
 
   if (!champion) return { title: '챔피언 정보 없음 | LoL Fearless' };
 
@@ -55,16 +56,16 @@ export async function generateMetadata({ params }: PageProps) {
     openGraph: {
       title: `${champion.name} 피어리스 드래프트 가이드`,
       description: champion.blurb,
-      images: [`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${resolvedParams.id}_0.jpg`],
+      images: [`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`],
     },
   };
 }
 
 // 5. 챔피언 상세 페이지 뷰
 export default async function ChampionDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
+  const { id } = await params;
   const version = await getLatestVersion();
-  const champion = await getChampionData(version, resolvedParams.id);
+  const champion = await getChampionData(version, id);
 
   if (!champion) notFound();
 
