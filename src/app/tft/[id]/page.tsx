@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
+import TftBoard from '@/components/tft/TftBoard';
 
 export const revalidate = 3600; // 1시간마다 정적 페이지 자동 갱신 (ISR)
 
@@ -15,9 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
   const numericId = Number(id);
 
-  if (isNaN(numericId)) {
-    return { title: '잘못된 접근 | LoL Fearless' };
-  }
+  if (isNaN(numericId)) return { title: '잘못된 접근 | LoL Fearless' };
 
   const { data: item } = await supabase
     .from('tft_posts')
@@ -25,16 +24,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq('id', numericId)
     .single();
 
-  if (!item) {
-    return { title: 'TFT 덱 정보를 찾을 수 없습니다 | LoL Fearless' };
-  }
+  if (!item) return { title: 'TFT 덱 정보를 찾을 수 없습니다 | LoL Fearless' };
 
   return {
-    title: `${item.comp_name} 덱 공략 - TFT ${item.season} 메타 빌드업 & 아이템 | LoL Fearless`,
-    description: `${item.comp_name} 덱의 핵심 챔피언(${item.key_champions}), 추천 아이템(${item.items}), 리롤 타이밍 및 운영법 완벽 가이드입니다.`,
+    title: `${item.comp_name} 덱 공략 - TFT ${item.season} 메타 빌드업 & 배치도 | LoL Fearless`,
+    description: `${item.comp_name} 덱의 28칸 전장 배치도, 레벨별 스쿼드, 핵심 챔피언(${item.key_champions}), 추천 아이템(${item.items}) 완벽 정리 리포트입니다.`,
     openGraph: {
       title: `${item.comp_name} 덱 완벽 공략 가이드`,
-      description: `${item.season} ${item.tier || '1티어'} 메타 덱 공략 및 아이템 빌드`,
+      description: `${item.season} ${item.tier || '1티어'} 메타 덱 공략 및 배치 가이드`,
     },
   };
 }
@@ -54,9 +51,7 @@ export default async function TftDetailPage({ params }: PageProps) {
   const { id } = await params;
   const numericId = Number(id);
 
-  if (isNaN(numericId)) {
-    notFound();
-  }
+  if (isNaN(numericId)) notFound();
 
   const { data: item } = await supabase
     .from('tft_posts')
@@ -64,9 +59,7 @@ export default async function TftDetailPage({ params }: PageProps) {
     .eq('id', numericId)
     .single();
 
-  if (!item) {
-    notFound();
-  }
+  if (!item) notFound();
 
   return (
     <main className="min-h-screen bg-gray-950 text-white p-4 md:p-8 max-w-4xl mx-auto space-y-6">
@@ -96,9 +89,11 @@ export default async function TftDetailPage({ params }: PageProps) {
         <span>광고 영역 (300x250 / 728x90)</span>
       </div>
 
-      {/* 3. 정밀 공략 카드 그리드 */}
+      {/* 3. [신규] 28칸 인터랙티브 전장 배치도 및 레벨별 빌드업 탭 */}
+      <TftBoard keyChampions={item.key_champions} />
+
+      {/* 4. 정밀 공략 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 핵심 챔피언 및 시너지 */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-2">
           <h2 className="text-sm font-bold text-indigo-400 flex items-center gap-1.5">
             <span>👑</span> 핵심 캐리 챔피언
@@ -109,7 +104,6 @@ export default async function TftDetailPage({ params }: PageProps) {
           </span>
         </div>
 
-        {/* 핵심 추천 아이템 (BiS) */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-2">
           <h2 className="text-sm font-bold text-amber-400 flex items-center gap-1.5">
             <span>⚔️</span> 종결 아이템 빌드 (BiS)
@@ -121,27 +115,27 @@ export default async function TftDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* 4. 빌드업 운영법 및 리롤 타이밍 가이드 */}
+      {/* 5. 운영법 가이드 */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <span>📈</span> 레벨업 & 리롤 타이밍 운영 가이드
         </h2>
         <div className="space-y-3 text-xs text-gray-300 leading-relaxed">
           <div className="bg-gray-950 p-3.5 rounded-lg border border-gray-800">
-            <strong className="text-indigo-300 block mb-1">초반 빌드업 (2~3단계)</strong>
-            연승/연패 이자 관리 위주로 진행하며, 최종 딜러의 아이템을 받아먹을 수 있는 임시 기물에 아이템을 선장착합니다.
+            <strong className="text-indigo-300 block mb-1">초반 빌드업 (4레벨)</strong>
+            연승/연패 이자 관리 위주로 진행하며, 최종 딜러의 아이템을 활용할 임시 기물에 아이템을 선장착합니다.
           </div>
           <div className="bg-gray-950 p-3.5 rounded-lg border border-gray-800">
             <strong className="text-teal-300 block mb-1">핵심 리롤 구간 (6~8레벨)</strong>
-            4코스트 캐리 덱의 경우 8레벨 롤쳐서 덱을 완성하며, 2~3코스트 3성작 덱은 6~7레벨에서 50골드 이자를 유지하며 슬로우 리롤을 진행합니다.
+            4코스트 캐리 덱은 8레벨에 리롤하여 덱을 완성하며, 2~3코스트 덱은 6~7레벨 50골드 이자 슬로우 리롤을 진행합니다.
           </div>
         </div>
       </section>
 
-      {/* 하단 연관 덱 추천 (PV 연쇄 상승 유도) */}
+      {/* 하단 연관 덱 추천 CTA */}
       <div className="bg-gray-900/60 border border-indigo-500/20 rounded-xl p-5 text-center space-y-3">
         <p className="text-xs text-gray-300">
-          다른 1티어 덱의 아이템 빌드와 운영법이 궁금하신가요?
+          다른 1티어 덱의 배치도와 아이템 빌드가 궁금하신가요?
         </p>
         <Link
           href="/tft"
