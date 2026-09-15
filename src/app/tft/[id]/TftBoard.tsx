@@ -1,134 +1,230 @@
-"use client";
+// src/app/tft/[id]/TftBoardClient.tsx
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
+import Link from 'next/link';
 
-interface TftBoardProps {
-  keyChampions: string; // 예: "아칼리, 카이사, 쉔"
+interface TftPostDetail {
+  id: number;
+  season: string;
+  tier: string;
+  comp_name: string;
+  key_champions: string;
+  items: string;
+  description: string;
 }
 
-// 레벨별 예시 배치 좌표 데이터 (ROW: 0~3, COL: 0~6)
-const LEVEL_SQUAD_DATA = {
-  4: [
-    { name: "전열 탱커", row: 0, col: 2, role: "tank" },
-    { name: "임시 탱커", row: 0, col: 4, role: "tank" },
-    { name: "서브 딜러", row: 3, col: 1, role: "dealer" },
-    { name: "메인 딜러", row: 3, col: 5, role: "dealer" },
-  ],
-  6: [
-    { name: "메인 탱커", row: 0, col: 1, role: "tank" },
-    { name: "서브 탱커", row: 0, col: 3, role: "tank" },
-    { name: "제어 기물", row: 0, col: 5, role: "tank" },
-    { name: "서포터", row: 2, col: 3, role: "support" },
-    { name: "서브 딜러", row: 3, col: 2, role: "dealer" },
-    { name: "메인 딜러", row: 3, col: 4, role: "dealer" },
-  ],
-  8: [
-    { name: "종결 탱커 1", row: 0, col: 1, role: "tank" },
-    { name: "종결 탱커 2", row: 0, col: 3, role: "tank" },
-    { name: "전열 서포터", row: 0, col: 5, role: "tank" },
-    { name: "CC 제어기물", row: 1, col: 2, role: "support" },
-    { name: "서브 딜러", row: 2, col: 4, role: "dealer" },
-    { name: "메인 캐리 1", row: 3, col: 1, role: "dealer" },
-    { name: "메인 캐리 2", row: 3, col: 5, role: "dealer" },
-    { name: "전설 기물", row: 3, col: 6, role: "dealer" },
-  ],
-};
+// 라이엇 유닛 ID(DA_18_Yorick 등)를 DDragon 챔피언명으로 정제
+function parseChampionName(rawName: string): { cleanName: string; displayName: string } {
+  if (!rawName) return { cleanName: '', displayName: '' };
 
-export default function TftBoard({ keyChampions }: TftBoardProps) {
-  const [activeLevel, setActiveLevel] = useState<4 | 6 | 8>(8);
-  const currentSquad = LEVEL_SQUAD_DATA[activeLevel];
+  let name = rawName.trim();
+  name = name
+    .replace(/^DA_\d+_?/i, '')
+    .replace(/^DA_/i, '')
+    .replace(/^TFT\d+_?/i, '')
+    .replace(/^TFT_/i, '');
 
-  // 핵심 챔피언 이름을 분할하여 메인 캐리에 매핑
-  const championNames = keyChampions.split(",").map((s) => s.trim());
+  name = name
+    .replace(/\d+$/g, '')
+    .replace(/_(AD|AP|Tank|Carry)$/i, '');
+
+  const cleanName = name.charAt(0).toUpperCase() + name.slice(1);
+
+  return {
+    cleanName,
+    displayName: cleanName,
+  };
+}
+
+// 28칸 전장 기본 배치 포지션 (0~6: 1열 전방, 21~27: 4열 후방)
+const DEFAULT_POSITIONS = [2, 4, 24, 22, 10, 18, 1, 5];
+
+export default function TftBoardClient({ post }: { post: TftPostDetail }) {
+  const [activeChamp, setActiveChamp] = useState<string | null>(null);
+
+  const rawChamps = post.key_champions ? post.key_champions.split(',') : [];
+  const parsedChamps = rawChamps.map(parseChampionName).filter((c) => c.cleanName !== '');
+
+  const itemsList = post.items ? post.items.split(',').map((i) => i.trim()) : [];
+
+  // 28칸 타일 맵 생성 (챔피언 배치 매핑)
+  const boardTiles = Array.from({ length: 28 }, (_, index) => {
+    const champIdx = DEFAULT_POSITIONS.indexOf(index);
+    if (champIdx !== -1 && parsedChamps[champIdx]) {
+      return {
+        slotIndex: index,
+        champion: parsedChamps[champIdx],
+        isCarry: champIdx === 0 || champIdx === 3,
+      };
+    }
+    return { slotIndex: index, champion: null, isCarry: false };
+  });
+
+  const getChampionImageUrl = (cleanName: string) => {
+    if (!cleanName) return '';
+    return `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/${cleanName}.png`;
+  };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
-      {/* 상단 탭 컨트롤러 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-800 pb-3">
-        <div>
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <span>🗺️</span> 전장 배치도 & 빌드업 스쿼드
-          </h2>
-          <p className="text-xs text-gray-400">레벨별 추천 배치 좌표 및 기물 위치를 확인하세요.</p>
-        </div>
-
-        <div className="flex bg-gray-950 p-1 rounded-xl border border-gray-800">
-          {[4, 6, 8].map((level) => (
-            <button
-              key={level}
-              onClick={() => setActiveLevel(level as 4 | 6 | 8)}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeLevel === level
-                  ? "bg-indigo-600 text-white shadow-lg"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              {level}레벨
-            </button>
-          ))}
+    <div className="space-y-8">
+      {/* 뒤로 가기 및 상단 헤더 */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/tft"
+          className="inline-flex items-center text-xs font-bold text-slate-400 hover:text-white bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl transition-colors"
+        >
+          &larr; TFT 메타 덱 목록으로
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold px-3 py-1 bg-slate-800 text-slate-300 rounded-lg border border-slate-700">
+            {post.season || '시즌 13'}
+          </span>
+          <span className="text-xs font-bold px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg">
+            {post.tier || '1티어'}
+          </span>
         </div>
       </div>
 
-      {/* 28칸 TFT 육각형 형태 전장 보드 (4행 7열) */}
-      <div className="bg-gray-950 p-4 rounded-xl border border-gray-800/80 overflow-x-auto">
-        <div className="min-w-[500px] flex flex-col gap-2 items-center">
-          {[0, 1, 2, 3].map((rowIndex) => (
-            <div
-              key={rowIndex}
-              className={`flex gap-2.5 ${
-                rowIndex % 2 === 1 ? "pl-6" : "" // 홀수 행지그재그 어긋남 시각화 (Hex Grid 느낌)
-              }`}
-            >
-              {[0, 1, 2, 3, 4, 5, 6].map((colIndex) => {
-                const champ = currentSquad.find(
-                  (c) => c.row === rowIndex && c.col === colIndex
-                );
+      {/* 덱 제목 및 개요 */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-3">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          {parsedChamps.slice(0, 3).map((c) => c.displayName).join(' ') || post.comp_name} 덱
+        </h1>
+        <p className="text-sm text-slate-400 leading-relaxed">
+          {post.description || '라이엇 천상계 매치 데이터를 기반으로 자동 분석된 최신 추천 메타 배치입니다.'}
+        </p>
+      </div>
 
-                // 메인 캐리 이름 적용
-                let displayName = champ?.name;
-                if (champ?.role === "dealer" && championNames.length > 0) {
-                  displayName = championNames[colIndex % championNames.length] || champ.name;
-                }
+      {/* TFT 28칸 전장 배치도 (Hex Grid) */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+              전장 추천 배치도 (4 x 7)
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">상단(전방 탱커) / 하단(후방 딜러)</p>
+          </div>
+          {activeChamp && (
+            <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 rounded-full">
+              선택된 챔피언: {activeChamp}
+            </span>
+          )}
+        </div>
 
-                return (
-                  <div
-                    key={colIndex}
-                    className={`w-14 h-14 rounded-xl border flex flex-col items-center justify-center p-1 transition-all ${
-                      champ
-                        ? champ.role === "tank"
-                          ? "bg-amber-950/60 border-amber-500/60 text-amber-300 font-bold shadow-md shadow-amber-950/50 scale-105"
-                          : champ.role === "dealer"
-                          ? "bg-indigo-950/60 border-indigo-500/60 text-indigo-300 font-bold shadow-md shadow-indigo-950/50 scale-105"
-                          : "bg-teal-950/60 border-teal-500/60 text-teal-300 font-bold scale-105"
-                        : "bg-gray-900/40 border-gray-800/60 text-gray-700"
-                    }`}
-                  >
-                    {champ ? (
-                      <span className="text-[10px] text-center leading-tight truncate w-full">
-                        {displayName}
+        {/* 28칸 보드 그리드 */}
+        <div className="flex flex-col items-center justify-center py-4 overflow-x-auto">
+          <div className="grid grid-cols-7 gap-2 md:gap-3 min-w-[340px]">
+            {boardTiles.map((tile, idx) => {
+              const rowIndex = Math.floor(idx / 7);
+              // 지그재그 hexagonal 느낌을 위한 행별 오프셋
+              const isEvenRow = rowIndex % 2 === 1;
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => tile.champion && setActiveChamp(tile.champion.displayName)}
+                  className={`relative w-11 h-11 md:w-16 md:h-16 rounded-2xl flex items-center justify-center border transition-all duration-200 cursor-pointer ${
+                    isEvenRow ? 'translate-x-2 md:translate-x-3' : ''
+                  } ${
+                    tile.champion
+                      ? tile.isCarry
+                        ? 'border-amber-500/80 bg-amber-950/30 shadow-lg shadow-amber-500/10 hover:scale-105'
+                        : 'border-indigo-500/80 bg-indigo-950/30 shadow-lg shadow-indigo-500/10 hover:scale-105'
+                      : 'border-slate-800 bg-slate-950/60 hover:border-slate-700'
+                  }`}
+                >
+                  {tile.champion ? (
+                    <div className="relative w-full h-full p-1 flex flex-col items-center justify-center">
+                      <div className="w-full h-full rounded-xl overflow-hidden border border-slate-700 bg-slate-800">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getChampionImageUrl(tile.champion.cleanName)}
+                          alt={tile.champion.displayName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            if (target.parentElement) {
+                              target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'text-[10px]', 'font-bold', 'text-slate-300');
+                              target.parentElement.innerText = tile.champion?.displayName.slice(0, 3) || '';
+                            }
+                          }}
+                        />
+                      </div>
+                      <span className="absolute -bottom-1.5 bg-slate-950/90 text-white text-[9px] font-bold px-1 rounded border border-slate-700 truncate max-w-full">
+                        {tile.champion.displayName}
                       </span>
-                    ) : (
-                      <span className="text-[9px] text-gray-800 font-mono">·</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                    </div>
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-800"></span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* 범례 가이드 */}
-      <div className="flex items-center justify-end gap-4 text-[11px] text-gray-400 font-mono pt-1">
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 전열(탱커)
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> 후열(캐리)
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span> 유틸/서폿
-        </span>
+      {/* 핵심 챔피언 및 추천 아이템 영역 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 핵심 챔피언 목록 */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+          <h3 className="text-base font-bold text-white">주요 챔피언 구성</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {parsedChamps.map((champ, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-2xl"
+              >
+                <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getChampionImageUrl(champ.cleanName)}
+                    alt={champ.displayName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      if (target.parentElement) {
+                        target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'text-xs', 'font-bold', 'text-slate-300');
+                        target.parentElement.innerText = champ.displayName.slice(0, 2);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{champ.displayName}</p>
+                  <span className="text-[10px] text-slate-500">
+                    {idx === 0 ? '핵심 캐리' : idx === 1 ? '메인 탱커' : '서브 기물'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 추천 아이템 빌드 */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+          <h3 className="text-base font-bold text-white">추천 아이템 빌드</h3>
+          <div className="flex flex-wrap gap-2">
+            {itemsList.map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-2 px-3 py-2 bg-indigo-950/40 border border-indigo-500/30 rounded-xl text-xs font-medium text-indigo-200"
+              >
+                <span>⚔️</span>
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 p-4 bg-slate-950/50 border border-slate-800 rounded-2xl text-xs text-slate-400 space-y-1">
+            <p className="font-semibold text-slate-300">💡 초반 운영 팁</p>
+            <p>메인 딜러 아이템 조합을 우선 완성 후 2성 탱커에 방어 아이템을 채워주는 빌드업을 추천합니다.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
