@@ -2,8 +2,8 @@ name: Auto TFT Meta Sync
 
 on:
   schedule:
-    - cron: '0 19 * * *' # 매일 KST 새벽 4시 자동 실행
-  workflow_dispatch: # GitHub 웹 UI에서 수동 실행 허용
+    - cron: '0 19 * * *' # 매일 KST 새벽 4시
+  workflow_dispatch:
 
 jobs:
   sync-tft-db:
@@ -16,7 +16,7 @@ jobs:
       - name: Node.js 환경 설정
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 패키지 설치
         run: npm install @supabase/supabase-js
