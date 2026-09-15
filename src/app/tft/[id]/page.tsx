@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import TftBoard from './TftBoard'; // 같은 폴더에서 직접 불러오기
+import TftBoardClient from './TftBoardClient';
 
 export const revalidate = 3600; // 1시간마다 정적 페이지 자동 갱신 (ISR)
 
