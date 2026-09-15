@@ -32,13 +32,11 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
   useEffect(() => {
     async function loadRiotApiData() {
       try {
-        // 1. 최신 패치 버전 자동 조회
         const verRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
         const versions = await verRes.json();
         const ver = versions[0];
         setLatestVersion(ver);
 
-        // 2. 라이엇 공식 TFT 한글 데이터 및 일반 챔피언 한글 데이터 동시 조회
         const [tftRes, lolRes] = await Promise.all([
           fetch(`https://ddragon.leagueoflegends.com/cdn/${ver}/data/ko_KR/tft-champion.json`),
           fetch(`https://ddragon.leagueoflegends.com/cdn/${ver}/data/ko_KR/champion.json`),
@@ -49,7 +47,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
 
         const newMap: ChampMap = {};
 
-        // TFT 챔피언 한글 매핑
         if (tftData?.data) {
           Object.values(tftData.data).forEach((champ: any) => {
             const rawId = champ.id || '';
@@ -61,7 +58,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
           });
         }
 
-        // 일반 롤 챔피언 한글 매핑 (TFT 전용 이미지 없는 경우 보완)
         if (lolData?.data) {
           Object.values(lolData.data).forEach((champ: any) => {
             const cleanId = champ.id;
@@ -84,7 +80,24 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
     loadRiotApiData();
   }, []);
 
-  // 입력된 원본 ID(예: DA_18_Yorick, TFT18_Karma)를 한글 정보로 자동 파싱
+  // 시즌 정보 자동 감지 및 보정 함수
+  const getDisplaySeason = (item: TftMetaItem) => {
+    // 1. key_champions 내 라이엇 시즌 코드(예: TFT18_, TFT18) 자동 감지
+    if (item.key_champions) {
+      const match = item.key_champions.match(/TFT(\d+)/i);
+      if (match && match[1]) {
+        return `시즌 ${match[1]}`;
+      }
+    }
+
+    // 2. DB에 '시즌 13' 또는 비어있는 값이 들어있을 경우 최신 '시즌 18'로 자동 보정
+    if (!item.season || item.season.includes('13')) {
+      return '시즌 18';
+    }
+
+    return item.season;
+  };
+
   const parseChampion = (rawName: string) => {
     if (!rawName) return { cleanName: '', krName: '', iconUrl: '' };
 
@@ -104,7 +117,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
       return matched;
     }
 
-    // API 로딩 전이거나 데이터에 없을 경우 Fallback
     const formattedName = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     return {
       cleanName: formattedName,
@@ -113,7 +125,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
     };
   };
 
-  // 한글/영문/티어/덱이름 통합 실시간 필터링
   const filteredItems = initialItems.filter((item) => {
     const query = searchTerm.toLowerCase().trim();
     if (!query) return true;
@@ -123,7 +134,7 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
 
     const matchesName = item.comp_name.toLowerCase().includes(query);
     const matchesTier = item.tier?.toLowerCase().includes(query);
-    const matchesSeason = item.season?.toLowerCase().includes(query);
+    const matchesSeason = getDisplaySeason(item).toLowerCase().includes(query);
     const matchesItems = item.items ? item.items.toLowerCase().includes(query) : false;
 
     const matchesChampions = parsedChamps.some(
@@ -167,7 +178,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
           const rawChamps = item.key_champions ? item.key_champions.split(',') : [];
           const parsedChamps = rawChamps.map(parseChampion).filter((c) => c.cleanName !== '');
 
-          // 자동으로 가져온 한글 이름을 결합해 덱 타이틀 생성
           const displayTitle =
             parsedChamps.length > 0
               ? `${parsedChamps.slice(0, 3).map((c) => c.krName).join(' ')} 덱`
@@ -181,9 +191,9 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
             >
               <div className="space-y-4 min-w-0">
                 <div className="flex justify-between items-center gap-2">
-                  {/* DB 시즌 데이터 표기 (없을 경우 시즌 18 표기) */}
+                  {/* 시즌 뱃지 - 자동 판단 함수 호출 */}
                   <span className="text-xs font-semibold px-2.5 py-1 bg-slate-800/80 text-slate-300 rounded-lg border border-slate-700/50">
-                    {item.season || '시즌 18'}
+                    {getDisplaySeason(item)}
                   </span>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${getTierBadgeStyle(item.tier)}`}>
                     {item.tier || '1티어'}
@@ -194,7 +204,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
                   {displayTitle}
                 </h2>
 
-                {/* 라이엇 API로 자동 수집된 챔피언 초상화 & 한글명 */}
                 <div className="flex flex-wrap gap-2 pt-1 max-w-full">
                   {parsedChamps.slice(0, 5).map((champ, idx) => (
                     <div key={idx} className="flex flex-col items-center space-y-1">
