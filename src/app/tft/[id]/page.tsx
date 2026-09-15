@@ -90,7 +90,7 @@ export default async function TftDetailPage({ params }: PageProps) {
       </div>
 
       {/* 3. [신규] 28칸 인터랙티브 전장 배치도 및 레벨별 빌드업 탭 */}
-      <TftBoard keyChampions={item.key_champions} />
+      <TftBoardClient post={item} />
 
       {/* 4. 정밀 공략 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
