@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import TftListClient from './TftListClient'; // 프로젝트 내 TftListClient 경로 확인
+import TftListClient from './TftListClient';
 
-// DB 변경 시 화면에 즉시 반영되도록 캐시 비활성화
 export const revalidate = 0;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -23,7 +22,8 @@ export default async function TftPage() {
       <h1 className="text-3xl font-bold mb-6 text-center">
         🏆 챌린저 실시간 우승 메타 덱
       </h1>
-      <TftListClient initialData={posts || []} />
+      {/* initialData -> initialItems 로 수정 */}
+      <TftListClient initialItems={posts || []} />
     </div>
   );
 }
