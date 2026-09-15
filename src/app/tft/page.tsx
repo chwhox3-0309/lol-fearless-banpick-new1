@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 
-export const revalidate = 3600; // 1시간마다 정적 페이지 자동 갱신 (ISR)
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "전략적 팀 전투(TFT) 메타 덱 조합 & 티어표 가이드 | LoL Fearless",
