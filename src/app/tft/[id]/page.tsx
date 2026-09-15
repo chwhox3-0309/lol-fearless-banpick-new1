@@ -4,7 +4,6 @@ import Link from 'next/link';
 
 export const revalidate = 0;
 
-// 안전한 Supabase 클라이언트 생성 헬퍼
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -17,19 +16,108 @@ interface PageProps {
   params: Promise<{ id: string }> | { id: string };
 }
 
-// 챔피언 ID 변환 및 이미지 URL 추출 헬퍼
-function getChampionInfo(rawChampId: string) {
-  // 'TFT14_Talon' -> 'Talon' 형식으로 이름 정제
-  const cleanName = rawChampId.replace(/^TFT\d+_/, '').replace(/^TFT_/, '');
-  
-  // Data Dragon 이미지 URL (Riot CDN)
-  const imageUrl = `https://ddragon.leagueoflegends.com/cdn/14.5.1/img/tft-champion/${rawChampId}.png`;
+// 챔피언 한글명 매핑 테이블
+const CHAMPION_KO_MAP: Record<string, string> = {
+  Kennen: '케넨',
+  ElderDragon: '장로 드래곤',
+  Maokai: '마오카이',
+  Draven: '드레이븐',
+  Ivern: '아이번',
+  Talon: '탈론',
+  Ahri: '아리',
+  Akali: '아칼리',
+  Ashe: '애쉬',
+  Blitzcrank: '블리츠크랭크',
+  Ezreal: '이즈리얼',
+  Garen: '가렌',
+  Jinx: '징크스',
+  Kassadin: '카사딘',
+  Katarina: '카타리나',
+  Kayle: '케일',
+  LeeSin: '리 신',
+  Lulu: '룰루',
+  Lux: '럭스',
+  Malphite: '말파이트',
+  Morgana: '모르가나',
+  Nami: '나미',
+  Nautilus: '노틸러스',
+  Neeko: '니코',
+  Nunu: '누누와 윌럼프',
+  Olaf: '올라프',
+  Poppy: '뽀삐',
+  Pyke: '파이크',
+  Riven: '리븐',
+  Rumble: '럼블',
+  Samira: '사미라',
+  Sejuani: '세주아니',
+  Sett: '세트',
+  Shen: '쉔',
+  Shyvana: '쉬바나',
+  Sion: '사이온',
+  Sona: '소나',
+  Swain: '스웨인',
+  Syndra: '신드라',
+  TahmKench: '탐 켄치',
+  Taliyah: '탈리야',
+  Taric: '타릭',
+  Teemo: '티모',
+  Thresh: '쓰레쉬',
+  Tristana: '트리스티나',
+  TwistedFate: '트위스티드 페이트',
+  Twitch: '트위치',
+  Udyr: '우디르',
+  Urgot: '우르곳',
+  Vayne: '베인',
+  Veigar: '베이가',
+  Velkoz: '벨코즈',
+  Vex: '벡스',
+  Vi: '바이',
+  Viego: '비에고',
+  Viktor: '빅토르',
+  Vladimir: '블라디미르',
+  Volibear: '볼리베어',
+  Warwick: '워윅',
+  Xayah: '자야',
+  Xerath: '제라스',
+  XinZhao: '신 짜오',
+  Yasuo: '야스오',
+  Yone: '요네',
+  Yorick: '요릭',
+  Yuumi: '유미',
+  Zac: '자크',
+  Zed: '제드',
+  Zeri: '제리',
+  Ziggs: '직스',
+  Zilean: '질리언',
+  Zoe: '조이',
+  Zyra: '자이라',
+};
 
-  return { cleanName, imageUrl };
+// DB의 챔피언 식별자 정제 및 이미지/한글이름 추출
+function getChampionInfo(rawChampId: string) {
+  if (!rawChampId) return { cleanName: '', displayName: '', imageUrl: '' };
+
+  // 'DA_18_Kennen', 'TDA_18_ElderDragon', 'DA_Draven18' 등 접두사와 숫자 정제
+  let cleanName = rawChampId
+    .trim()
+    .replace(/^(TFT|TDA|DA|Set)?_?\d*_?/i, '') // 접두사(DA_18_, TDA_18_ 등) 제거
+    .replace(/\d+$/, '');                      // 접미 숫자(Draven18 등) 제거
+
+  // 첫 글자 대문자 처리
+  if (cleanName.length > 0) {
+    cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+  }
+
+  // 한글 표기명 (없으면 영문 정제명 사용)
+  const displayName = CHAMPION_KO_MAP[cleanName] || cleanName || rawChampId;
+
+  // Riot Data Dragon 최신 CDN 이미지 경로
+  const imageUrl = `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/${cleanName}.png`;
+
+  return { cleanName, displayName, imageUrl };
 }
 
 export default async function TftDetailPage({ params }: PageProps) {
-  // Next.js 14 및 15 버전 호환 안전한 params 수신
   const resolvedParams = await params;
   const id = resolvedParams?.id;
 
@@ -58,7 +146,7 @@ export default async function TftDetailPage({ params }: PageProps) {
   }
 
   const rawChampions = deck.key_champions
-    ? deck.key_champions.split(',').map((champ: string) => champ.trim())
+    ? deck.key_champions.split(',').map((champ: string) => champ.trim()).filter(Boolean)
     : [];
 
   return (
@@ -79,7 +167,7 @@ export default async function TftDetailPage({ params }: PageProps) {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                {deck.season || '시즌 14'}
+                {deck.season || '시즌 18'}
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
                 {deck.tier || '1티어 (우승)'}
@@ -94,15 +182,15 @@ export default async function TftDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* 핵심 챔피언 조합 (초상화 & 별표) */}
+        {/* 핵심 챔피언 조합 */}
         <div>
           <h2 className="text-base font-bold text-slate-300 mb-4 flex items-center gap-2">
             <span>🛡️</span> 핵심 기물 스쿼드
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {rawChampions.map((champId: string, idx: number) => {
-              const { cleanName, imageUrl } = getChampionInfo(champId);
-              const starRating = idx < 2 ? '⭐⭐' : '⭐⭐';
+              const { displayName, imageUrl } = getChampionInfo(champId);
+              const starRating = idx < 2 ? '⭐⭐⭐' : '⭐⭐';
 
               return (
                 <div
@@ -114,18 +202,18 @@ export default async function TftDetailPage({ params }: PageProps) {
                     {starRating}
                   </div>
 
-                  {/* 챔피언 섬네일 */}
-                  <div className="relative w-16 h-16 mb-2 rounded-lg overflow-hidden border-2 border-amber-500/60 shadow-lg group-hover:scale-105 transition-transform bg-slate-800">
+                  {/* 챔피언 초상화 */}
+                  <div className="relative w-16 h-16 mb-2 rounded-lg overflow-hidden border-2 border-amber-500/60 shadow-lg group-hover:scale-105 transition-transform bg-slate-800 flex items-center justify-center">
                     <img
                       src={imageUrl}
-                      alt={cleanName}
+                      alt={displayName}
                       className="w-full h-full object-cover"
                     />
                   </div>
 
-                  {/* 챔피언 이름 */}
+                  {/* 한글 챔피언 이름 */}
                   <span className="text-xs font-semibold text-slate-200 text-center truncate w-full">
-                    {cleanName}
+                    {displayName}
                   </span>
                 </div>
               );
@@ -140,7 +228,7 @@ export default async function TftDetailPage({ params }: PageProps) {
               <span>⚔️</span> 주요 추천 아이템
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              {deck.items || '핵심 캐리 챔피언 위주의 3코어 완제 아이템 빌드'}
+              {deck.items || '최상위 랭커 우승 아이템 빌드'}
             </p>
           </div>
 
@@ -149,7 +237,7 @@ export default async function TftDetailPage({ params }: PageProps) {
               <span>💡</span> 운영 가이드 & 팁
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              {deck.description || '최상위 랭커의 실전 우승 운영법입니다.'}
+              {deck.description || '한국 서버 랭킹 1위 랭커가 최근 1등을 달성한 실전 조합입니다.'}
             </p>
           </div>
         </div>
