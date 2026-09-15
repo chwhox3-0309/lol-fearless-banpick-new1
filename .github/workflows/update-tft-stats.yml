@@ -2,36 +2,28 @@ name: Update TFT Stats (Every 30m)
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # 30분마다 실행
-  workflow_dispatch: # 수동 실행 버튼 추가
+    - cron: '*/30 * * * *' # 30분마다 자동 실행
+  workflow_dispatch: # 수동 실행 버튼 활성화
 
 jobs:
-  build:
+  update-stats:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-      - name: Checkout repository
+      - name: 저장소 체크아웃
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Node.js 환경 설정
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      - name: Install dependencies
-        run: npm install node-fetch dotenv
+      - name: 패키지 설치
+        run: npm install @supabase/supabase-js
 
-      - name: Run TFT Fetch Script
+      - name: 라이엇 API DB 동기화 실행
         env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
-        run: node scripts/fetch-tft-stats.js
-
-      - name: Commit and Push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add src/data/tft-stats.json
-          git commit -m "chore: update tft stats [skip ci]" || echo "No changes to commit"
-          git push
+        run: node scripts/update-tft.js
