@@ -6,7 +6,16 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
 const REGION_KR = 'https://kr.api.riotgames.com';
 const REGION_ASIA = 'https://asia.api.riotgames.com';
 
-export async function GET() {
+export async function GET(request: Request) {
+  // 🔒 Vercel Cron 보안 검증 (운영 환경에서 무단 호출 차단, 로컬 테스트 환경은 통과)
+  const authHeader = request.headers.get('authorization');
+  if (
+    process.env.NODE_ENV === 'production' &&
+    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+  ) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   if (!RIOT_API_KEY) {
     return NextResponse.json({ error: 'Riot API Key가 설정되지 않았습니다.' }, { status: 500 });
   }
