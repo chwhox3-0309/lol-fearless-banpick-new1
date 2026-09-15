@@ -80,9 +80,10 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
     loadRiotApiData();
   }, []);
 
-  // 시즌 정보 자동 감지 및 보정 함수
+  // DB 원본 시즌 정보 반영 (강제 치환 로직 제거)
   const getDisplaySeason = (item: TftMetaItem) => {
-    // 1. key_champions 내 라이엇 시즌 코드(예: TFT18_, TFT18) 자동 감지
+    if (item.season) return item.season;
+
     if (item.key_champions) {
       const match = item.key_champions.match(/TFT(\d+)/i);
       if (match && match[1]) {
@@ -90,12 +91,7 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
       }
     }
 
-    // 2. DB에 '시즌 13' 또는 비어있는 값이 들어있을 경우 최신 '시즌 18'로 자동 보정
-    if (!item.season || item.season.includes('13')) {
-      return '시즌 18';
-    }
-
-    return item.season;
+    return '시즌 13';
   };
 
   const parseChampion = (rawName: string) => {
@@ -191,7 +187,6 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
             >
               <div className="space-y-4 min-w-0">
                 <div className="flex justify-between items-center gap-2">
-                  {/* 시즌 뱃지 - 자동 판단 함수 호출 */}
                   <span className="text-xs font-semibold px-2.5 py-1 bg-slate-800/80 text-slate-300 rounded-lg border border-slate-700/50">
                     {getDisplaySeason(item)}
                   </span>
