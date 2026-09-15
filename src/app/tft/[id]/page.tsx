@@ -4,12 +4,17 @@ import Link from 'next/link';
 
 export const revalidate = 0;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// 안전한 Supabase 클라이언트 생성 헬퍼
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }> | { id: string };
 }
 
 // 챔피언 ID 변환 및 이미지 URL 추출 헬퍼
@@ -24,7 +29,23 @@ function getChampionInfo(rawChampId: string) {
 }
 
 export default async function TftDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  // Next.js 14 및 15 버전 호환 안전한 params 수신
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
+
+  const supabase = getSupabase();
+
+  if (!supabase) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center justify-center">
+        <h1 className="text-xl font-bold text-red-400 mb-2">⚠️ Vercel 환경 변수 누락</h1>
+        <p className="text-slate-400 text-sm text-center">
+          Vercel 대시보드에 <code className="bg-slate-800 px-2 py-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> 및{' '}
+          <code className="bg-slate-800 px-2 py-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>를 추가해 주세요.
+        </p>
+      </div>
+    );
+  }
 
   const { data: deck, error } = await supabase
     .from('tft_posts')
@@ -73,7 +94,7 @@ export default async function TftDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* 핵심 챔피언 조합 (초상화 & 별표 포함) */}
+        {/* 핵심 챔피언 조합 (초상화 & 별표) */}
         <div>
           <h2 className="text-base font-bold text-slate-300 mb-4 flex items-center gap-2">
             <span>🛡️</span> 핵심 기물 스쿼드
@@ -81,7 +102,6 @@ export default async function TftDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {rawChampions.map((champId: string, idx: number) => {
               const { cleanName, imageUrl } = getChampionInfo(champId);
-              // 기본 2성(★★) 표시 (핵심 기물 강조용)
               const starRating = idx < 2 ? '⭐⭐' : '⭐⭐';
 
               return (
@@ -95,16 +115,11 @@ export default async function TftDetailPage({ params }: PageProps) {
                   </div>
 
                   {/* 챔피언 섬네일 */}
-                  <div className="relative w-16 h-16 mb-2 rounded-lg overflow-hidden border-2 border-amber-500/60 shadow-lg group-hover:scale-105 transition-transform">
+                  <div className="relative w-16 h-16 mb-2 rounded-lg overflow-hidden border-2 border-amber-500/60 shadow-lg group-hover:scale-105 transition-transform bg-slate-800">
                     <img
                       src={imageUrl}
                       alt={cleanName}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // 이미지 로드 실패 시 기본 챔피언 아이콘 처리
-                        e.currentTarget.src =
-                          'https://ddragon.leagueoflegends.com/cdn/14.5.1/img/tft-champion/TFT_TrainingDummy.png';
-                      }}
                     />
                   </div>
 
