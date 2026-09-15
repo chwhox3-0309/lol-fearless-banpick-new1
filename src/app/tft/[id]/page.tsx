@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import TftBoard from '@/components/tft/TftBoard';
+import TftBoard from '../../../components/tft/TftBoard';
 
 export const revalidate = 3600; // 1시간마다 정적 페이지 자동 갱신 (ISR)
 
