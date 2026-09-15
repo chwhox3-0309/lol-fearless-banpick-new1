@@ -7,10 +7,10 @@ const REGION_KR = 'https://kr.api.riotgames.com';
 const REGION_ASIA = 'https://asia.api.riotgames.com';
 
 export async function GET(request: Request) {
-  // 🔒 Vercel Cron 보안 검증 (운영 환경에서 무단 호출 차단, 로컬 테스트 환경은 통과)
+  // 🔒 CRON_SECRET이 Vercel 환경변수에 등록되어 있을 때만 검증
   const authHeader = request.headers.get('authorization');
   if (
-    process.env.NODE_ENV === 'production' &&
+    process.env.CRON_SECRET &&
     authHeader !== `Bearer ${process.env.CRON_SECRET}`
   ) {
     return new Response('Unauthorized', { status: 401 });
