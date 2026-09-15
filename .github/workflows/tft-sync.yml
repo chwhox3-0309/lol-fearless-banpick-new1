@@ -1,0 +1,29 @@
+name: Auto TFT Meta Sync
+
+on:
+  schedule:
+    - cron: '0 19 * * *' # 매일 KST 새벽 4시 자동 실행
+  workflow_dispatch: # GitHub 웹 UI에서 수동 실행 허용
+
+jobs:
+  sync-tft-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 환경 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 패키지 설치
+        run: npm install @supabase/supabase-js
+
+      - name: 라이엇 API DB 동기화 실행
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RIOT_API_KEY: ${{ secrets.RIOT_API_KEY }}
+        run: node scripts/update-tft.js
