@@ -90,7 +90,7 @@ export async function GET(request: Request) {
           if (!compMap[compName]) {
             compMap[compName] = {
               count: 1,
-              units: units.slice(0, 5),
+              units: units, // ⭕ 수정 완료: slice(0, 5) 제거 -> 배치된 전체 챔피언 저장 (8~10개)
               items: ['정의의 손길', '보석 연꽃', '거인 살인자'],
             };
           } else {
@@ -115,7 +115,7 @@ export async function GET(request: Request) {
       season: '시즌 13',
       tier: `${idx + 1}티어`,
       comp_name: compName,
-      key_champions: details.units.join(', '),
+      key_champions: details.units.join(', '), // 이제 8~10개 전체가 쉼표로 연결되어 DB에 들어갑니다.
       items: details.items.join(', '),
       description: `라이엇 천상계 매치 데이터를 기반으로 자동 분석된 승률 상위 ${compName} 메타 조합입니다.`,
     }));
