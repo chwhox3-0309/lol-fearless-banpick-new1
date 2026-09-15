@@ -11,10 +11,10 @@ function getSupabase() {
   return createClient(url, key);
 }
 
-// 특수/TFT 챔피언명 교정 매핑
+// 특수/TFT 챔피언명 예외 교정 매핑
 const CHAMPION_NAME_FIXES: Record<string, string> = {
   GnarSmall: 'Gnar',
-  ElderDragon: 'Shyvana', // 라이엇 CDN에 ElderDragon 이미지가 없어 드래곤 계열 기물로 대체
+  ElderDragon: 'Shyvana',
   Draven18: 'Draven',
 };
 
@@ -67,7 +67,7 @@ export default function TftMetaListPage() {
     fetchDecks();
   }, []);
 
-  // 챔피언 문자열 정제 및 데이터 추출
+  // 챔피언 문자열 정제 및 라이엇 이미지 URL 추출
   const parseChampion = (rawChampId: string) => {
     let cleanName = rawChampId
       .trim()
@@ -78,7 +78,6 @@ export default function TftMetaListPage() {
       cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
     }
 
-    // 이름 예외 교정
     const fixedName = CHAMPION_NAME_FIXES[cleanName] || cleanName;
     const displayName = CHAMPION_KO_MAP[cleanName] || CHAMPION_KO_MAP[fixedName] || cleanName || rawChampId;
     const imageUrl = `https://ddragon.leagueoflegends.com/cdn/14.24.1/img/champion/${fixedName}.png`;
@@ -86,12 +85,20 @@ export default function TftMetaListPage() {
     return { cleanName, displayName, imageUrl };
   };
 
-  // DB의 챔피언 컬럼 파싱 (쉼표, 세미콜론, 공백 모두 지원)
+  // DB에 존재하는 모든 챔피언 데이터 컬럼 탐색 및 추출 (8~12개 전체 불러오기)
   const getChampionList = (deck: any): string[] => {
-    const rawStr = deck.key_champions || deck.champions || deck.units || '';
+    const rawStr =
+      deck.all_champions ||
+      deck.champions ||
+      deck.board_champions ||
+      deck.board_units ||
+      deck.units ||
+      deck.key_champions ||
+      '';
+
     if (!rawStr) return [];
     return rawStr
-      .split(/[,;/]+/)
+      .split(/[,;\n/]+/)
       .map((s: string) => s.trim())
       .filter(Boolean);
   };
@@ -105,7 +112,7 @@ export default function TftMetaListPage() {
     return { text: rawTier, isShort: rawTier.length <= 2 };
   };
 
-  // 팀 코드 복사
+  // 팀 코드 클립보드 복사
   const handleCopyCode = (code: string, id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -114,10 +121,10 @@ export default function TftMetaListPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // 검색 필터링
+  // 덱 이름 및 챔피언 검색 필터링
   const filteredDecks = decks.filter((deck) => {
     const title = deck.comp_name || deck.title || deck.name || '';
-    const champStr = deck.key_champions || deck.champions || '';
+    const champStr = JSON.stringify(deck);
     return (
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       champStr.toLowerCase().includes(searchQuery.toLowerCase())
@@ -187,7 +194,7 @@ export default function TftMetaListPage() {
         {/* 3. 메타 덱 리스트 영역 */}
         <div className="space-y-3">
           {loading ? (
-            <div className="text-center py-20 text-slate-500 text-sm">Supabase에서 실제 데이터를 불러오는 중...</div>
+            <div className="text-center py-20 text-slate-500 text-sm">Supabase 데이터 로딩 중...</div>
           ) : filteredDecks.length === 0 ? (
             <div className="text-center py-20 text-slate-500 text-sm">검색 결과가 없습니다.</div>
           ) : (
@@ -206,7 +213,7 @@ export default function TftMetaListPage() {
                     
                     {/* 좌측: 티어, 덱 이름, 챔피언 목록 */}
                     <div className="space-y-3 flex-1 w-full">
-                      {/* 카드 상단: 깔끔한 티어 뱃지 & 제목 & 복사 버튼 */}
+                      {/* 카드 상단: 티어 뱃지 & 제목 & 복사 버튼 */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className={`rounded-md bg-red-500/20 text-red-400 font-black text-xs flex items-center justify-center border border-red-500/40 shrink-0 ${
@@ -219,7 +226,7 @@ export default function TftMetaListPage() {
                           </h3>
                         </div>
 
-                        {/* 우측 상단 팀 코드 복사 버튼 */}
+                        {/* 팀 코드 복사 버튼 */}
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={(e) => handleCopyCode(deck.team_code || deck.deck_code || '', deck.id, e)}
@@ -233,37 +240,36 @@ export default function TftMetaListPage() {
                         </div>
                       </div>
 
-                      {/* 챔피언 초상화 목록 */}
-                      <div className="flex flex-wrap items-end gap-2 pt-1">
+                      {/* 챔피언 초상화 목록 (다수의 기물 자동 줄바꿈) */}
+                      <div className="flex flex-wrap items-end gap-1.5 pt-1 max-w-full">
                         {champions.map((champRaw: string, idx: number) => {
                           const { displayName, imageUrl } = parseChampion(champRaw);
-                          const isCarry = idx < 2; // 주요 캐리 기물 3성 표시
+                          const isCarry = idx < 2; // 주요 캐리 기물 3성 표기
                           const costBorder = COST_BORDER_COLORS[(idx % 5) + 1] || 'border-slate-500';
 
                           return (
-                            <div key={idx} className="flex flex-col items-center">
-                              {/* 별표 (핵심 캐리 2개만 3성 표시) */}
+                            <div key={idx} className="flex flex-col items-center shrink-0">
+                              {/* 캐리 기물 별표 */}
                               <div className="h-3 text-[9px] text-cyan-400 font-bold tracking-tighter">
                                 {isCarry ? '★★★' : ''}
                               </div>
 
-                              {/* 초상화 이미지 (엑박 발생 시 대체 아이콘 적용) */}
+                              {/* 초상화 이미지 (엑박 시 대체 아이콘) */}
                               <div
-                                className={`relative w-10 h-10 rounded-lg overflow-hidden border-2 ${costBorder} bg-slate-900 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center`}
+                                className={`relative w-9 h-9 md:w-10 md:h-10 rounded-lg overflow-hidden border-2 ${costBorder} bg-slate-900 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center`}
                               >
                                 <img
                                   src={imageUrl}
                                   alt={displayName}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {
-                                    // 이미지 로드 실패 시 라이엇 공식 기본 아이콘 또는 플레이스홀더로 교체
                                     (e.target as HTMLImageElement).src =
                                       'https://ddragon.leagueoflegends.com/cdn/14.24.1/img/profileicon/29.png';
                                   }}
                                 />
                               </div>
 
-                              {/* 아이템 뱃지 예시 */}
+                              {/* 캐리 기물 아이템 뱃지 */}
                               {isCarry ? (
                                 <div className="flex -mt-2 z-10 gap-0.5">
                                   <div className="w-3 h-3 bg-amber-500 border border-slate-900 rounded-xs shadow-xs" />
@@ -274,8 +280,8 @@ export default function TftMetaListPage() {
                                 <div className="h-1" />
                               )}
 
-                              {/* 한글 챔피언 이름 */}
-                              <span className="text-[10px] text-slate-400 mt-0.5 max-w-[48px] truncate text-center">
+                              {/* 한글 이름 */}
+                              <span className="text-[10px] text-slate-400 mt-0.5 max-w-[42px] truncate text-center">
                                 {displayName}
                               </span>
                             </div>
@@ -284,7 +290,7 @@ export default function TftMetaListPage() {
                       </div>
                     </div>
 
-                    {/* 우측: 실제 통계 지표 (없을 경우 기본값 표기) */}
+                    {/* 우측: 통계 지표 */}
                     <div className="w-full lg:w-auto border-t lg:border-t-0 border-[#282a32] pt-3 lg:pt-0">
                       <div className="grid grid-cols-4 gap-4 md:gap-6 text-center items-center px-2 min-w-[260px]">
                         <div>
@@ -326,13 +332,13 @@ export default function TftMetaListPage() {
   );
 }
 
-// Supabase 데이터가 전혀 없을 때 비상용 샘플 데이터
+// Supabase 연동 전 시뮬레이션용 fallback 데이터 (전체 9~10기물 구성 예시)
 const MOCK_DECKS = [
   {
     id: '1',
     tier: 'S',
     comp_name: '[상징] 요정 트리스타나',
-    key_champions: 'Rakan, Rammus, Rengar, Vi, Tristana, Lillia, Sivir, Gnar, Ashe',
+    all_champions: 'Rakan, Rammus, Rengar, Vi, Tristana, Lillia, Sivir, Gnar, Ashe, Alistar',
     avg_rank: '3.95',
     pick_rate: '0.10',
     win_rate: '22.9',
@@ -343,7 +349,7 @@ const MOCK_DECKS = [
     id: '2',
     tier: 'S',
     comp_name: '고밸류 드레이븐 이즈리얼',
-    key_champions: 'Alistar, Amumu, Ezreal, Gnar, Draven, Maokai, Ivern, Kennen, Taric',
+    all_champions: 'Alistar, Amumu, Ezreal, Gnar, Draven, Maokai, Ivern, Kennen, Taric, Sett',
     avg_rank: '4.07',
     pick_rate: '0.70',
     win_rate: '25.6',
