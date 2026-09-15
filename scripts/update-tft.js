@@ -1,12 +1,16 @@
 // scripts/update-tft.js
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
+// 1. 환경 변수 체크
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !RIOT_API_KEY) {
-  console.error('❌ 환경 변수를 확인해주세요.');
+  console.error('❌ 필수 환경 변수가 누락되었습니다.');
+  console.error(`- SUPABASE_URL: ${SUPABASE_URL ? 'OK' : '누락'}`);
+  console.error(`- SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY ? 'OK' : '누락'}`);
+  console.error(`- RIOT_API_KEY: ${RIOT_API_KEY ? 'OK' : '누락'}`);
   process.exit(1);
 }
 
@@ -14,12 +18,16 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const REGION = 'kr';
 const ASIA_REGION = 'asia';
 
-// API 호출 제한(Rate Limit) 방지용 딜레이 함수
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchRiotApi(url) {
   const res = await fetch(url, { headers: { 'X-Riot-Token': RIOT_API_KEY } });
-  if (!res.ok) throw new Error(`Riot API Error: ${res.status}`);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(`[Riot API Key 만료/오류] status: ${res.status}. developer.riotgames.com 에서 키를 재발급받아 GitHub Secrets를 갱신하세요.`);
+    }
+    throw new Error(`[Riot API Error] status: ${res.status} (${res.statusText})`);
+  }
   return await res.json();
 }
 
@@ -30,7 +38,11 @@ async function getTop30WinnerDecks() {
     `https://${REGION}.api.riotgames.com/tft/league/v1/challenger`
   );
 
-  // 1. LP(리그 포인트) 기준 상위 30명 정렬
+  if (!challengerLeague?.entries) {
+    throw new Error('챌린저 리그 데이터를 불러오지 못했습니다.');
+  }
+
+  // LP 기준 상위 30명 정렬
   const top30Players = challengerLeague.entries
     .sort((a, b) => b.leaguePoints - a.leaguePoints)
     .slice(0, 30);
@@ -39,55 +51,59 @@ async function getTop30WinnerDecks() {
   let deckId = 1;
 
   for (const [index, player] of top30Players.entries()) {
-    if (winningDecks.length >= 12) break; // 메타 카드 12개 채워지면 종료
+    if (winningDecks.length >= 12) break;
 
     try {
-      await delay(200); // API 과호출 방지
+      await delay(120);
 
-      const summoner = await fetchRiotApi(
-        `https://${REGION}.api.riotgames.com/tft/summoner/v1/summoners/${player.summonerId}`
-      );
+      const puuid = player.puuid;
+      if (!puuid) continue;
 
       // 최근 3경기의 Match ID 가져오기
       const matchIds = await fetchRiotApi(
-        `https://${ASIA_REGION}.api.riotgames.com/tft/match/v1/matches/by-puuid/${summoner.puuid}/ids?count=3`
+        `https://${ASIA_REGION}.api.riotgames.com/tft/match/v1/matches/by-puuid/${puuid}/ids?count=3`
       );
 
       for (const matchId of matchIds) {
-        await delay(150);
+        await delay(120);
         const matchDetail = await fetchRiotApi(
           `https://${ASIA_REGION}.api.riotgames.com/tft/match/v1/matches/${matchId}`
         );
 
-        // 2. placement === 1 (무조건 1등/우승한 덱만 추출)
-        const winner = matchDetail.info.participants.find((p) => p.placement === 1);
+        // placement === 1 (우승한 덱)
+        const winner = matchDetail.info?.participants?.find((p) => p.placement === 1);
 
         if (winner) {
-          // 라이엇 API 세트 번호 자동 추출 (없을 경우 기본값 세트)
           const setNumber = matchDetail.info.tft_set_number || 13;
           const seasonTitle = `시즌 ${setNumber}`;
 
-          // 코스트/티어가 높은 순으로 핵심 기물 5개 추출
+          // 코스트/티어 순 핵심 기물 5개 추출
           const keyUnits = winner.units
-            .sort((a, b) => (b.rarity || 0) - (a.rarity || 0))
-            .slice(0, 5)
-            .map((u) => u.character_id);
+            ? winner.units
+                .sort((a, b) => (b.rarity || 0) - (a.rarity || 0))
+                .slice(0, 5)
+                .map((u) => u.character_id)
+            : [];
 
-          winningDecks.push({
-            id: deckId++,
-            season: seasonTitle,
-            tier: '1티어 (우승)',
-            comp_name: `챌린저 ${index + 1}위 우승 덱`,
-            key_champions: keyUnits.join(','),
-            items: '최상위 랭커 우승 아이템 빌드',
-            description: `한국 서버 랭킹 ${index + 1}위 랭커가 최근 1등을 달성한 실전 조합입니다.`,
-          });
-
-          break; // 한 랭커당 최신 우승 덱 1개만 챙기고 다음 랭커로 이동
+          if (keyUnits.length > 0) {
+            winningDecks.push({
+              id: deckId++,
+              season: seasonTitle,
+              tier: '1티어 (우승)',
+              comp_name: `챌린저 ${index + 1}위 우승 덱`,
+              key_champions: keyUnits.join(','),
+              items: '최상위 랭커 우승 아이템 빌드',
+              description: `한국 서버 랭킹 ${index + 1}위 랭커가 최근 1등을 달성한 실전 조합입니다.`,
+            });
+            break;
+          }
         }
       }
     } catch (e) {
-      console.warn(`랭커 ${index + 1}위 데이터 조회 스킵: ${e.message}`);
+      console.warn(`랭커 ${index + 1}위 데이터 조회 중 스킵: ${e.message}`);
+      if (e.message.includes('Key 만료')) {
+        throw e;
+      }
     }
   }
 
@@ -99,7 +115,7 @@ async function runAutoSync() {
     const decks = await getTop30WinnerDecks();
 
     if (decks.length === 0) {
-      console.log('⚠️ 우승 덱을 찾지 못했습니다.');
+      console.log('⚠️ 조건에 맞는 우승 덱을 찾지 못했습니다.');
       return;
     }
 
