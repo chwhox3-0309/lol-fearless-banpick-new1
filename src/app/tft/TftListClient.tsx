@@ -200,7 +200,7 @@ export default function TftListClient({ initialItems }: { initialItems: TftMetaI
                 </h2>
 
                 <div className="flex flex-wrap gap-2 pt-1 max-w-full">
-                  {parsedChamps.slice(0, 5).map((champ, idx) => (
+                  {parsedChamps.slice(0, 11).map((champ, idx) => (
                     <div key={idx} className="flex flex-col items-center space-y-1">
                       <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-slate-700/80 bg-slate-800 shadow-md flex-shrink-0 group/img">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
