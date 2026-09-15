@@ -1,9 +1,9 @@
-// src/app/tft/[id]/page.tsx
+// src/app/tft/[id]/page.tsx 상단
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
-import TftBoard from '../../../components/tft/TftBoard';
+import TftBoard from './TftBoard'; // 같은 폴더에서 직접 불러오기
 
 export const revalidate = 3600; // 1시간마다 정적 페이지 자동 갱신 (ISR)
 
