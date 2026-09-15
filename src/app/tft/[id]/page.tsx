@@ -1,4 +1,4 @@
-// app/tft/[id]/page.tsx
+// src/app/tft/[id]/page.tsx
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
@@ -13,13 +13,21 @@ interface PageProps {
 // 1. 구글 검색엔진 동적 메타데이터 자동화 (SEO)
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  const numericId = Number(id);
+
+  if (isNaN(numericId)) {
+    return { title: '잘못된 접근 | LoL Fearless' };
+  }
+
   const { data: item } = await supabase
     .from('tft_posts')
     .select('*')
-    .eq('id', id)
+    .eq('id', numericId)
     .single();
 
-  if (!item) return { title: 'TFT 덱 정보를 찾을 수 없습니다.' };
+  if (!item) {
+    return { title: 'TFT 덱 정보를 찾을 수 없습니다 | LoL Fearless' };
+  }
 
   return {
     title: `${item.comp_name} 덱 공략 - TFT ${item.season} 메타 빌드업 & 아이템 | LoL Fearless`,
@@ -31,21 +39,34 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-// 2. static params 사전 생성 (SSG)
+// 2. SSG 정적 경로 사전 생성
 export async function generateStaticParams() {
-  const { data } = await supabase.from('tft_posts').select('id');
-  return (data || []).map((item) => ({ id: String(item.id) }));
+  try {
+    const { data } = await supabase.from('tft_posts').select('id');
+    return (data || []).map((item) => ({ id: String(item.id) }));
+  } catch {
+    return [];
+  }
 }
 
+// 3. 상세 페이지 메인 컴포넌트
 export default async function TftDetailPage({ params }: PageProps) {
   const { id } = await params;
+  const numericId = Number(id);
+
+  if (isNaN(numericId)) {
+    notFound();
+  }
+
   const { data: item } = await supabase
     .from('tft_posts')
     .select('*')
-    .eq('id', id)
+    .eq('id', numericId)
     .single();
 
-  if (!item) notFound();
+  if (!item) {
+    notFound();
+  }
 
   return (
     <main className="min-h-screen bg-gray-950 text-white p-4 md:p-8 max-w-4xl mx-auto space-y-6">
@@ -75,7 +96,7 @@ export default async function TftDetailPage({ params }: PageProps) {
         <span>광고 영역 (300x250 / 728x90)</span>
       </div>
 
-      {/* 3. 이용자 수요 반영 정밀 공략 카드 그리드 */}
+      {/* 3. 정밀 공략 카드 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 핵심 챔피언 및 시너지 */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-2">
@@ -100,7 +121,7 @@ export default async function TftDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* 4. 빌드업 운영법 및 리롤 타이밍 가이드 (SEO 텍스트 밀도 강화) */}
+      {/* 4. 빌드업 운영법 및 리롤 타이밍 가이드 */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <span>📈</span> 레벨업 & 리롤 타이밍 운영 가이드
