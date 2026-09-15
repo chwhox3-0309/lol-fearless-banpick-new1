@@ -1,7 +1,19 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+
+// 1시간마다 사전 정적 페이지 재생성 (SEO 인덱싱 최적화)
+export const revalidate = 3600;
+
+// 구글 검색엔진 노출용 메타데이터 (SEO)
+export const metadata: Metadata = {
+  title: "전략적 팀 전투(TFT) 메타 덱 조합 & 티어표 가이드 | LoL Fearless",
+  description: "최신 패치 기준 승률 1위 TFT 덱, 핵심 챔피언 및 추천 아이템 빌드 완벽 정리 리포트입니다.",
+  openGraph: {
+    title: "TFT 최신 메타 덱 조합 및 티어 가이드",
+    description: "현재 패치 승률 높은 TFT 추천 덱 모음 및 아이템 가이드",
+  },
+};
 
 interface TftMetaItem {
   id: number;
@@ -13,77 +25,80 @@ interface TftMetaItem {
   description: string;
 }
 
-export default function TftFrontPage() {
-  const [items, setItems] = useState<TftMetaItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+export default async function TftFrontPage() {
+  // 서버에서 Supabase 데이터 직접 로드 (구글 크롤러가 데이터를 완벽하게 긁어감)
+  const { data } = await supabase
+    .from("tft_posts")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  useEffect(() => {
-    fetchTftData();
-  }, []);
-
-  const fetchTftData = async () => {
-    const { data } = await supabase
-      .from("tft_posts")
-      .select("*")
-      .order("created_at", { ascending: false });
-    setItems(data || []);
-  };
-
-  const filteredItems = items.filter(
-    (item) =>
-      item.comp_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.key_champions.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const items: TftMetaItem[] = data || [];
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* 상단 타이틀 (관리자 관련 링크 및 버튼 일체 배제) */}
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl">
+        {/* 상단 SEO 헤더 */}
+        <header className="bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl">
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
             TFT META COMP
           </span>
-          <h1 className="text-3xl font-extrabold mt-3 tracking-tight">전략적 팀 전투(TFT) 메타 조합</h1>
-          <p className="text-sm text-gray-400 mt-1">현재 패치에서 가장 강력한 승률을 자랑하는 추천 덱 모음입니다.</p>
+          <h1 className="text-3xl font-extrabold mt-3 tracking-tight">전략적 팀 전투(TFT) 메타 조합 & 티어표</h1>
+          <p className="text-sm text-gray-400 mt-1">현재 패치에서 가장 강력한 승률을 자랑하는 1티어 덱 추천 리포트입니다.</p>
+        </header>
+
+        {/* 상단 디스플레이 광고 영역 (수익화) */}
+        <div className="w-full bg-gray-900/50 border border-gray-800/80 rounded-2xl p-4 text-center text-xs text-gray-500 min-h-[90px] flex items-center justify-center">
+          {/* 구글 애드센스 반응형 디스플레이 광고 코드 위치 */}
+          <span>광고 영역 (320x90 / 728x90)</span>
         </div>
 
-        {/* 검색바 */}
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="조합 이름 또는 챔피언 이름으로 검색해보세요 (예: 리븐, 카이사)..."
-            className="w-full bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 shadow-lg"
-          />
-        </div>
-
-        {/* 덱 카드 그리드 레이아웃 */}
+        {/* 덱 카드 그리드 레이아웃 (상세 페이지 링크 및 인피드 광고 연동) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4 hover:border-indigo-500/40 transition-all">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold px-2.5 py-1 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20">
-                    {item.season}
-                  </span>
-                  <span className="text-xs font-bold px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
-                    {item.tier || "일반"}
-                  </span>
+          {items.map((item, index) => (
+            <div key={item.id} className="contents">
+              {/* PV 상승을 위해 전체 카드를 <Link>로 감싸 상세 페이지(/tft/[id])로 유도 */}
+              <Link
+                href={`/tft/${item.id}`}
+                className="group bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4 hover:border-indigo-500/50 transition-all hover:-translate-y-1"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20">
+                      {item.season}
+                    </span>
+                    <span className="text-xs font-bold px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
+                      {item.tier || "1티어"}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-white mt-2 group-hover:text-indigo-400 transition-colors">
+                    {item.comp_name}
+                  </h2>
+                  <p className="text-xs text-gray-300">
+                    <strong className="text-gray-400">핵심 챔피언:</strong> {item.key_champions}
+                  </p>
+                  <p className="text-xs text-gray-300">
+                    <strong className="text-gray-400">추천 아이템:</strong> {item.items}
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-white mt-2">{item.comp_name}</h3>
-                <p className="text-xs text-gray-300">
-                  <strong className="text-gray-400">핵심 챔피언:</strong> {item.key_champions}
-                </p>
-                <p className="text-xs text-gray-300">
-                  <strong className="text-gray-400">추천 아이템:</strong> {item.items}
-                </p>
-              </div>
 
-              {item.description && (
-                <div className="bg-gray-950 border border-gray-800/80 rounded-xl p-3 text-xs text-gray-400">
-                  💡 {item.description}
+                {item.description && (
+                  <div className="bg-gray-950 border border-gray-800/80 rounded-xl p-3 text-xs text-gray-400 line-clamp-2">
+                    💡 {item.description}
+                  </div>
+                )}
+                
+                <span className="text-xs text-indigo-400 font-bold flex items-center justify-end gap-1 pt-2">
+                  상세 공략 및 아이템 빌드 보기 &rarr;
+                </span>
+              </Link>
+
+              {/* 카드가 3개 배치될 때마다 자연스러운 인피드 광고 카드를 섞어 CTR 극대화 */}
+              {(index + 1) % 3 === 0 && (
+                <div className="bg-gray-900/60 border border-indigo-500/20 rounded-2xl p-6 flex flex-col justify-center items-center text-center space-y-2 min-h-[250px]">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Sponsor</span>
+                  {/* 구글 애드센스 인피드(In-feed) 광고 코드 위치 */}
+                  <span className="text-xs text-gray-400">TFT 게이머를 위한 추천 콘텐츠</span>
                 </div>
               )}
             </div>
