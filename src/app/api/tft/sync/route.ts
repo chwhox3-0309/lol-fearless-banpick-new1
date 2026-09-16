@@ -80,12 +80,18 @@ export async function GET(request: Request) {
         ) || [];
 
         for (const player of topPlayers) {
+          // 🔎 라이엇 API가 주는 원본 유닛 데이터가 몇 개인지 확인
+          console.log('=== 라이엇 원본 player.units:', player.units);
+
           const units = player.units?.map((u: { character_id: string }) =>
             u.character_id.replace('TFT13_', '').replace('TFT_', '')
           ) || [];
 
+          console.log('=== 정제된 최종 units 배열:', units);
+
           if (units.length === 0) continue;
           const compName = `${units.slice(0, 3).join(' ')} 덱`;
+          // ... 이하 동일
 
           if (!compMap[compName]) {
             compMap[compName] = {
