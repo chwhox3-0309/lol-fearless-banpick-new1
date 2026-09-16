@@ -87,18 +87,24 @@ export default function TftMetaListPage() {
 
   // DB에 존재하는 모든 챔피언 데이터 컬럼 탐색 및 추출 (8~12개 전체 불러오기)
   const getChampionList = (deck: any): string[] => {
+    // 무조건 key_champions 또는 all_champions 등을 명확하게 최우선으로 가져오기
     const rawStr =
+      deck.key_champions ||
       deck.all_champions ||
       deck.champions ||
-      deck.board_champions ||
-      deck.board_units ||
       deck.units ||
-      deck.key_champions ||
       '';
 
     if (!rawStr) return [];
-    return rawStr
-      .split(/[,;\n/]+/)
+
+    // 만약 배열 형태로 들어왔을 경우 방어 코드
+    if (Array.isArray(rawStr)) {
+      return rawStr.map(String).map((s) => s.trim()).filter(Boolean);
+    }
+
+    // 쉼표(,) 기준으로 완벽히 쪼개서 배열로 반환
+    return String(rawStr)
+      .split(',')
       .map((s: string) => s.trim())
       .filter(Boolean);
   };
