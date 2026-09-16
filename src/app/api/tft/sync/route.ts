@@ -22,6 +22,29 @@ export async function GET(request: Request) {
   }
 
   try {
+    // 1. 최신 데이터 드래곤 버전 및 챔피언 데이터 로드 (현재 시즌 자동 감지용)
+    const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    const versions = await versionRes.json();
+    const ver = versions[0] || '14.24.1';
+
+    const champRes = await fetch(`https://ddragon.leagueoflegends.com/cdn/${ver}/data/ko_KR/tft-champion.json`);
+    const champData = await champRes.json();
+
+    // 챔피언 ID에서 동적으로 세트 접미사 추출 (예: TFT18_Ahri -> TFT18_)
+    let detectedPrefix = 'TFT18_';
+    let currentSeasonName = '시즌 18';
+    
+    if (champData?.data) {
+      const firstChampKey = Object.keys(champData.data)[0] || '';
+      const matchPrefix = firstChampKey.match(/^(TFT\d+_)?/i);
+      if (matchPrefix && matchPrefix[1]) {
+        detectedPrefix = matchPrefix[1];
+        const setNum = detectedPrefix.replace(/[^0-9]/g, '');
+        if (setNum) currentSeasonName = `시즌 ${setNum}`;
+      }
+    }
+
+    // 2. 천상계 랭커 리스트 조회
     const leagueRes = await fetch(
       `${REGION_KR}/tft/league/v1/challenger?api_key=${RIOT_API_KEY}`,
       { cache: 'no-store' }
@@ -36,16 +59,10 @@ export async function GET(request: Request) {
     const leagueData = await leagueRes.json();
     const topEntries = leagueData.entries?.slice(0, 5) || [];
     
-    // 덱별 통계 누적을 위한 구조체
     const compMap: Record<string, {
       units: string[];
-      totalPlacement: number;
-      matchCount: number;
-      wins: number;
-      top4s: number;
+      gameDatetime: number;
     }> = {};
-
-    let totalAnalyzedMatches = 0;
 
     for (const entry of topEntries) {
       let puuid = entry.puuid;
@@ -76,33 +93,28 @@ export async function GET(request: Request) {
         if (!matchDetailRes.ok) continue;
         const matchData = await matchDetailRes.json();
 
+        const gameDatetime = matchData.info?.game_datetime || Date.now();
         const participants = matchData.info?.participants || [];
-        totalAnalyzedMatches += participants.length;
 
         for (const player of participants) {
-          const units = player.units?.map((u: { character_id: string }) =>
-            u.character_id.replace('TFT13_', '').replace('TFT_', '')
-          ) || [];
+          // 감지된 동적 접미사(예: TFT18_)를 깔끔하게 제거
+          const units = player.units?.map((u: { character_id: string }) => {
+            let id = u.character_id;
+            if (detectedPrefix) {
+              id = id.replace(new RegExp(`^${detectedPrefix}`, 'i'), '');
+            }
+            return id.replace('TFT_', '');
+          }) || [];
 
           if (units.length === 0) continue;
           
-          // 핵심 기물 상위 3개를 키로 삼아 덱 분류
           const compName = `${units.slice(0, 3).join(' ')} 덱`;
-          const placement = player.placement || 8;
 
           if (!compMap[compName]) {
             compMap[compName] = {
               units: units,
-              totalPlacement: placement,
-              matchCount: 1,
-              wins: placement === 1 ? 1 : 0,
-              top4s: placement <= 4 ? 1 : 0,
+              gameDatetime: gameDatetime,
             };
-          } else {
-            compMap[compName].totalPlacement += placement;
-            compMap[compName].matchCount += 1;
-            if (placement === 1) compMap[compName].wins += 1;
-            if (placement <= 4) compMap[compName].top4s += 1;
           }
         }
       }
@@ -113,30 +125,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: '추출된 매치 데이터가 없습니다.' }, { status: 400 });
     }
 
-    // Supabase 저장 데이터 가공 (실제 통계 및 팀 코드 계산)
     const upsertData = fetchedComps.map(([compName, details], idx) => {
-      const avgRank = (details.totalPlacement / details.matchCount).toFixed(2);
-      const winRate = ((details.wins / details.matchCount) * 100).toFixed(1);
-      const top4Rate = ((details.top4s / details.matchCount) * 100).toFixed(1);
-      const pickRate = totalAnalyzedMatches > 0 
-        ? ((details.matchCount / totalAnalyzedMatches) * 100).toFixed(1) 
-        : '1.0';
-
-      // 복사 가능한 고유 팀 코드 생성 (유닛 조합 기반)
-      const teamCode = `TFT13_${details.units.slice(0, 8).join('_').toUpperCase()}`;
+      const teamCode = `${detectedPrefix}${details.units.slice(0, 8).join('_').toUpperCase()}`;
 
       return {
         id: idx + 1,
-        season: '시즌 13',
-        tier: `${idx + 1}티어`,
+        season: currentSeasonName,
+        tier: '최신 메타',
         comp_name: compName,
         key_champions: details.units.join(', '),
         items: '정의의 손길, 보석 연꽃, 거인 살인자',
-        description: `라이엇 천상계 실시간 매치 데이터를 기반으로 자동 분석된 ${compName} 조합입니다.`,
-        avg_rank: avgRank,
-        win_rate: winRate,
-        top4_rate: top4Rate,
-        pick_rate: pickRate,
+        description: `라이엇 천상계 실시간 매치 데이터를 기반으로 자동 분석된 ${currentSeasonName} ${compName} 조합입니다.`,
+        game_datetime: details.gameDatetime,
         team_code: teamCode,
       };
     });
@@ -148,7 +148,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${upsertData.length}개 덱 통계 및 팀 코드 동기화 성공!`,
+      message: `${currentSeasonName} (${fetchedComps.length}개 덱) 자동 추적 및 동기화 성공!`,
       data: upsertData,
     });
 
