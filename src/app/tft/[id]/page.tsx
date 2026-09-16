@@ -145,8 +145,12 @@ export default async function TftDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  // 수정 전 코드 대신 아래 코드로 교체
   const rawChampions = deck.key_champions
-    ? deck.key_champions.split(',').map((champ: string) => champ.trim()).filter(Boolean)
+    ? String(deck.key_champions)
+        .split(/[,;\n/]+/) // 콤마, 세미콜론, 줄바꿈 등 어떤 구분자든 완벽히 분리
+        .map((champ: string) => champ.trim())
+        .filter(Boolean)
     : [];
 
   return (
