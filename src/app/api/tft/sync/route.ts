@@ -1,4 +1,3 @@
-// src/app/api/tft/sync/route.ts
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
@@ -7,7 +6,6 @@ const REGION_KR = 'https://kr.api.riotgames.com';
 const REGION_ASIA = 'https://asia.api.riotgames.com';
 
 export async function GET(request: Request) {
-  // 🔒 보안 검증 (CRON_SECRET 설정 시)
   const authHeader = request.headers.get('authorization');
   if (
     process.env.CRON_SECRET &&
@@ -24,27 +22,33 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. 챌린저 리그 조회
     const leagueRes = await fetch(
       `${REGION_KR}/tft/league/v1/challenger?api_key=${RIOT_API_KEY}`,
       { cache: 'no-store' }
     );
     if (!leagueRes.ok) {
       return NextResponse.json(
-        { error: `Riot API 호출 실패 (${leagueRes.status}). API Key가 만료되었는지 확인하세요.` },
+        { error: `Riot API 호출 실패 (${leagueRes.status})` },
         { status: 400 }
       );
     }
 
     const leagueData = await leagueRes.json();
-    const topEntries = leagueData.entries?.slice(0, 3) || [];
-    const compMap: Record<string, { count: number; units: string[]; items: string[] }> = {};
+    const topEntries = leagueData.entries?.slice(0, 5) || [];
+    
+    // 덱별 통계 누적을 위한 구조체
+    const compMap: Record<string, {
+      units: string[];
+      totalPlacement: number;
+      matchCount: number;
+      wins: number;
+      top4s: number;
+    }> = {};
 
-    // 2. PUUID 추출 및 최근 매치 수집
+    let totalAnalyzedMatches = 0;
+
     for (const entry of topEntries) {
       let puuid = entry.puuid;
-
-      // league API 결과에 puuid가 없는 경우 summonerId로 PUUID 조회
       if (!puuid && entry.summonerId) {
         const sumRes = await fetch(
           `${REGION_KR}/tft/summoner/v1/summoners/${entry.summonerId}?api_key=${RIOT_API_KEY}`,
@@ -55,18 +59,15 @@ export async function GET(request: Request) {
           puuid = sumData.puuid;
         }
       }
-
       if (!puuid) continue;
 
-      // 최근 2개 매치 조회
       const matchesRes = await fetch(
-        `${REGION_ASIA}/tft/match/v1/matches/by-puuid/${puuid}/ids?count=2&api_key=${RIOT_API_KEY}`,
+        `${REGION_ASIA}/tft/match/v1/matches/by-puuid/${puuid}/ids?count=3&api_key=${RIOT_API_KEY}`,
         { cache: 'no-store' }
       );
       if (!matchesRes.ok) continue;
       const matchIds: string[] = await matchesRes.json();
 
-      // 매치 상세 분석
       for (const matchId of matchIds) {
         const matchDetailRes = await fetch(
           `${REGION_ASIA}/tft/match/v1/matches/${matchId}?api_key=${RIOT_API_KEY}`,
@@ -75,56 +76,70 @@ export async function GET(request: Request) {
         if (!matchDetailRes.ok) continue;
         const matchData = await matchDetailRes.json();
 
-        const topPlayers = matchData.info?.participants?.filter(
-          (p: { placement: number }) => p.placement <= 2
-        ) || [];
+        const participants = matchData.info?.participants || [];
+        totalAnalyzedMatches += participants.length;
 
-        for (const player of topPlayers) {
-          // 🔎 라이엇 API가 주는 원본 유닛 데이터가 몇 개인지 확인
-          console.log('=== 라이엇 원본 player.units:', player.units);
-
+        for (const player of participants) {
           const units = player.units?.map((u: { character_id: string }) =>
             u.character_id.replace('TFT13_', '').replace('TFT_', '')
           ) || [];
 
-          console.log('=== 정제된 최종 units 배열:', units);
-
           if (units.length === 0) continue;
+          
+          // 핵심 기물 상위 3개를 키로 삼아 덱 분류
           const compName = `${units.slice(0, 3).join(' ')} 덱`;
-          // ... 이하 동일
+          const placement = player.placement || 8;
 
           if (!compMap[compName]) {
             compMap[compName] = {
-              count: 1,
-              units: units, // ⭕ 수정 완료: slice(0, 5) 제거 -> 배치된 전체 챔피언 저장 (8~10개)
-              items: ['정의의 손길', '보석 연꽃', '거인 살인자'],
+              units: units,
+              totalPlacement: placement,
+              matchCount: 1,
+              wins: placement === 1 ? 1 : 0,
+              top4s: placement <= 4 ? 1 : 0,
             };
           } else {
-            compMap[compName].count += 1;
+            compMap[compName].totalPlacement += placement;
+            compMap[compName].matchCount += 1;
+            if (placement === 1) compMap[compName].wins += 1;
+            if (placement <= 4) compMap[compName].top4s += 1;
           }
         }
       }
     }
 
     const fetchedComps = Object.entries(compMap);
-
     if (fetchedComps.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'Riot API에서 매치 데이터를 추출하지 못했습니다. (API Key 재발급 필요)' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: '추출된 매치 데이터가 없습니다.' }, { status: 400 });
     }
 
-    // Supabase DB 저장
-    const upsertData = fetchedComps.map(([compName, details], idx) => ({
-      id: idx + 1,
-      season: '시즌 13',
-      tier: `${idx + 1}티어`,
-      comp_name: compName,
-      key_champions: details.units.join(', '), // 이제 8~10개 전체가 쉼표로 연결되어 DB에 들어갑니다.
-      items: details.items.join(', '),
-      description: `라이엇 천상계 매치 데이터를 기반으로 자동 분석된 승률 상위 ${compName} 메타 조합입니다.`,
-    }));
+    // Supabase 저장 데이터 가공 (실제 통계 및 팀 코드 계산)
+    const upsertData = fetchedComps.map(([compName, details], idx) => {
+      const avgRank = (details.totalPlacement / details.matchCount).toFixed(2);
+      const winRate = ((details.wins / details.matchCount) * 100).toFixed(1);
+      const top4Rate = ((details.top4s / details.matchCount) * 100).toFixed(1);
+      const pickRate = totalAnalyzedMatches > 0 
+        ? ((details.matchCount / totalAnalyzedMatches) * 100).toFixed(1) 
+        : '1.0';
+
+      // 복사 가능한 고유 팀 코드 생성 (유닛 조합 기반)
+      const teamCode = `TFT13_${details.units.slice(0, 8).join('_').toUpperCase()}`;
+
+      return {
+        id: idx + 1,
+        season: '시즌 13',
+        tier: `${idx + 1}티어`,
+        comp_name: compName,
+        key_champions: details.units.join(', '),
+        items: '정의의 손길, 보석 연꽃, 거인 살인자',
+        description: `라이엇 천상계 실시간 매치 데이터를 기반으로 자동 분석된 ${compName} 조합입니다.`,
+        avg_rank: avgRank,
+        win_rate: winRate,
+        top4_rate: top4Rate,
+        pick_rate: pickRate,
+        team_code: teamCode,
+      };
+    });
 
     const { error: dbError } = await supabase.from('tft_posts').upsert(upsertData, { onConflict: 'id' });
     if (dbError) {
@@ -133,8 +148,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${upsertData.length}개 덱 동기화 성공!`,
-      data: upsertData
+      message: `${upsertData.length}개 덱 통계 및 팀 코드 동기화 성공!`,
+      data: upsertData,
     });
 
   } catch (err: unknown) {
