@@ -15,7 +15,7 @@ import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
 import AdsenseBanner from "@/app/components/AdsenseBanner";
-import KakaoAdFitBanner from './components/KakaoAdFitBanner';
+// ❌ KakaoAdFitBanner 임포트 제거됨
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
@@ -75,7 +75,6 @@ export default function Home() {
   const [isBulkBanModalOpen, setIsBulkBanModalOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
-  // 🟢 방송 모드 상태
   const [isBroadcastMode, setIsBroadcastMode] = useState(false);
   
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -246,7 +245,6 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 🟢 방송 모드 ESC 키 종료 지원
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsBroadcastMode(false);
@@ -368,13 +366,11 @@ export default function Home() {
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
 
   return (
-    // 🟢 방송 모드일 때 전체 배경 녹색(크로마키) 처리 및 최대 너비 해제
     <div className={isBroadcastMode ? "min-h-screen bg-[#00FF00] p-4 flex flex-col" : "w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative"}>
       
       {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
       {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
 
-      {/* 방송 모드 해제 플로팅 버튼 */}
       {isBroadcastMode && (
         <button 
           onClick={() => setIsBroadcastMode(false)}
@@ -410,7 +406,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* 🔴 네비게이션: 방송 모드에서는 숨김 처리 */}
       {!isBroadcastMode && (
         <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
           isScrolled ? 'top-[60px] bg-gray-900/95 p-2 max-w-[1100px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
@@ -444,7 +439,6 @@ export default function Home() {
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              {/* 🟢 방송 캡처 모드 버튼 추가 */}
               <button
                 onClick={() => setIsBroadcastMode(true)}
                 className="py-1 px-2.5 text-xs font-bold rounded transition-all shadow-sm bg-fuchsia-600 hover:bg-fuchsia-500 text-white border border-fuchsia-400 mr-2"
@@ -482,7 +476,6 @@ export default function Home() {
         </nav>
       )}
 
-      {/* 🔴 공지 배너 및 매치 로더: 방송 모드에서는 숨김 */}
       {!isBroadcastMode && latestNotice && (
         <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
           <Link href={`/notices`} className="flex items-center justify-center gap-2 w-full h-full">
@@ -521,7 +514,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* 🟢 방송용 스코어보드 (방송 모드일 때만 활성화) */}
         {isBroadcastMode && (
           <div className="flex justify-between items-center px-8 md:px-16 mt-4 mb-8">
             <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] tracking-wider">
@@ -585,7 +577,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* 영구 밴 영역: 방송 모드일 때도 유지하되 배경/테두리 제거 */}
         {config.isProMode && permanentlyBannedChampions.length > 0 && (
           <div className={isBroadcastMode ? "p-2 mb-2 flex justify-center" : "bg-red-900/20 border border-red-500/50 rounded-lg p-4"}>
             {!isBroadcastMode && (
@@ -605,7 +596,6 @@ export default function Home() {
                         <div className="w-full h-0.5 bg-red-600 -rotate-45 absolute"></div>
                       </div>
                     </div>
-                    {/* 방송 모드에서는 텍스트 그림자 처리 */}
                     <span className={`text-[10px] mt-1 ${isBroadcastMode ? 'text-white font-bold drop-shadow-md' : 'text-red-300'}`}>
                       {champion?.name || id}
                     </span>
@@ -616,7 +606,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 모바일용 탭: 방송 모드에서는 숨김 */}
         {!isBroadcastMode && (
           <div className="flex border-b border-gray-700 lg:hidden rounded-t-lg overflow-hidden">
             <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
@@ -631,7 +620,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 🟢 밴픽 그리드 영역: 방송 모드에서는 배경/테두리 제거 */}
         <div className={`grid grid-cols-1 lg:grid-cols-4 gap-4 relative ${isBroadcastMode ? 'p-2' : 'bg-gray-800/40 p-4 rounded-xl border border-gray-700/60'}`}>
           <div className={`${activeTab === 'blue' || isBroadcastMode ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
             <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
@@ -643,12 +631,20 @@ export default function Home() {
                 <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
                 <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
                 
-                {/* 방송 모드에서는 배너 숨김 */}
+                {/* 💡 쿠팡 파트너스 배너 영역 (완료 화면 내 광고 대체) */}
                 {!isBroadcastMode && (
                   <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-gray-500 mb-1">SPONSORED</span>
-                    <div className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px] flex items-center justify-center">
-                      <AdsenseBanner dataAdSlot="3583519720" dataAdFormat="rectangle" />
+                    <span className="text-[10px] text-gray-500 mb-1">COUPANG PARTNERS</span>
+                    <div className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px] flex items-center justify-center text-xs text-gray-400">
+                      {/* 쿠팡 파트너스 iframe 또는 배너 스크립트 소스를 여기에 삽입하세요 */}
+                      <iframe 
+                        src="https://ads-partners.coupang.com/widgets.html?id=YOUR_WIDGET_ID&template=carousel&trackingCode=YOUR_TRACKING_CODE&subId=&width=300&height=100" 
+                        width="300" 
+                        height="100" 
+                        frameBorder="0" 
+                        scrolling="no" 
+                        referrerPolicy="unsafe-url"
+                      ></iframe>
                     </div>
                   </div>
                 )}
@@ -680,13 +676,21 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 🔴 광고 및 통계 섹션: 방송 모드에서는 모두 숨김 */}
+        {/* 💡 하단 광고 영역을 쿠팡 파트너스 배너로 교체 */}
         {!isBroadcastMode && (
           <>
             <section className="my-6 w-full flex flex-col items-center justify-center bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px]">
-              <span className="text-[10px] text-gray-500 mb-1 tracking-wider uppercase">ADVERTISEMENT</span>
+              <span className="text-[10px] text-gray-500 mb-1 tracking-wider uppercase">COUPANG PARTNERS ADVERTISEMENT</span>
               <div className="w-full flex justify-center items-center overflow-hidden">
-                <AdsenseBanner dataAdSlot="4789335747" dataAdFormat="auto" />
+                {/* 쿠팡 파트너스 다이나믹 배너 또는 상품 링크 iframe 삽입 */}
+                <iframe 
+                  src="https://ads-partners.coupang.com/widgets.html?id=YOUR_WIDGET_ID&template=carousel&trackingCode=YOUR_TRACKING_CODE&subId=&width=728&height=90" 
+                  width="728" 
+                  height="90" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                  referrerPolicy="unsafe-url"
+                ></iframe>
               </div>
             </section>
 
