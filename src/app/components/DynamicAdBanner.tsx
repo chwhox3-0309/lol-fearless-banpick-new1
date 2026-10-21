@@ -61,7 +61,8 @@ export default function DynamicAdBanner({ position, className = '' }: DynamicAdB
 
   return (
     <div className={`flex flex-col items-center justify-center overflow-hidden ${className}`}>
-      <span className="text-[9px] text-gray-500 mb-1 tracking-wider uppercase">ADVERTISEMENT</span>
+      <span className="text-[9px] text-gray-500 mb-1 tracking-wider uppercase">ADVERTISEMENT - 이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+</span>
       <div 
         className="w-full flex justify-center items-center overflow-hidden"
         dangerouslySetInnerHTML={{ __html: ad.ad_content }}
