@@ -29,6 +29,7 @@ const AP_CHAMPIONS = new Set([
 interface Notice {
   id: string | number;
   title: string;
+  content?: string;
   date?: string;
   created_at?: string;
 }
@@ -429,7 +430,7 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        /* 💡 좌우 사이드바 광고 영역을 완전히 제거하고, 화면 양끝 여백까지 w-full로 가득 채우도록 확장 */
+        /* 좌우 여백 없이 화면 폭을 온전히 채우도록 w-full과 최소한의 패딩만 설정 */
         <div className="w-full px-2 sm:px-6 pt-4 flex flex-col space-y-4">
           
           {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
@@ -645,7 +646,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 💡 데스크톱/태블릿 전체 폭을 꽉 채우는 가로 4열 밴픽 그리드 레이아웃 */}
+            {/* 데스크톱/태블릿 전체 폭을 채우는 가로 4열 밴픽 그리드 레이아웃 */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60 w-full">
               <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} md:block md:col-span-1`}>
                 <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
@@ -696,20 +697,32 @@ export default function Home() {
               />
             </section>
 
+            {/* 💡 관리자(Admin)에서 입력한 공지사항 및 개발일지 본문 내용(content)이 노출되는 영역 */}
             <section className="space-y-6 text-gray-300 w-full">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                
+                {/* 좌측: 공지사항 목록 (content 본문 텍스트 포함) */}
                 <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2"><span>📢</span> 공지사항</h2>
                       <Link href="/notices" className="text-xs text-purple-400 hover:underline">전체보기 ➔</Link>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {notices.length > 0 ? (
                         notices.slice(0, 4).map((notice) => (
-                          <Link key={notice.id} href={`/notices`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
-                            <span className="text-gray-200 truncate">{notice.title}</span>
-                            {notice.date && <span className="text-xs text-gray-500 shrink-0 ml-2">{notice.date}</span>}
+                          <Link key={notice.id} href={`/notices`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-gray-200 font-semibold truncate">{notice.title}</span>
+                              {(notice.date || notice.created_at) && (
+                                <span className="text-xs text-gray-500 shrink-0 ml-2">
+                                  {notice.date || new Date(notice.created_at!).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            {notice.content && (
+                              <p className="text-xs text-gray-400 line-clamp-2 mt-1">{notice.content}</p>
+                            )}
                           </Link>
                         ))
                       ) : (
@@ -719,18 +732,28 @@ export default function Home() {
                   </div>
                 </div>
 
+                {/* 우측: Dev-log / 개발일지 목록 (content 본문 텍스트 포함) */}
                 <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2"><span>🛠️</span> Dev-log (개발 일지)</h2>
                       <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">전체보기 ➔</Link>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {devLogs.length > 0 ? (
                         devLogs.slice(0, 4).map((log) => (
-                          <Link key={log.id} href={`/dev-log`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
-                            <span className="text-gray-200 truncate font-medium">{log.title}</span>
-                            {log.created_at && <span className="text-xs text-gray-500 shrink-0 ml-2">{new Date(log.created_at).toLocaleDateString()}</span>}
+                          <Link key={log.id} href={`/dev-log`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-gray-200 font-semibold truncate">{log.title}</span>
+                              {log.created_at && (
+                                <span className="text-xs text-gray-500 shrink-0 ml-2">
+                                  {new Date(log.created_at).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            {log.content && (
+                              <p className="text-xs text-gray-400 line-clamp-2 mt-1">{log.content}</p>
+                            )}
                           </Link>
                         ))
                       ) : (
@@ -739,8 +762,10 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+
               </div>
 
+              {/* 사이트 이용 데이터 실시간 랭킹 */}
               <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md w-full">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
                   <div>
