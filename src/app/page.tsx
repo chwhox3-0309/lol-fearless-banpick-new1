@@ -416,7 +416,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-4 relative p-2">
+          <div className="grid grid-cols-4 gap-4 relative p-2 w-full">
             <div className="col-span-1">
               <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
             </div>
@@ -429,413 +429,393 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        /* 좌우 광고 사이드바 레이아웃 및 중앙 메인 영역 확장 설정 */
-        <div className="w-full px-2 sm:px-4 pt-4 flex justify-between relative gap-4">
+        /* 💡 좌우 사이드바 광고 영역을 완전히 제거하고, 화면 양끝 여백까지 w-full로 가득 채우도록 확장 */
+        <div className="w-full px-2 sm:px-6 pt-4 flex flex-col space-y-4">
           
-          {/* ①번 좌측 사이드바 광고 영역 */}
-          <aside className="hidden 2xl:flex flex-col w-[160px] shrink-0 items-center">
-            <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
-              <DynamicAdBanner position="sidebar_left" className="w-full" />
+          {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
+          {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
+
+          {isConfigOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300">
+              <div className="bg-gray-900 border border-indigo-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                <button
+                  onClick={() => setIsConfigOpen(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                >
+                  ✕
+                </button>
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-bold text-white tracking-wide">SET {currentSetNumber} 시작 설정</h2>
+                  <p className="text-xs text-gray-400 mt-1">팀 이름과 진영을 설정한 후 밴픽을 시작해주세요.</p>
+                </div>
+                <DraftConfigurator />
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={handleStartDraft}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all"
+                  >
+                    설정 완료 및 밴픽 시작 ➔
+                  </button>
+                </div>
+              </div>
             </div>
-          </aside>
+          )}
 
-          {/* 메인 컨테이너 영역 */}
-          <div className="flex-grow w-full mx-auto flex flex-col space-y-4 min-w-0">
+          <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate w-full ${
+            isScrolled ? 'top-[60px] bg-gray-900/95 p-2' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
+          }`}>
+            <div className="flex flex-wrap justify-between items-center gap-2 px-2">
+              <div className="flex items-center space-x-2 bg-gray-950/80 px-3 py-1 rounded-lg border border-gray-800">
+                <span className="text-xs font-bold px-2 py-0.5 bg-indigo-900/80 text-indigo-300 rounded border border-indigo-700/50">
+                  {matchTypeLabel}
+                </span>
+                <div className="flex items-center space-x-1.5 min-w-[65px]">
+                  <span className="text-xs text-gray-400">타이머</span>
+                  <span className={`text-base font-black font-mono ${timeLeft <= 10 && isTimerRunning ? 'text-red-500 animate-pulse' : 'text-amber-400'}`}>
+                    {timeLeft}s
+                  </span>
+                </div>
+                <button
+                  onClick={() => !isDraftFinished && setIsTimerRunning(!isTimerRunning)}
+                  disabled={isDraftFinished}
+                  className={`px-2 py-0.5 text-[11px] font-bold rounded transition-colors disabled:opacity-40 ${
+                    isTimerRunning ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'
+                  }`}
+                >
+                  {isTimerRunning ? '일시정지' : '시작'}
+                </button>
+                <button
+                  onClick={() => { setTimeLeft(30); setIsTimerRunning(false); }}
+                  className="px-1.5 py-0.5 text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 rounded"
+                >
+                  리셋
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => setIsBroadcastMode(true)}
+                  className="py-1 px-2.5 text-xs font-bold rounded transition-all shadow-sm bg-fuchsia-600 hover:bg-fuchsia-500 text-white border border-fuchsia-400 mr-2"
+                >
+                  🎥 방송 모드
+                </button>
+                
+                <button
+                  onClick={() => setIsConfigOpen(!isConfigOpen)}
+                  className={`py-1 px-2.5 text-xs font-semibold rounded transition-all border shadow-sm ${
+                    isConfigOpen ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-gray-700/80 hover:bg-gray-600 border-gray-600 text-gray-200'
+                  }`}
+                >
+                  ⚙️ 경기 설정
+                </button>
+                <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">공지사항</Link>
+                <Link href="/dev-log" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">Dev-log</Link>
+                <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">추천 밴</Link>
+                <Link href="/tier-lists" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">티어 리스트</Link>
+                <button onClick={() => setIsShareModalOpen(true)} className="bg-purple-600 hover:bg-purple-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">공유하기</button>
+                <button onClick={onNextSetWithTimerReset} className="bg-green-600 hover:bg-green-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">다음 세트</button>
+                <button onClick={handleResetAll} className="bg-red-600 hover:bg-red-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">전부 초기화</button>
+                <button
+                  onClick={handleUndoLastAction}
+                  disabled={currentTurnIndex === 0}
+                  className={`py-1 px-2.5 text-xs font-semibold rounded border border-transparent transition-all shadow-sm shrink-0 ${
+                    currentTurnIndex === 0 ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-60' : 'bg-amber-600 hover:bg-amber-500 text-white'
+                  }`}
+                >
+                  선택 취소
+                </button>
+                <button onClick={() => setIsBulkBanModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">대량 등록</button>
+              </div>
+            </div>
+          </nav>
+
+          {latestNotice && (
+            <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50 w-full">
+              <Link href={`/notices`} className="flex items-center justify-center gap-2 w-full h-full">
+                <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
+                <span className="hover:underline truncate">{latestNotice.title}</span>
+              </Link>
+            </div>
+          )}
+
+          <NoticeBanner />
+
+          <main className="w-full flex flex-col space-y-4">
+            <section className="w-full">
+              <FearlessMatchLoader onApplySetHistory={handleApplySetHistoryFromRiot} />
+            </section>
+
+            <section className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 px-4 flex items-center justify-between shadow-lg backdrop-blur-md w-full">
+              <div className="flex items-center space-x-3">
+                <span className="text-xs font-bold px-2.5 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 rounded-md">
+                  {matchTypeLabel} 경기
+                </span>
+                <span className="text-sm font-semibold text-gray-300">
+                  현재 진행: <span className="text-teal-400 font-bold">SET {currentSetNumber}</span>
+                </span>
+              </div>
+              <div>
+                {isDraftFinished ? (
+                  <span className="text-xs font-bold px-3 py-1 bg-green-900/80 text-green-300 rounded-full border border-green-700">✅ 밴픽 완료됨</span>
+                ) : (
+                  <span className="text-xs font-bold px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full border border-blue-700/50">⚡ 밴픽 진행 중</span>
+                )}
+              </div>
+            </section>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <div className="bg-gray-900/70 border border-blue-900/50 rounded-xl p-3.5 flex flex-col justify-between min-h-[105px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                    <span>🤖</span> {blueSideTeamName} (블루) AI 조합 평가
+                  </span>
+                  <span className="text-xs font-mono font-bold text-blue-300 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800/50">
+                    완성도 {blueAnalysis.totalScore}점
+                  </span>
+                </div>
+                <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
+                  <div className="bg-gradient-to-r from-blue-600 to-teal-400 h-full transition-all duration-300" style={{ width: `${blueAnalysis.totalScore}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-gray-400">
+                  <span>딜 밸런스: AP {blueAnalysis.apRatio}% / AD {blueAnalysis.adRatio}%</span>
+                  <span className="truncate max-w-[180px] text-right">
+                    추천 픽: <strong className="text-teal-300">{blueAnalysis.recommendations.join(', ')}</strong>
+                  </span>
+                </div>
+              </div>
             
-            {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
-            {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
+              <div className="bg-gray-900/70 border border-red-900/50 rounded-xl p-3.5 flex flex-col justify-between min-h-[105px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                    <span>🤖</span> {redSideTeamName} (레드) AI 조합 평가
+                  </span>
+                  <span className="text-xs font-mono font-bold text-red-300 bg-red-950/80 px-2 py-0.5 rounded border border-red-800/50">
+                    완성도 {redAnalysis.totalScore}점
+                  </span>
+                </div>
+                <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
+                  <div className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300" style={{ width: `${redAnalysis.totalScore}%` }} />
+                </div>
+                <div className="flex justify-between text-[11px] text-gray-400">
+                  <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.adRatio}%</span>
+                  <span className="truncate max-w-[180px] text-right">
+                    추천 픽: <strong className="text-amber-300">{redAnalysis.recommendations.join(', ')}</strong>
+                  </span>
+                </div>
+              </div>
+            </section>
 
-            {isConfigOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all duration-300">
-                <div className="bg-gray-900 border border-indigo-500/40 rounded-2xl p-6 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
-                  <button
-                    onClick={() => setIsConfigOpen(false)}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                  >
-                    ✕
-                  </button>
-                  <div className="text-center mb-6">
-                    <h2 className="text-xl font-bold text-white tracking-wide">SET {currentSetNumber} 시작 설정</h2>
-                    <p className="text-xs text-gray-400 mt-1">팀 이름과 진영을 설정한 후 밴픽을 시작해주세요.</p>
-                  </div>
-                  <DraftConfigurator />
-                  <div className="mt-6 flex justify-end">
-                    <button
-                      onClick={handleStartDraft}
-                      className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm rounded-xl shadow-lg transition-all"
-                    >
-                      설정 완료 및 밴픽 시작 ➔
-                    </button>
-                  </div>
+            {config.isProMode && permanentlyBannedChampions.length > 0 && (
+              <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 w-full">
+                <h3 className="text-red-400 font-bold mb-3 flex items-center">
+                  <span className="mr-2">🚫</span> 영구 밴 챔피언 (2회 누적 밴)
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {permanentlyBannedChampions.map((id) => {
+                    const champion = champions[id];
+                    return (
+                      <div key={id} className="flex flex-col items-center">
+                        <div className="w-12 h-12 relative rounded border border-red-600 overflow-hidden grayscale">
+                          {version && <Image src={getChampionThumbnailUrl(version, id)} alt={id} fill className="object-cover" />}
+                          <div className="absolute inset-0 flex items-center justify-center bg-red-900/40">
+                            <div className="w-full h-0.5 bg-red-600 rotate-45 absolute"></div>
+                            <div className="w-full h-0.5 bg-red-600 -rotate-45 absolute"></div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] mt-1 text-red-300">
+                          {champion?.name || id}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
-              isScrolled ? 'top-[60px] bg-gray-900/95 p-2 w-full mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
-            }`}>
-              <div className="flex flex-wrap justify-between items-center gap-2 px-2">
-                <div className="flex items-center space-x-2 bg-gray-950/80 px-3 py-1 rounded-lg border border-gray-800">
-                  <span className="text-xs font-bold px-2 py-0.5 bg-indigo-900/80 text-indigo-300 rounded border border-indigo-700/50">
-                    {matchTypeLabel}
-                  </span>
-                  <div className="flex items-center space-x-1.5 min-w-[65px]">
-                    <span className="text-xs text-gray-400">타이머</span>
-                    <span className={`text-base font-black font-mono ${timeLeft <= 10 && isTimerRunning ? 'text-red-500 animate-pulse' : 'text-amber-400'}`}>
-                      {timeLeft}s
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => !isDraftFinished && setIsTimerRunning(!isTimerRunning)}
-                    disabled={isDraftFinished}
-                    className={`px-2 py-0.5 text-[11px] font-bold rounded transition-colors disabled:opacity-40 ${
-                      isTimerRunning ? 'bg-amber-600 hover:bg-amber-500 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'
-                    }`}
-                  >
-                    {isTimerRunning ? '일시정지' : '시작'}
-                  </button>
-                  <button
-                    onClick={() => { setTimeLeft(30); setIsTimerRunning(false); }}
-                    className="px-1.5 py-0.5 text-[11px] bg-gray-800 hover:bg-gray-700 text-gray-300 rounded"
-                  >
-                    리셋
-                  </button>
-                </div>
+            {/* 모바일 화면 전용 탭 */}
+            <div className="flex border-b border-gray-700 md:hidden rounded-t-lg overflow-hidden w-full">
+              <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
+                {blueSideTeamName} (블루)
+              </button>
+              <button onClick={() => setActiveTab('champions')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'champions' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-gray-400'}`}>
+                챔피언 선택
+              </button>
+              <button onClick={() => setActiveTab('red')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'red' ? 'bg-gray-800 text-red-400' : 'bg-gray-900 text-gray-400'}`}>
+                {redSideTeamName} (레드)
+              </button>
+            </div>
 
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <button
-                    onClick={() => setIsBroadcastMode(true)}
-                    className="py-1 px-2.5 text-xs font-bold rounded transition-all shadow-sm bg-fuchsia-600 hover:bg-fuchsia-500 text-white border border-fuchsia-400 mr-2"
-                  >
-                    🎥 방송 모드
-                  </button>
-                  
-                  <button
-                    onClick={() => setIsConfigOpen(!isConfigOpen)}
-                    className={`py-1 px-2.5 text-xs font-semibold rounded transition-all border shadow-sm ${
-                      isConfigOpen ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-gray-700/80 hover:bg-gray-600 border-gray-600 text-gray-200'
-                    }`}
-                  >
-                    ⚙️ 경기 설정
-                  </button>
-                  <Link href="/notices" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">공지사항</Link>
-                  <Link href="/dev-log" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">Dev-log</Link>
-                  <Link href="/recommended-bans" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">추천 밴</Link>
-                  <Link href="/tier-lists" className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 py-1 px-2.5 text-xs font-medium rounded transition-all border border-gray-600/50">티어 리스트</Link>
-                  <button onClick={() => setIsShareModalOpen(true)} className="bg-purple-600 hover:bg-purple-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">공유하기</button>
-                  <button onClick={onNextSetWithTimerReset} className="bg-green-600 hover:bg-green-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">다음 세트</button>
-                  <button onClick={handleResetAll} className="bg-red-600 hover:bg-red-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">전부 초기화</button>
-                  <button
-                    onClick={handleUndoLastAction}
-                    disabled={currentTurnIndex === 0}
-                    className={`py-1 px-2.5 text-xs font-semibold rounded border border-transparent transition-all shadow-sm shrink-0 ${
-                      currentTurnIndex === 0 ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-60' : 'bg-amber-600 hover:bg-amber-500 text-white'
-                    }`}
-                  >
-                    선택 취소
-                  </button>
-                  <button onClick={() => setIsBulkBanModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white py-1 px-2.5 text-xs font-semibold rounded transition-all shadow-sm">대량 등록</button>
+            {/* 💡 데스크톱/태블릿 전체 폭을 꽉 채우는 가로 4열 밴픽 그리드 레이아웃 */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60 w-full">
+              <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} md:block md:col-span-1`}>
+                <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
+              </div>
+              <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} md:block md:col-span-2 relative`}>
+                {isDraftFinished ? (
+                  <div className="absolute inset-0 z-20 bg-gray-950/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/40 shadow-2xl">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
+                    <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
+                    <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
+                    
+                    <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
+                      <DynamicAdBanner 
+                        position="completion_box" 
+                        className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px]" 
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button onClick={() => setIsShareModalOpen(true)} className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
+                        결과 공유하기 🔗
+                      </button>
+                      <button onClick={onNextSetWithTimerReset} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
+                        다음 세트 시작하기 ➔
+                      </button>
+                    </div>
+                  </div>
+                ) : !isConfigured && currentTurnIndex === 0 ? (
+                  <div onClick={() => setIsConfigOpen(true)} className="absolute inset-0 z-20 bg-gray-950/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center cursor-pointer group hover:bg-gray-950/70 transition-all border border-indigo-500/20 hover:border-indigo-500/50">
+                    <div className="p-3 rounded-full bg-indigo-600/20 text-indigo-400 group-hover:scale-110 transition-transform">⚙️</div>
+                    <h3 className="text-base font-bold text-white">밴픽을 시작하려면 경기 설정이 필요합니다</h3>
+                    <p className="text-xs text-indigo-300 underline underline-offset-4">여기를 클릭하여 경기 설정을 진행해주세요.</p>
+                  </div>
+                ) : null}
+                <div className={isDraftFinished ? 'grayscale opacity-50 pointer-events-none' : ''}>
+                  <ChampionGrid />
                 </div>
               </div>
-            </nav>
-
-            {latestNotice && (
-              <div className="bg-purple-950/40 border border-purple-500/30 text-purple-200 text-center py-2.5 px-4 rounded-lg text-sm font-medium shadow-inner transition-all hover:bg-purple-900/50">
-                <Link href={`/notices`} className="flex items-center justify-center gap-2 w-full h-full">
-                  <span className="bg-purple-800 text-purple-300 text-xs px-2 py-0.5 rounded-md font-bold">최신 공지</span>
-                  <span className="hover:underline truncate">{latestNotice.title}</span>
-                </Link>
+              <div className={`${activeTab === 'red' ? 'block' : 'hidden'} md:block md:col-span-1`}>
+                <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
               </div>
-            )}
+            </div>
 
-            <NoticeBanner />
+            <section className="my-6 w-full flex justify-center">
+              <DynamicAdBanner 
+                position="main_top" 
+                className="bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px] w-full" 
+              />
+            </section>
 
-            <main className="flex-grow flex flex-col space-y-4">
-              <section className="w-full">
-                <FearlessMatchLoader onApplySetHistory={handleApplySetHistoryFromRiot} />
-              </section>
-
-              <section className="bg-gray-900/90 border border-gray-800 rounded-xl p-3 px-4 flex items-center justify-between shadow-lg backdrop-blur-md">
-                <div className="flex items-center space-x-3">
-                  <span className="text-xs font-bold px-2.5 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 rounded-md">
-                    {matchTypeLabel} 경기
-                  </span>
-                  <span className="text-sm font-semibold text-gray-300">
-                    현재 진행: <span className="text-teal-400 font-bold">SET {currentSetNumber}</span>
-                  </span>
-                </div>
-                <div>
-                  {isDraftFinished ? (
-                    <span className="text-xs font-bold px-3 py-1 bg-green-900/80 text-green-300 rounded-full border border-green-700">✅ 밴픽 완료됨</span>
-                  ) : (
-                    <span className="text-xs font-bold px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full border border-blue-700/50">⚡ 밴픽 진행 중</span>
-                  )}
-                </div>
-              </section>
-
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-900/70 border border-blue-900/50 rounded-xl p-3.5 flex flex-col justify-between min-h-[105px]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
-                      <span>🤖</span> {blueSideTeamName} (블루) AI 조합 평가
-                    </span>
-                    <span className="text-xs font-mono font-bold text-blue-300 bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800/50">
-                      완성도 {blueAnalysis.totalScore}점
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
-                    <div className="bg-gradient-to-r from-blue-600 to-teal-400 h-full transition-all duration-300" style={{ width: `${blueAnalysis.totalScore}%` }} />
-                  </div>
-                  <div className="flex justify-between text-[11px] text-gray-400">
-                    <span>딜 밸런스: AP {blueAnalysis.apRatio}% / AD {blueAnalysis.adRatio}%</span>
-                    <span className="truncate max-w-[180px] text-right">
-                      추천 픽: <strong className="text-teal-300">{blueAnalysis.recommendations.join(', ')}</strong>
-                    </span>
+            <section className="space-y-6 text-gray-300 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2"><span>📢</span> 공지사항</h2>
+                      <Link href="/notices" className="text-xs text-purple-400 hover:underline">전체보기 ➔</Link>
+                    </div>
+                    <div className="space-y-2">
+                      {notices.length > 0 ? (
+                        notices.slice(0, 4).map((notice) => (
+                          <Link key={notice.id} href={`/notices`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
+                            <span className="text-gray-200 truncate">{notice.title}</span>
+                            {notice.date && <span className="text-xs text-gray-500 shrink-0 ml-2">{notice.date}</span>}
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-400 text-center py-4">등록된 공지사항이 없습니다.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              
-                <div className="bg-gray-900/70 border border-red-900/50 rounded-xl p-3.5 flex flex-col justify-between min-h-[105px]">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
-                      <span>🤖</span> {redSideTeamName} (레드) AI 조합 평가
-                    </span>
-                    <span className="text-xs font-mono font-bold text-red-300 bg-red-950/80 px-2 py-0.5 rounded border border-red-800/50">
-                      완성도 {redAnalysis.totalScore}점
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-950 h-2 rounded-full overflow-hidden border border-gray-800 my-1">
-                    <div className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300" style={{ width: `${redAnalysis.totalScore}%` }} />
-                  </div>
-                  <div className="flex justify-between text-[11px] text-gray-400">
-                    <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.apRatio}%</span>
-                    <span className="truncate max-w-[180px] text-right">
-                      추천 픽: <strong className="text-amber-300">{redAnalysis.recommendations.join(', ')}</strong>
-                    </span>
+
+                <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2"><span>🛠️</span> Dev-log (개발 일지)</h2>
+                      <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">전체보기 ➔</Link>
+                    </div>
+                    <div className="space-y-2">
+                      {devLogs.length > 0 ? (
+                        devLogs.slice(0, 4).map((log) => (
+                          <Link key={log.id} href={`/dev-log`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
+                            <span className="text-gray-200 truncate font-medium">{log.title}</span>
+                            {log.created_at && <span className="text-xs text-gray-500 shrink-0 ml-2">{new Date(log.created_at).toLocaleDateString()}</span>}
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-400 text-center py-4">등록된 개발일지가 없습니다.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </section>
+              </div>
 
-              {config.isProMode && permanentlyBannedChampions.length > 0 && (
-                <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-                  <h3 className="text-red-400 font-bold mb-3 flex items-center">
-                    <span className="mr-2">🚫</span> 영구 밴 챔피언 (2회 누적 밴)
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {permanentlyBannedChampions.map((id) => {
-                      const champion = champions[id];
-                      return (
-                        <div key={id} className="flex flex-col items-center">
-                          <div className="w-12 h-12 relative rounded border border-red-600 overflow-hidden grayscale">
-                            {version && <Image src={getChampionThumbnailUrl(version, id)} alt={id} fill className="object-cover" />}
-                            <div className="absolute inset-0 flex items-center justify-center bg-red-900/40">
-                              <div className="w-full h-0.5 bg-red-600 rotate-45 absolute"></div>
-                              <div className="w-full h-0.5 bg-red-600 -rotate-45 absolute"></div>
+              <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md w-full">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
+                  <div>
+                    <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 사이트 이용 데이터 실시간 랭킹</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">※ 시뮬레이터에서 완료된 밴픽 기록을 바탕으로 자동 집계됩니다.</p>
+                  </div>
+                  <span className="text-[11px] bg-gray-900 px-3 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Simulation Stats</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                  <div className="bg-gray-900/85 p-4 rounded-xl border border-indigo-500/30 shadow-inner">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-bold text-indigo-300 flex items-center gap-1.5">
+                        <span>📈</span> 전체 픽률 TOP 5
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {topPickStats.length > 0 ? (
+                        topPickStats.map((item, index) => (
+                          <div key={item.championId} className="space-y-1">
+                            <div className="flex justify-between text-xs font-semibold">
+                              <span className="text-gray-200 flex items-center gap-2">
+                                <span className="w-4 text-indigo-400 font-mono">#{index + 1}</span>
+                                {item.championName}
+                              </span>
+                              <span className="text-indigo-400 font-mono">{item.percentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
+                              <div 
+                                className="bg-gradient-to-r from-indigo-600 via-purple-500 to-teal-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                                style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                              />
                             </div>
                           </div>
-                          <span className="text-[10px] mt-1 text-red-300">
-                            {champion?.name || id}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 모바일 화면 전용 탭 */}
-              <div className="flex border-b border-gray-700 md:hidden rounded-t-lg overflow-hidden">
-                <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
-                  {blueSideTeamName} (블루)
-                </button>
-                <button onClick={() => setActiveTab('champions')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'champions' ? 'bg-gray-800 text-white' : 'bg-gray-900 text-gray-400'}`}>
-                  챔피언 선택
-                </button>
-                <button onClick={() => setActiveTab('red')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'red' ? 'bg-gray-800 text-red-400' : 'bg-gray-900 text-gray-400'}`}>
-                  {redSideTeamName} (레드)
-                </button>
-              </div>
-
-              {/* 데스크톱 및 태블릿 화면에서 가로 4열 구조 고정 */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
-                <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} md:block md:col-span-1`}>
-                  <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
-                </div>
-                <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} md:block md:col-span-2 relative`}>
-                  {isDraftFinished ? (
-                    <div className="absolute inset-0 z-20 bg-gray-950/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/40 shadow-2xl">
-                      <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
-                      <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
-                      <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
-                      
-                      <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
-                        <DynamicAdBanner 
-                          position="completion_box" 
-                          className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px]" 
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-1">
-                        <button onClick={() => setIsShareModalOpen(true)} className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
-                          결과 공유하기 🔗
-                        </button>
-                        <button onClick={onNextSetWithTimerReset} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold text-xs rounded-lg transition-all shadow-md">
-                          다음 세트 시작하기 ➔
-                        </button>
-                      </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-400 text-center py-6">아직 집계된 픽 데이터가 없습니다.</p>
+                      )}
                     </div>
-                  ) : !isConfigured && currentTurnIndex === 0 ? (
-                    <div onClick={() => setIsConfigOpen(true)} className="absolute inset-0 z-20 bg-gray-950/60 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center space-y-2 p-4 text-center cursor-pointer group hover:bg-gray-950/70 transition-all border border-indigo-500/20 hover:border-indigo-500/50">
-                      <div className="p-3 rounded-full bg-indigo-600/20 text-indigo-400 group-hover:scale-110 transition-transform">⚙️</div>
-                      <h3 className="text-base font-bold text-white">밴픽을 시작하려면 경기 설정이 필요합니다</h3>
-                      <p className="text-xs text-indigo-300 underline underline-offset-4">여기를 클릭하여 경기 설정을 진행해주세요.</p>
-                    </div>
-                  ) : null}
-                  <div className={isDraftFinished ? 'grayscale opacity-50 pointer-events-none' : ''}>
-                    <ChampionGrid />
                   </div>
-                </div>
-                <div className={`${activeTab === 'red' ? 'block' : 'hidden'} md:block md:col-span-1`}>
-                  <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
+
+                  <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
+                        <span>🚫</span> 전체 밴률 TOP 5
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {topBanStats.length > 0 ? (
+                        topBanStats.map((item, index) => (
+                          <div key={item.championId} className="space-y-1">
+                            <div className="flex justify-between text-xs font-semibold">
+                              <span className="text-gray-200 flex items-center gap-2">
+                                <span className="w-4 text-red-400 font-mono">#{index + 1}</span>
+                                {item.championName}
+                              </span>
+                              <span className="text-red-400 font-mono">{item.percentage}%</span>
+                            </div>
+                            <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
+                              <div 
+                                className="bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                                style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-gray-400 text-center py-6">아직 집계된 밴 데이터가 없습니다.</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <section className="my-6 w-full flex justify-center">
-                <DynamicAdBanner 
-                  position="main_top" 
-                  className="bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px] w-full" 
-                />
-              </section>
-
-              {/* 관리자 페이지에서 추가한 공지사항 및 개발일지 텍스트 출력 영역 */}
-              <section className="space-y-6 text-gray-300">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-purple-300 flex items-center gap-2"><span>📢</span> 공지사항</h2>
-                        <Link href="/notices" className="text-xs text-purple-400 hover:underline">전체보기 ➔</Link>
-                      </div>
-                      <div className="space-y-2">
-                        {notices.length > 0 ? (
-                          notices.slice(0, 4).map((notice) => (
-                            <Link key={notice.id} href={`/notices`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
-                              <span className="text-gray-200 truncate">{notice.title}</span>
-                              {notice.date && <span className="text-xs text-gray-500 shrink-0 ml-2">{notice.date}</span>}
-                            </Link>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center py-4">등록된 공지사항이 없습니다.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-teal-300 flex items-center gap-2"><span>🛠️</span> Dev-log (개발 일지)</h2>
-                        <Link href="/dev-log" className="text-xs text-teal-400 hover:underline">전체보기 ➔</Link>
-                      </div>
-                      <div className="space-y-2">
-                        {devLogs.length > 0 ? (
-                          devLogs.slice(0, 4).map((log) => (
-                            <Link key={log.id} href={`/dev-log`} className="block bg-gray-900/60 hover:bg-gray-900 p-3 rounded-lg border border-gray-700/50 transition-all text-sm flex justify-between items-center">
-                              <span className="text-gray-200 truncate font-medium">{log.title}</span>
-                              {log.created_at && <span className="text-xs text-gray-500 shrink-0 ml-2">{new Date(log.created_at).toLocaleDateString()}</span>}
-                            </Link>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center py-4">등록된 개발일지가 없습니다.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-800/80 rounded-xl p-6 border border-gray-700 shadow-md">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
-                    <div>
-                      <h2 className="text-lg font-bold text-amber-300 flex items-center gap-2"><span>🔥</span> 사이트 이용 데이터 실시간 랭킹</h2>
-                      <p className="text-xs text-gray-400 mt-0.5">※ 시뮬레이터에서 완료된 밴픽 기록을 바탕으로 자동 집계됩니다.</p>
-                    </div>
-                    <span className="text-[11px] bg-gray-900 px-3 py-1 rounded-full border border-gray-700 text-teal-400 font-mono">Live Simulation Stats</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gray-900/85 p-4 rounded-xl border border-indigo-500/30 shadow-inner">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-sm font-bold text-indigo-300 flex items-center gap-1.5">
-                          <span>📈</span> 전체 픽률 TOP 5
-                        </h3>
-                      </div>
-                      <div className="space-y-3">
-                        {topPickStats.length > 0 ? (
-                          topPickStats.map((item, index) => (
-                            <div key={item.championId} className="space-y-1">
-                              <div className="flex justify-between text-xs font-semibold">
-                                <span className="text-gray-200 flex items-center gap-2">
-                                  <span className="w-4 text-indigo-400 font-mono">#{index + 1}</span>
-                                  {item.championName}
-                                </span>
-                                <span className="text-indigo-400 font-mono">{item.percentage}%</span>
-                              </div>
-                              <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
-                                <div 
-                                  className="bg-gradient-to-r from-indigo-600 via-purple-500 to-teal-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-                                  style={{ width: `${Math.max(item.percentage, 5)}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center py-6">아직 집계된 픽 데이터가 없습니다.</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
-                          <span>🚫</span> 전체 밴률 TOP 5
-                        </h3>
-                      </div>
-                      <div className="space-y-3">
-                        {topBanStats.length > 0 ? (
-                          topBanStats.map((item, index) => (
-                            <div key={item.championId} className="space-y-1">
-                              <div className="flex justify-between text-xs font-semibold">
-                                <span className="text-gray-200 flex items-center gap-2">
-                                  <span className="w-4 text-red-400 font-mono">#{index + 1}</span>
-                                  {item.championName}
-                                </span>
-                                <span className="text-red-400 font-mono">{item.percentage}%</span>
-                              </div>
-                              <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
-                                <div 
-                                  className="bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-                                  style={{ width: `${Math.max(item.percentage, 5)}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center py-6">아직 집계된 밴 데이터가 없습니다.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </main>
-          </div>
-
-          {/* ②번 우측 사이드바 광고 영역 */}
-          <aside className="hidden 2xl:flex flex-col w-[160px] shrink-0 items-center">
-            <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
-              <DynamicAdBanner position="sidebar_right" className="w-full" />
-            </div>
-          </aside>
-
+            </section>
+          </main>
         </div>
       )}
     </>
