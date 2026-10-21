@@ -10,19 +10,18 @@ interface Advertisement {
   size: string;
   ad_type: string;
   ad_content: string;
+  top_text: string; // 💡 상단 텍스트 필드 추가
   start_date: string;
   end_date: string;
   is_active: boolean;
 }
 
-// 💡 관리자로 허용할 이메일 주소 목록 (본인의 Supabase 계정 이메일 입력)
-const ADMIN_EMAILS = ['chwhox3@gmail.com'];
+const ADMIN_EMAILS = ['admin@example.com', 'your-real-email@gmail.com'];
 
 export default function AdminAdsPage() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // 로그인 폼 입력 상태
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -30,18 +29,17 @@ export default function AdminAdsPage() {
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
 
-  // 💡 수정 모드 상태 관리 (null이면 등록 모드, string(id)이면 수정 모드)
   const [editingAdId, setEditingAdId] = useState<string | null>(null);
 
-  // 광고 폼 입력 상태
+  // 💡 광고 폼 입력 상태 (상단 텍스트 상태 추가)
   const [title, setTitle] = useState('');
+  const [topText, setTopText] = useState('');
   const [position, setPosition] = useState('main_top');
   const [size, setSize] = useState('728x90');
   const [adContent, setAdContent] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // 1. 페이지 진입 시 Supabase 세션 확인
   useEffect(() => {
     async function checkUser() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -65,7 +63,17 @@ export default function AdminAdsPage() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Supabase Auth 로그인 처리
+  const handlePositionChange = (selectedPosition: string) => {
+    setPosition(selectedPosition);
+    if (selectedPosition === 'sidebar_left' || selectedPosition === 'sidebar_right') {
+      setSize('160x600');
+    } else if (selectedPosition === 'main_top') {
+      setSize('728x90');
+    } else if (selectedPosition === 'completion_box') {
+      setSize('300x100');
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
@@ -108,7 +116,6 @@ export default function AdminAdsPage() {
     setDataLoading(false);
   };
 
-  // datetime-local input용 ISO 포맷 변환 (YYYY-MM-DDTHH:mm)
   const formatToLocalISO = (isoString: string) => {
     if (!isoString) return '';
     const d = new Date(isoString);
@@ -116,24 +123,23 @@ export default function AdminAdsPage() {
     return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
   };
 
-  // 💡 특정 광고 '수정' 버튼 클릭 시 폼에 데이터 채우기
   const handleStartEdit = (ad: Advertisement) => {
     setEditingAdId(ad.id);
     setTitle(ad.title);
+    setTopText(ad.top_text || ''); // 💡 수정 시 상단 텍스트 불러오기
     setPosition(ad.position);
     setSize(ad.size);
     setAdContent(ad.ad_content);
     setStartDate(formatToLocalISO(ad.start_date));
     setEndDate(formatToLocalISO(ad.end_date));
 
-    // 화면 스크롤을 상단 폼으로 이동
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 💡 수정 취소 및 폼 초기화
   const handleCancelEdit = () => {
     setEditingAdId(null);
     setTitle('');
+    setTopText('');
     setPosition('main_top');
     setSize('728x90');
     setAdContent('');
@@ -141,7 +147,6 @@ export default function AdminAdsPage() {
     setEndDate('');
   };
 
-  // 💡 광고 등록 및 수정 전송 제출 함수
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !adContent || !startDate || !endDate) {
@@ -151,6 +156,7 @@ export default function AdminAdsPage() {
 
     const payload = {
       title,
+      top_text: topText, // 💡 상단 텍스트 페이로드 포함
       position,
       size,
       ad_type: 'iframe',
@@ -160,7 +166,6 @@ export default function AdminAdsPage() {
     };
 
     if (editingAdId) {
-      // ✏️ 기존 광고 수정 (UPDATE)
       const { error } = await supabase
         .from('advertisements')
         .update(payload)
@@ -174,7 +179,6 @@ export default function AdminAdsPage() {
         fetchAds();
       }
     } else {
-      // ➕ 새 광고 등록 (INSERT)
       const { error } = await supabase.from('advertisements').insert([
         {
           ...payload,
@@ -222,7 +226,6 @@ export default function AdminAdsPage() {
     return <div className="flex min-h-[70vh] items-center justify-center text-gray-400 text-xs">권한 확인 중...</div>;
   }
 
-  // 🔒 로그인하지 않았거나 관리자 이메일이 아닌 경우 로그인 폼 노출
   if (!user || !ADMIN_EMAILS.includes(user.email)) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center px-4">
@@ -271,7 +274,6 @@ export default function AdminAdsPage() {
     );
   }
 
-  // ✅ 인증된 관리자 대시보드 화면
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col gap-8 py-6 text-gray-200 px-4">
       <div className="flex justify-between items-center bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
@@ -309,24 +311,39 @@ export default function AdminAdsPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-400 font-medium">광고 이름</label>
+            <label className="text-xs text-gray-400 font-medium">광고 이름 (관리용)</label>
             <input
               type="text"
-              placeholder="예: 쿠팡 메인 배너"
+              placeholder="예: 쿠팡 좌측 사이드 배너"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white"
             />
           </div>
           <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-gray-400 font-medium">광고 바로 위 상단 텍스트 (예: ADVERTISEMENT 등)</label>
+            <input
+              type="text"
+              placeholder="예: 추천 상품 또는 SPONSORED"
+              value={topText}
+              onChange={(e) => setTopText(e.target.value)}
+              className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-400 font-medium">노출 위치 (Position)</label>
             <select
               value={position}
-              onChange={(e) => setPosition(e.target.value)}
+              onChange={(e) => handlePositionChange(e.target.value)}
               className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white"
             >
+              <option value="sidebar_left">sidebar_left (좌측 사이드바)</option>
+              <option value="sidebar_right">sidebar_right (우측 사이드바)</option>
               <option value="main_top">main_top (메인 하단 배너)</option>
               <option value="completion_box">completion_box (밴픽 완료 모달)</option>
             </select>
@@ -335,15 +352,12 @@ export default function AdminAdsPage() {
             <label className="text-xs text-gray-400 font-medium">사이즈 규격</label>
             <input
               type="text"
-              placeholder="예: 728x90"
+              placeholder="예: 160x600"
               value={size}
               onChange={(e) => setSize(e.target.value)}
               className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white"
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-400 font-medium">노출 시작일시</label>
             <input
@@ -353,6 +367,9 @@ export default function AdminAdsPage() {
               className="bg-gray-950 border border-gray-700 rounded-xl px-3 py-2.5 text-xs text-white"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-400 font-medium">노출 종료일시</label>
             <input
@@ -368,7 +385,7 @@ export default function AdminAdsPage() {
           <label className="text-xs text-gray-400 font-medium">광고 HTML 코드 (iframe 등)</label>
           <textarea
             rows={3}
-            placeholder="<iframe src='...' width='...' height='...'></iframe>"
+            placeholder="<iframe src='...' width='160' height='600'></iframe>"
             value={adContent}
             onChange={(e) => setAdContent(e.target.value)}
             className="bg-gray-950 border border-gray-700 rounded-xl p-3 text-xs text-white font-mono"
@@ -408,7 +425,7 @@ export default function AdminAdsPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-950 text-gray-400 border-b border-gray-800">
                 <tr>
-                  <th className="p-3">제목</th>
+                  <th className="p-3">제목 / 상단 텍스트</th>
                   <th className="p-3">위치</th>
                   <th className="p-3">규격</th>
                   <th className="p-3">기간</th>
@@ -419,7 +436,10 @@ export default function AdminAdsPage() {
               <tbody className="divide-y divide-gray-800">
                 {ads.map((ad) => (
                   <tr key={ad.id} className={`hover:bg-gray-950/50 ${editingAdId === ad.id ? 'bg-amber-950/20' : ''}`}>
-                    <td className="p-3 font-bold text-white">{ad.title}</td>
+                    <td className="p-3">
+                      <div className="font-bold text-white">{ad.title}</div>
+                      <div className="text-[11px] text-teal-400/80 mt-0.5">문구: {ad.top_text || '(없음)'}</div>
+                    </td>
                     <td className="p-3 text-teal-300 font-mono">{ad.position}</td>
                     <td className="p-3 text-gray-400">{ad.size}</td>
                     <td className="p-3 text-gray-400 text-[11px]">
@@ -436,7 +456,6 @@ export default function AdminAdsPage() {
                       </button>
                     </td>
                     <td className="p-3 text-right space-x-2">
-                      {/* 💡 [수정] 버튼 클릭 시 해당 광고 데이터로 상단 폼이 채워집니다 */}
                       <button
                         onClick={() => handleStartEdit(ad)}
                         className="px-3 py-1 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
