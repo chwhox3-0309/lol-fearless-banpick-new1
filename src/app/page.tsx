@@ -11,11 +11,10 @@ import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DraftConfigurator from './components/DraftConfigurator';
 import FearlessMatchLoader from './components/FearlessMatchLoader';
+import DynamicAdBanner from './components/DynamicAdBanner'; // 💡 백엔드 연동 동적 광고 컴포넌트 추가
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
-import AdsenseBanner from "@/app/components/AdsenseBanner";
-// ❌ KakaoAdFitBanner 임포트 제거됨
 
 const AP_CHAMPIONS = new Set([
   'Ahri', 'Akali', 'Anivia', 'Annie', 'AurelionSol', 'Azir', 'Cassiopeia', 'ChoGath', 
@@ -631,21 +630,13 @@ export default function Home() {
                 <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
                 <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
                 
-                {/* 💡 쿠팡 파트너스 배너 영역 (완료 화면 내 광고 대체) */}
+                {/* 💡 백엔드 동적 광고 컴포넌트 적용 (완료 화면 내 광고) */}
                 {!isBroadcastMode && (
                   <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-gray-500 mb-1">COUPANG PARTNERS</span>
-                    <div className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px] flex items-center justify-center text-xs text-gray-400">
-                      {/* 쿠팡 파트너스 iframe 또는 배너 스크립트 소스를 여기에 삽입하세요 */}
-                      <iframe 
-                        src="https://ads-partners.coupang.com/widgets.html?id=YOUR_WIDGET_ID&template=carousel&trackingCode=YOUR_TRACKING_CODE&subId=&width=300&height=100" 
-                        width="300" 
-                        height="100" 
-                        frameBorder="0" 
-                        scrolling="no" 
-                        referrerPolicy="unsafe-url"
-                      ></iframe>
-                    </div>
+                    <DynamicAdBanner 
+                      position="completion_box" 
+                      className="bg-gray-900 p-2 rounded border border-gray-800 w-full min-h-[100px]" 
+                    />
                   </div>
                 )}
 
@@ -676,22 +667,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 💡 하단 광고 영역을 쿠팡 파트너스 배너로 교체 */}
+        {/* 💡 백엔드 동적 광고 컴포넌트 적용 (하단 메인 배너 광고) */}
         {!isBroadcastMode && (
           <>
-            <section className="my-6 w-full flex flex-col items-center justify-center bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px]">
-              <span className="text-[10px] text-gray-500 mb-1 tracking-wider uppercase">COUPANG PARTNERS ADVERTISEMENT</span>
-              <div className="w-full flex justify-center items-center overflow-hidden">
-                {/* 쿠팡 파트너스 다이나믹 배너 또는 상품 링크 iframe 삽입 */}
-                <iframe 
-                  src="https://ads-partners.coupang.com/widgets.html?id=YOUR_WIDGET_ID&template=carousel&trackingCode=YOUR_TRACKING_CODE&subId=&width=728&height=90" 
-                  width="728" 
-                  height="90" 
-                  frameBorder="0" 
-                  scrolling="no" 
-                  referrerPolicy="unsafe-url"
-                ></iframe>
-              </div>
+            <section className="my-6 w-full flex justify-center">
+              <DynamicAdBanner 
+                position="main_top" 
+                className="bg-gray-950/40 border border-gray-800/80 rounded-xl p-3 min-h-[110px] w-full" 
+              />
             </section>
 
             <section className="space-y-6 text-gray-300">
