@@ -16,7 +16,7 @@ interface Advertisement {
   is_active: boolean;
 }
 
-const ADMIN_EMAILS = ['admin@example.com', 'your-real-email@gmail.com'];
+const ADMIN_EMAILS = ['chwhox3@gmail.com'];
 
 export default function AdminAdsPage() {
   const [user, setUser] = useState<any>(null);
