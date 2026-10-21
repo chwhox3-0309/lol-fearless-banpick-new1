@@ -416,21 +416,21 @@ export default function Home() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 relative p-2">
-            <div className="block lg:col-span-1">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 relative p-2">
+            <div className="block xl:col-span-1">
               <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
             </div>
-            <div className="block lg:col-span-2 relative">
+            <div className="block xl:col-span-2 relative">
               <ChampionGrid />
             </div>
-            <div className="block lg:col-span-1">
+            <div className="block xl:col-span-1">
               <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
             </div>
           </div>
         </div>
       ) : (
-        /* 💡 수정된 부분: 좌우 사이드바를 배치하되 중앙 메인 영역을 max-w 제한 없이 넓게(w-full) 확장 */
-        <div className="w-full px-2 sm:px-6 pt-4 flex justify-between relative gap-4">
+        /* 💡 수정된 부분: 좌우 고정 광고 사이드바를 두고, 중앙 메인 영역이 남은 공간을 넓게 차지하며 xl 이상에서 4열 밴픽 고정 */
+        <div className="w-full px-2 sm:px-4 pt-4 flex justify-between relative gap-4">
           
           {/* ①번 좌측 사이드바 광고 영역 */}
           <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
@@ -439,7 +439,7 @@ export default function Home() {
             </div>
           </aside>
 
-          {/* 메인 컨테이너 영역 (max-w 제한을 풀고 w-full로 넓게 확장) */}
+          {/* 메인 컨테이너 영역 (flex-grow를 주어 남은 전체 공간을 시원하게 채우도록 함) */}
           <div className="flex-grow w-full max-w-[1440px] mx-auto flex flex-col space-y-4">
             
             {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
@@ -642,7 +642,7 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex border-b border-gray-700 lg:hidden rounded-t-lg overflow-hidden">
+              <div className="flex border-b border-gray-700 xl:hidden rounded-t-lg overflow-hidden">
                 <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
                   {blueSideTeamName} (블루)
                 </button>
@@ -654,11 +654,12 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
-                <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
+              {/* 💡 핵심 수정: xl(데스크톱 해상도) 이상에서 무조건 4열(사이드바 감안하여 가로 배치)이 되도록 수정 */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
+                <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} xl:block xl:col-span-1`}>
                   <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
                 </div>
-                <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} lg:block lg:col-span-2 relative`}>
+                <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} xl:block xl:col-span-2 relative`}>
                   {isDraftFinished ? (
                     <div className="absolute inset-0 z-20 bg-gray-950/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/40 shadow-2xl">
                       <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
@@ -692,7 +693,7 @@ export default function Home() {
                     <ChampionGrid />
                   </div>
                 </div>
-                <div className={`${activeTab === 'red' ? 'block' : 'hidden'} lg:block lg:col-span-1`}>
+                <div className={`${activeTab === 'red' ? 'block' : 'hidden'} xl:block xl:col-span-1`}>
                   <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
                 </div>
               </div>
@@ -790,34 +791,36 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
-                          <span>🚫</span> 전체 밴률 TOP 5
-                        </h3>
-                      </div>
-                      <div className="space-y-3">
-                        {topBanStats.length > 0 ? (
-                          topBanStats.map((item, index) => (
-                            <div key={item.championId} className="space-y-1">
-                              <div className="flex justify-between text-xs font-semibold">
-                                <span className="text-gray-200 flex items-center gap-2">
-                                  <span className="w-4 text-red-400 font-mono">#{index + 1}</span>
-                                  {item.championName}
-                                </span>
-                                <span className="text-red-400 font-mono">{item.percentage}%</span>
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                      <div className="bg-gray-900/85 p-4 rounded-xl border border-red-500/30 shadow-inner">
+                        <div className="flex justify-between items-center mb-3">
+                          <h3 className="text-sm font-bold text-red-300 flex items-center gap-1.5">
+                            <span>🚫</span> 전체 밴률 TOP 5
+                          </h3>
+                        </div>
+                        <div className="space-y-3">
+                          {topBanStats.length > 0 ? (
+                            topBanStats.map((item, index) => (
+                              <div key={item.championId} className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold">
+                                  <span className="text-gray-200 flex items-center gap-2">
+                                    <span className="w-4 text-red-400 font-mono">#{index + 1}</span>
+                                    {item.championName}
+                                  </span>
+                                  <span className="text-red-400 font-mono">{item.percentage}%</span>
+                                </div>
+                                <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
+                                  <div 
+                                    className="bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                                    style={{ width: `${Math.max(item.percentage, 5)}%` }}
+                                  />
+                                </div>
                               </div>
-                              <div className="w-full bg-gray-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-gray-800">
-                                <div 
-                                  className="bg-gradient-to-r from-red-700 via-rose-500 to-amber-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-                                  style={{ width: `${Math.max(item.percentage, 5)}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400 text-center py-6">아직 집계된 밴 데이터가 없습니다.</p>
-                        )}
+                            ))
+                          ) : (
+                            <p className="text-xs text-gray-400 text-center py-6">아직 집계된 밴 데이터가 없습니다.</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
