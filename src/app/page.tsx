@@ -365,7 +365,19 @@ export default function Home() {
   const redAnalysis = analyzeTeamComposition(redSideData.picks);
 
   return (
-    <div className={isBroadcastMode ? "min-h-screen bg-[#00FF00] p-4 flex flex-col" : "w-full max-w-[1280px] mx-auto flex flex-col space-y-4 pt-4 relative"}>
+    <div className={isBroadcastMode ? "min-h-screen bg-[#00FF00] p-4 flex flex-col" : "w-full max-w-[1500px] mx-auto flex justify-between px-4 pt-4 relative gap-4"}>
+      
+      {/* 💡 ①번 좌측 사이드바 광고 영역 (방송 모드가 아닐 때만 노출) */}
+      {!isBroadcastMode && (
+        <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
+          <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
+            <DynamicAdBanner position="sidebar_left" className="w-full" />
+          </div>
+        </aside>
+      )}
+
+      {/* 메인 컨테이너 영역 */}
+      <div className={isBroadcastMode ? "w-full flex flex-col" : "flex-grow max-w-[1280px] mx-auto flex flex-col space-y-4"}>
       
       {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
       {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
@@ -798,7 +810,17 @@ export default function Home() {
             </section>
           </>
         )}
-      </main>
+      </div>
+
+      {/* 💡 ②번 우측 사이드바 광고 영역 (방송 모드가 아닐 때만 노출) */}
+      {!isBroadcastMode && (
+        <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
+          <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
+            <DynamicAdBanner position="sidebar_right" className="w-full" />
+          </div>
+        </aside>
+      )}
+
     </div>
   );
 }
