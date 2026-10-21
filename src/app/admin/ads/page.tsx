@@ -15,8 +15,8 @@ interface Advertisement {
   is_active: boolean;
 }
 
-// 💡 관리자로 허용할 이메일 주소 목록 (본인의 Supabase 로그인 이메일을 입력하세요)
-const ADMIN_EMAILS = ['chwhox3@gmail.com'];
+// 💡 관리자로 허용할 이메일 주소 목록 (본인의 Supabase 계정 이메일 입력)
+const ADMIN_EMAILS = ['admin@example.com', 'your-real-email@gmail.com'];
 
 export default function AdminAdsPage() {
   const [user, setUser] = useState<any>(null);
@@ -30,7 +30,10 @@ export default function AdminAdsPage() {
   const [ads, setAds] = useState<Advertisement[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
 
-  // 새 광고 등록 폼 상태
+  // 💡 수정 모드 상태 관리 (null이면 등록 모드, string(id)이면 수정 모드)
+  const [editingAdId, setEditingAdId] = useState<string | null>(null);
+
+  // 광고 폼 입력 상태
   const [title, setTitle] = useState('');
   const [position, setPosition] = useState('main_top');
   const [size, setSize] = useState('728x90');
@@ -52,7 +55,6 @@ export default function AdminAdsPage() {
 
     checkUser();
 
-    // 인증 상태 변화 감지 리스너
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
       if (session?.user && ADMIN_EMAILS.includes(session.user.email || '')) {
@@ -106,33 +108,87 @@ export default function AdminAdsPage() {
     setDataLoading(false);
   };
 
-  const handleCreateAd = async (e: React.FormEvent) => {
+  // datetime-local input용 ISO 포맷 변환 (YYYY-MM-DDTHH:mm)
+  const formatToLocalISO = (isoString: string) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  };
+
+  // 💡 특정 광고 '수정' 버튼 클릭 시 폼에 데이터 채우기
+  const handleStartEdit = (ad: Advertisement) => {
+    setEditingAdId(ad.id);
+    setTitle(ad.title);
+    setPosition(ad.position);
+    setSize(ad.size);
+    setAdContent(ad.ad_content);
+    setStartDate(formatToLocalISO(ad.start_date));
+    setEndDate(formatToLocalISO(ad.end_date));
+
+    // 화면 스크롤을 상단 폼으로 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 💡 수정 취소 및 폼 초기화
+  const handleCancelEdit = () => {
+    setEditingAdId(null);
+    setTitle('');
+    setPosition('main_top');
+    setSize('728x90');
+    setAdContent('');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // 💡 광고 등록 및 수정 전송 제출 함수
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !adContent || !startDate || !endDate) {
       alert('모든 필수 항목을 입력해주세요.');
       return;
     }
 
-    const { error } = await supabase.from('advertisements').insert([
-      {
-        title,
-        position,
-        size,
-        ad_type: 'iframe',
-        ad_content: adContent,
-        start_date: new Date(startDate).toISOString(),
-        end_date: new Date(endDate).toISOString(),
-        is_active: true,
-      },
-    ]);
+    const payload = {
+      title,
+      position,
+      size,
+      ad_type: 'iframe',
+      ad_content: adContent,
+      start_date: new Date(startDate).toISOString(),
+      end_date: new Date(endDate).toISOString(),
+    };
 
-    if (error) {
-      alert('광고 등록 실패: ' + error.message);
+    if (editingAdId) {
+      // ✏️ 기존 광고 수정 (UPDATE)
+      const { error } = await supabase
+        .from('advertisements')
+        .update(payload)
+        .eq('id', editingAdId);
+
+      if (error) {
+        alert('광고 수정 실패: ' + error.message);
+      } else {
+        alert('광고가 성공적으로 수정되었습니다.');
+        handleCancelEdit();
+        fetchAds();
+      }
     } else {
-      alert('광고가 성공적으로 등록되었습니다.');
-      setTitle('');
-      setAdContent('');
-      fetchAds();
+      // ➕ 새 광고 등록 (INSERT)
+      const { error } = await supabase.from('advertisements').insert([
+        {
+          ...payload,
+          is_active: true,
+        },
+      ]);
+
+      if (error) {
+        alert('광고 등록 실패: ' + error.message);
+      } else {
+        alert('광고가 성공적으로 등록되었습니다.');
+        handleCancelEdit();
+        fetchAds();
+      }
     }
   };
 
@@ -157,6 +213,7 @@ export default function AdminAdsPage() {
     if (error) {
       alert('삭제 실패: ' + error.message);
     } else {
+      if (editingAdId === id) handleCancelEdit();
       fetchAds();
     }
   };
@@ -233,9 +290,25 @@ export default function AdminAdsPage() {
         </button>
       </div>
 
-      {/* 광고 등록 폼 */}
-      <form onSubmit={handleCreateAd} className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl flex flex-col gap-4">
-        <h2 className="text-sm font-bold text-teal-400 uppercase tracking-wider">➕ 새 광고 등록</h2>
+      {/* 광고 등록/수정 폼 */}
+      <form onSubmit={handleSubmitForm} className={`bg-gray-900 border p-6 rounded-2xl shadow-xl flex flex-col gap-4 transition-all ${
+        editingAdId ? 'border-amber-500/60 ring-1 ring-amber-500/30' : 'border-gray-800'
+      }`}>
+        <div className="flex justify-between items-center">
+          <h2 className={`text-sm font-bold uppercase tracking-wider ${editingAdId ? 'text-amber-400' : 'text-teal-400'}`}>
+            {editingAdId ? '✏️ 광고 정보 수정' : '➕ 새 광고 등록'}
+          </h2>
+          {editingAdId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="text-xs text-gray-400 hover:text-white underline cursor-pointer"
+            >
+              수정 취소하고 등록 모드로 전환
+            </button>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-400 font-medium">광고 이름</label>
@@ -302,9 +375,23 @@ export default function AdminAdsPage() {
           />
         </div>
 
-        <div className="flex justify-end pt-2">
-          <button type="submit" className="px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
-            광고 등록하기
+        <div className="flex justify-end gap-2 pt-2">
+          {editingAdId && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
+            >
+              취소
+            </button>
+          )}
+          <button
+            type="submit"
+            className={`px-6 py-2.5 text-white font-bold text-xs rounded-xl transition-all cursor-pointer ${
+              editingAdId ? 'bg-amber-600 hover:bg-amber-500' : 'bg-teal-600 hover:bg-teal-500'
+            }`}
+          >
+            {editingAdId ? '수정 완료하기' : '광고 등록하기'}
           </button>
         </div>
       </form>
@@ -331,7 +418,7 @@ export default function AdminAdsPage() {
               </thead>
               <tbody className="divide-y divide-gray-800">
                 {ads.map((ad) => (
-                  <tr key={ad.id} className="hover:bg-gray-950/50">
+                  <tr key={ad.id} className={`hover:bg-gray-950/50 ${editingAdId === ad.id ? 'bg-amber-950/20' : ''}`}>
                     <td className="p-3 font-bold text-white">{ad.title}</td>
                     <td className="p-3 text-teal-300 font-mono">{ad.position}</td>
                     <td className="p-3 text-gray-400">{ad.size}</td>
@@ -348,10 +435,17 @@ export default function AdminAdsPage() {
                         {ad.is_active ? 'ACTIVE (ON)' : 'INACTIVE (OFF)'}
                       </button>
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="p-3 text-right space-x-2">
+                      {/* 💡 [수정] 버튼 클릭 시 해당 광고 데이터로 상단 폼이 채워집니다 */}
+                      <button
+                        onClick={() => handleStartEdit(ad)}
+                        className="px-3 py-1 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                      >
+                        수정
+                      </button>
                       <button
                         onClick={() => handleDeleteAd(ad.id)}
-                        className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
+                        className="px-3 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg font-bold text-[11px] transition-all cursor-pointer"
                       >
                         삭제
                       </button>
