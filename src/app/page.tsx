@@ -368,7 +368,6 @@ export default function Home() {
     <>
       {isBroadcastMode ? (
         <div className="min-h-screen bg-[#00FF00] p-4 flex flex-col w-full">
-          {/* 방송 모드일 때의 전체 컨테이너 */}
           <button 
             onClick={() => setIsBroadcastMode(false)}
             className="fixed top-4 right-4 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-2 rounded-lg shadow-xl z-50 font-bold border border-red-500 transition-all"
@@ -430,8 +429,8 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        /* 일반 레이아웃 (좌우 사이드바 + 중앙 메인 컨테이너) */
-        <div className="w-full max-w-[1500px] mx-auto flex justify-between px-4 pt-4 relative gap-4">
+        /* 💡 수정된 부분: 좌우 사이드바를 배치하되 중앙 메인 영역을 max-w 제한 없이 넓게(w-full) 확장 */
+        <div className="w-full px-2 sm:px-6 pt-4 flex justify-between relative gap-4">
           
           {/* ①번 좌측 사이드바 광고 영역 */}
           <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
@@ -440,8 +439,8 @@ export default function Home() {
             </div>
           </aside>
 
-          {/* 메인 컨테이너 영역 */}
-          <div className="flex-grow max-w-[1280px] mx-auto flex flex-col space-y-4">
+          {/* 메인 컨테이너 영역 (max-w 제한을 풀고 w-full로 넓게 확장) */}
+          <div className="flex-grow w-full max-w-[1440px] mx-auto flex flex-col space-y-4">
             
             {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
             {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
@@ -473,7 +472,7 @@ export default function Home() {
             )}
 
             <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
-              isScrolled ? 'top-[60px] bg-gray-900/95 p-2 max-w-[1100px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
+              isScrolled ? 'top-[60px] bg-gray-900/95 p-2 w-full max-w-[1300px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
             }`}>
               <div className="flex flex-wrap justify-between items-center gap-2 px-2">
                 <div className="flex items-center space-x-2 bg-gray-950/80 px-3 py-1 rounded-lg border border-gray-800">
@@ -608,7 +607,7 @@ export default function Home() {
                     <div className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300" style={{ width: `${redAnalysis.totalScore}%` }} />
                   </div>
                   <div className="flex justify-between text-[11px] text-gray-400">
-                    <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.apRatio}%</span>
+                    <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.adRatio}%</span>
                     <span className="truncate max-w-[180px] text-right">
                       추천 픽: <strong className="text-amber-300">{redAnalysis.recommendations.join(', ')}</strong>
                     </span>
