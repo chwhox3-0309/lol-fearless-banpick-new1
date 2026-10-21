@@ -11,7 +11,7 @@ import ShareModal from './components/ShareModal';
 import BulkBanModal from './components/BulkBanModal';
 import DraftConfigurator from './components/DraftConfigurator';
 import FearlessMatchLoader from './components/FearlessMatchLoader';
-import DynamicAdBanner from './components/DynamicAdBanner'; // 💡 백엔드 연동 동적 광고 컴포넌트 추가
+import DynamicAdBanner from './components/DynamicAdBanner';
 import { useDraft } from './context/DraftContext';
 import { getChampionThumbnailUrl } from '@/lib/riot-api';
 import { supabase } from '@/lib/supabase';
@@ -642,7 +642,6 @@ export default function Home() {
                 <h3 className="text-lg font-bold text-white">SET {currentSetNumber} 밴픽이 완료되었습니다</h3>
                 <p className="text-xs text-gray-400">결과를 확인하시거나 다음 세트를 진행해주세요.</p>
                 
-                {/* 💡 백엔드 동적 광고 컴포넌트 적용 (완료 화면 내 광고) */}
                 {!isBroadcastMode && (
                   <div className="my-2 w-full max-w-sm flex flex-col items-center justify-center">
                     <DynamicAdBanner 
@@ -679,7 +678,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 💡 백엔드 동적 광고 컴포넌트 적용 (하단 메인 배너 광고) */}
         {!isBroadcastMode && (
           <>
             <section className="my-6 w-full flex justify-center">
