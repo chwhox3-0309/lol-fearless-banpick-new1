@@ -429,18 +429,18 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        /* 💡 좌우 사이드바 광고 공간 확보 및 중앙 메인 영역을 데스크톱에서 완벽한 4열 구조로 고정 */
+        /* 💡 레이아웃 구조 개선: 좌우 고정 광고 영역 + 중앙 풀사이즈 메인 영역 */
         <div className="w-full px-2 sm:px-4 pt-4 flex justify-between relative gap-4">
           
-          {/* ①번 좌측 사이드바 광고 영역 */}
-          <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
+          {/* ①번 좌측 사이드바 광고 영역 (2XL 이상 해상도에서 노출) */}
+          <aside className="hidden 2xl:flex flex-col w-[160px] shrink-0 items-center">
             <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
               <DynamicAdBanner position="sidebar_left" className="w-full" />
             </div>
           </aside>
 
-          {/* 메인 컨테이너 영역 */}
-          <div className="flex-grow w-full max-w-[1440px] mx-auto flex flex-col space-y-4">
+          {/* 메인 컨테이너 영역 (전체 화면 시원하게 채우기) */}
+          <div className="flex-grow w-full mx-auto flex flex-col space-y-4 min-w-0">
             
             {isShareModalOpen && <ShareModal onClose={() => setIsShareModalOpen(false)} onShareUrl={handleShareUrl} />}
             {isBulkBanModalOpen && <BulkBanModal onClose={() => setIsBulkBanModalOpen(false)} onConfirm={handleRegisterUsedChampionsConfirm} />}
@@ -472,7 +472,7 @@ export default function Home() {
             )}
 
             <nav className={`sticky z-40 transition-all duration-300 ease-in-out rounded-xl backdrop-blur-md border border-indigo-500/30 shadow-2xl isolate ${
-              isScrolled ? 'top-[60px] bg-gray-900/95 p-2 w-full max-w-[1300px] mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
+              isScrolled ? 'top-[60px] bg-gray-900/95 p-2 w-full mx-auto' : 'top-2 bg-gray-800/90 p-3 border-gray-700/80'
             }`}>
               <div className="flex flex-wrap justify-between items-center gap-2 px-2">
                 <div className="flex items-center space-x-2 bg-gray-950/80 px-3 py-1 rounded-lg border border-gray-800">
@@ -607,7 +607,7 @@ export default function Home() {
                     <div className="bg-gradient-to-r from-red-600 to-amber-400 h-full transition-all duration-300" style={{ width: `${redAnalysis.totalScore}%` }} />
                   </div>
                   <div className="flex justify-between text-[11px] text-gray-400">
-                    <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.adRatio}%</span>
+                    <span>딜 밸런스: AP {redAnalysis.apRatio}% / AD {redAnalysis.apRatio}%</span>
                     <span className="truncate max-w-[180px] text-right">
                       추천 픽: <strong className="text-amber-300">{redAnalysis.recommendations.join(', ')}</strong>
                     </span>
@@ -642,8 +642,8 @@ export default function Home() {
                 </div>
               )}
 
-              {/* 모바일 화면에서만 보이는 탭 메뉴 */}
-              <div className="flex border-b border-gray-700 xl:hidden rounded-t-lg overflow-hidden">
+              {/* 모바일(md 미만) 전용 탭 */}
+              <div className="flex border-b border-gray-700 md:hidden rounded-t-lg overflow-hidden">
                 <button onClick={() => setActiveTab('blue')} className={`flex-1 p-3 text-center font-semibold text-sm ${activeTab === 'blue' ? 'bg-gray-800 text-blue-400' : 'bg-gray-900 text-gray-400'}`}>
                   {blueSideTeamName} (블루)
                 </button>
@@ -655,12 +655,12 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* 💡 데스크톱(xl 이상)에서는 무조건 4열 가로 구조로 고정 렌더링되도록 수정 */}
-              <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
-                <div className="block xl:col-span-1">
+              {/* 💡 핵심 수정: 데스크톱 및 태블릿(md 이상) 영역에서 무조건 grid-cols-4 가로 고정 렌더링 */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative bg-gray-800/40 p-4 rounded-xl border border-gray-700/60">
+                <div className={`${activeTab === 'blue' ? 'block' : 'hidden'} md:block md:col-span-1`}>
                   <TeamDisplay teamName={blueSideTeamName} teamColor="text-blue-400" teamType="blue" picks={blueSideData.picks} bans={blueSideData.bans} />
                 </div>
-                <div className="block xl:col-span-2 relative">
+                <div className={`${activeTab === 'champions' ? 'block' : 'hidden'} md:block md:col-span-2 relative`}>
                   {isDraftFinished ? (
                     <div className="absolute inset-0 z-20 bg-gray-950/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center space-y-3 p-4 text-center border border-green-500/40 shadow-2xl">
                       <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-2xl font-bold">✓</div>
@@ -694,7 +694,7 @@ export default function Home() {
                     <ChampionGrid />
                   </div>
                 </div>
-                <div className="block xl:col-span-1">
+                <div className={`${activeTab === 'red' ? 'block' : 'hidden'} md:block md:col-span-1`}>
                   <TeamDisplay teamName={redSideTeamName} teamColor="text-red-400" teamType="red" picks={redSideData.picks} bans={redSideData.bans} />
                 </div>
               </div>
@@ -828,8 +828,8 @@ export default function Home() {
             </main>
           </div>
 
-          {/* ②번 우측 사이드바 광고 영역 */}
-          <aside className="hidden xl:flex flex-col w-[160px] shrink-0 items-center">
+          {/* ②번 우측 사이드바 광고 영역 (2XL 이상 해상도에서 노출) */}
+          <aside className="hidden 2xl:flex flex-col w-[160px] shrink-0 items-center">
             <div className="sticky top-4 w-full min-h-[600px] flex items-center justify-center">
               <DynamicAdBanner position="sidebar_right" className="w-full" />
             </div>
