@@ -16,7 +16,7 @@ interface Advertisement {
 }
 
 // 💡 관리자로 허용할 이메일 주소 목록 (본인의 Supabase 계정 이메일 입력)
-const ADMIN_EMAILS = ['admin@example.com', 'your-real-email@gmail.com'];
+const ADMIN_EMAILS = ['chwhox3@gmail.com'];
 
 export default function AdminAdsPage() {
   const [user, setUser] = useState<any>(null);
