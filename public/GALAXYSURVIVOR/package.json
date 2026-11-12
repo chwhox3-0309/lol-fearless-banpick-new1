@@ -1,0 +1,9 @@
+{
+  "name": "starfall-shooter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite --host 0.0.0.0", "build:web": "vite build", "build": "vite build && ait build" },
+  "dependencies": { "@apps-in-toss/web-framework": "latest" },
+  "devDependencies": { "vite": "^6.0.0" }
+}

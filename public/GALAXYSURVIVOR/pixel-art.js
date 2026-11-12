@@ -1,0 +1,67 @@
+/* Pixel sprites use a shared 16-color palette and nearest-neighbor scaling. */
+const PixelArt = (() => {
+  const palette={'.':null,'k':'#101630','d':'#233457','b':'#36547c','l':'#7cabc9','w':'#d4eff5','c':'#53d8f5','r':'#a52e3e','R':'#e64a46','o':'#f49d47','y':'#ffe18a','g':'#76d2a7','p':'#be8ed9'};
+  const shapes={
+    player:[
+      '..........kk',
+      '.........kww',
+      '.........kww',
+      '........kwlw',
+      '........kwlw',
+      '.......kwllb',
+      '.......kwlbc',
+      '......kwlbbc',
+      '......kwlbcc',
+      '.....kwwlbcc',
+      '....kkwwlbcc',
+      '...kkwwdlbcc',
+      '..kkwwddlbbc',
+      '.kkwwlbdlbbb',
+      'kkwwllbdlwbb',
+      'kwwllrbdlwwb',
+      'kwllrrbdllww',
+      'kwllrrbdllww',
+      'kwwwllbdlwww',
+      '.kwwllddlwll',
+      '..kkwlldlwll',
+      '...kkwlbdwll',
+      '....kwbbdwll',
+      '....kwbdkwll',
+      '....kdbd.kww',
+      '....kdc..kww',
+      '....kcc...kw',
+      '.....cc...kc',
+      '.....c....kc',
+      '..........kc'
+    ].map(half=>half+Array.from(half).reverse().join('')),
+    scout:['.....dddddd.....','...ddggggggdd...','..dggggggggggd..','.dggddggggddggd.','.dgdrrdggdrrdgd.','ddgddddggddddgdd','dggggggrrggggggd','dgggggrrrrgggggd','.dgggggrrgggggd.','..dgggddddgggd..','...ddd....ddd...','...dd......dd...'],
+    charger:['......rrrr......','....rrRRRRrr....','...rRRoRRRoRr...','..rRRRrrrrRRRr..','.rRRddrrrrddRRr.','rrRddddrrddddRrr','rRRRddRrrRddRRRr','.rrRRRRRRRRRRrr.','..rrRRrrrrRRrr..','...rr......rr...','..rr........rr..'],
+    hunter:['.....pp..pp.....','....pRRppRRp....','...pRRRRRRRRp...','..pRRdRRRRdRRp..','.pRRddRRRRddRRp.','ppRRRRRooRRRRRpp','pRRRRRRooRRRRRRp','.ppRRRRRRRRRRpp.','..ppRRRRRRRRpp..','...pp......pp...'],
+    gunner:['...rrrr..rrrr...','..rRRRRrrRRRRr..','.rRRddddddRRRRr.','rrRddoooo ddRRrr','rRRddoooo ddRRRr','rRRRRRooRRRRRRRr','.rRRRRRRRRRRRRr.','..rrrRRRRRRrrr..','...rr....rr.....'],
+    boss:[
+      '.......rrrrr........rrrrr.......',
+      '.....rrRRRRRrr....rrRRRRRrr.....',
+      '....rrRRRdddRRrrrrRRdddRRRrr....',
+      '...rrRRddoo ddRRRRdd oo ddRRrr...',
+      '..rrRRdooyyoodRRRRdooyyoodRRrr..',
+      '.rrRRRdddddddRRRRRRdddddddRRRrr.',
+      'rrRRRRRddddRRRRRRRRRRddddRRRRRrr',
+      'rRRRRRRRRRRRRddddddRRRRRRRRRRRRr',
+      'rRRddRRRRRRRddoooo ddRRRRRRddRRr',
+      'rRddllddRRRRdooyyoodRRRRddllddRr',
+      'rrdlllldRRRRdooyyoodRRRRdlllldrr',
+      'rrddllddRRRRRdoooo dRRRRRddllddrr',
+      '.rRddddRRRRRRRddddRRRRRRRddddRr.',
+      '.rrddddRRRRRRRRRRRRRRRRRRddddrr.',
+      '..rdddddRRRRRRRRRRRRRRddddd r...',
+      '..rdddddrRRRRRRRRRRRRrddddd r...',
+      '..dd..dd.rrRRRRRRRRrr.dd..dd....',
+      '..dd..dd..rrRRRRRRrr..dd..dd....',
+      '..ll..ll...rrRooRrr...ll..ll....',
+      '..dd..dd....rrRRrr....dd..dd....',
+      '..dd..dd.....rrrr.....dd..dd....'
+    ],
+  };
+  function sprite(ctx,name,x,y,w,h,phase=1,skin={}){const rows=shapes[name]||shapes.scout, cols=Math.max(...rows.map(row=>row.length));const px=w/cols,py=h/rows.length;ctx.save();ctx.imageSmoothingEnabled=false;for(let j=0;j<rows.length;j++)for(let i=0;i<rows[j].length;i++){const column=i+Math.floor((cols-rows[j].length)/2);const removed=name==='boss'&&((phase>=2&&column<7)||(phase>=3&&column>=cols-7));const key=rows[j][i];let c=removed?null:palette[key];if(name==='boss'&&c){if(skin.body&&['r','R'].includes(key))c=skin.body;if(skin.engine&&['o','y'].includes(key))c=skin.engine;}if(name==='player'&&c){if(skin.body&&['w','l'].includes(key))c=skin.body;if(skin.engine&&key==='c')c=skin.engine;}if(c){ctx.fillStyle=c;ctx.fillRect(Math.round(x-w/2+column*px),Math.round(y-h/2+j*py),Math.ceil(px),Math.ceil(py));}}if(name==='boss'&&skin.bossType){const unit=w/32, type=skin.bossType;ctx.fillStyle=skin.body;for(const side of [-1,1]){const edge=x+side*w*.42;const dx=side<0?-unit*4:0;if(type===1){ctx.fillRect(edge+dx,y-h*.58,unit*4,h*.34);ctx.fillRect(edge+dx,y-h*.67,unit*2,h*.14);}if(type===2){ctx.fillRect(edge+dx,y-h*.15,unit*5,h*.25);ctx.fillRect(edge+dx+unit,y+h*.08,unit*3,h*.18);}if(type===3){ctx.fillRect(edge+dx,y-h*.46,unit*4,h*.7);ctx.fillStyle=skin.engine;ctx.fillRect(edge+dx+unit,y-h*.25,unit*2,h*.3);ctx.fillStyle=skin.body;}if(type===4){ctx.fillRect(edge+dx,y-h*.58,unit*4,h*.26);ctx.fillRect(edge+dx,y+h*.16,unit*4,h*.23);ctx.fillStyle=skin.engine;ctx.fillRect(edge+dx+unit,y-h*.5,unit*2,h*.1);ctx.fillStyle=skin.body;}}}ctx.restore();}
+  return {sprite};
+})();
